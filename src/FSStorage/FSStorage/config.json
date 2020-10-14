@@ -1,3 +1,6 @@
 {
-  "PluginConfiguration": {}
+  "PluginConfiguration": {
+    "Path": "FSStorage_{0}",
+    "PrivateKey": ""
+  }
 }
