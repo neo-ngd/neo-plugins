@@ -1,6 +1,6 @@
 namespace Neo.Plugins.FSStorage
 {
-    class Utils
+    public class Utils
     {
         public class ScriptHashWithType
         {

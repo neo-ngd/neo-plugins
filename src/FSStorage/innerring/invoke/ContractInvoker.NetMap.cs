@@ -32,9 +32,10 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             public byte[] Value { get => value; set => this.value = value; }
         }
 
-        public static long GetEpoch(Client client) {
-           InvokeResult result=client.InvokeLocalFunction(NetMapContractHash, GetEpochMethod);
-           if (result.State != VM.VMState.HALT) return 0;
+        public static long GetEpoch(Client client)
+        {
+            InvokeResult result = client.InvokeLocalFunction(NetMapContractHash, GetEpochMethod);
+            if (result.State != VM.VMState.HALT) return 0;
             return (long)(result.ResultStack[0].GetInteger());
         }
 
