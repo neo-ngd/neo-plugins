@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Configuration;
-using System;
 
-namespace Neo.Plugins
+namespace Neo.Plugins.FSStorage
 {
     internal class Settings
     {
