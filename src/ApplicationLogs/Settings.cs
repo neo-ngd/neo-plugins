@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-
 namespace Neo.Plugins
 {
     internal class Settings
