@@ -7,22 +7,21 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public partial class MorphContractInvoker
     {
-        private UInt160 balanceContractHash = UInt160.Zero;
-        private string balanceOfMethod = "balanceOf";
-        private string decimalsMethod = "decimals";
+        private static string balanceOfMethod = "balanceOf";
+        private static string decimalsMethod = "decimals";
 
-        public UInt160 BalanceContractHash { get => balanceContractHash; set => balanceContractHash = value; }
-        public string BalanceOfMethod { get => balanceOfMethod; set => balanceOfMethod = value; }
-        public string DecimalsMethod { get => decimalsMethod; set => decimalsMethod = value; }
+        public static UInt160 BalanceContractHash => Settings.Default.BalanceContractHash;
+        public static string BalanceOfMethod { get => balanceOfMethod; set => balanceOfMethod = value; }
+        public static string DecimalsMethod { get => decimalsMethod; set => decimalsMethod = value; }
 
-        public long InvokeBalanceOf(Client client, byte[] holder)
+        public static long InvokeBalanceOf(Client client, byte[] holder)
         {
             InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, BalanceOfMethod, holder);
             if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (BalanceOf)");
             return (long)result.ResultStack[0].GetInteger();
         }
 
-        public long InvokeDecimals(Client client)
+        public static long InvokeDecimals(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, DecimalsMethod);
             if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (Decimals)");

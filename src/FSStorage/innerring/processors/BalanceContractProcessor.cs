@@ -1,9 +1,6 @@
 using Akka.Actor;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
@@ -20,17 +17,11 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         private Client client;
         private IActiveState activeState;
-
         private IActorRef workPool;
 
         public Client Client { get => client; set => client = value; }
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
-
-        public BalanceContractProcessor()
-        {
-
-        }
 
         HandlerInfo[] IProcessor.ListenerHandlers()
         {

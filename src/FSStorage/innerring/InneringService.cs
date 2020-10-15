@@ -5,15 +5,22 @@ using Neo.Plugins.FSStorage.innerring.timers;
 using Neo.Plugins.FSStorage.morph.invoke;
 using Neo.SmartContract;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using static Neo.Plugins.FSStorage.innerring.timers.Timers;
 using static Neo.Plugins.FSStorage.Listener;
-using Neo.IO.Data.LevelDB;
 using Neo.Plugins.util;
+using Neo.Wallets;
+using Neo.Cryptography.ECC;
+using static System.IO.Path;
+using System.Text;
+using Neo.IO.Data.LevelDB;
 
 namespace Neo.Plugins.FSStorage.innerring
 {
+    /// <summary>
+    /// InneringService is the entry for processing all events related to the inner ring node.
+    /// All events will be distributed according to type.(2 event types:MainContractEvent and MorphContractEvent)
+    /// Life process:Start--->Assignment event--->Stop
+    /// </summary>
     public class InneringService : UntypedActor, IActiveState, IEpochState, IEpochTimerReseter
     {
         public class MainContractEvent { public NotifyEventArgs notify; };
@@ -27,31 +34,44 @@ namespace Neo.Plugins.FSStorage.innerring
 
         private Client mainClient;
         private Client morphClient;
+        private readonly DB db;
 
+        /// <summary>
+        /// Constructor.
+        /// 4 Tasks:
+        /// 1)Build mainnet and morph clients
+        /// 2)Build mainnet and morph contract event handlers
+        /// 3)Build mainnet and morph event listeners
+        /// 4)Initialization
+        /// </summary>
+        /// <param name="system">NeoSystem</param>
         public InneringService(NeoSystem system)
         {
-            //build clients
+            db = DB.Open(GetFullPath(Settings.Default.Path), new Options { CreateIfMissing = true });
+            string privateKey = Settings.Default.PrivateKey;
+            KeyPair key = new KeyPair(privateKey.HexToBytes());
+            //Build clients
             mainClient = new MainClient();
             morphClient = new MorphClient();
-            //buidl processors
+            //Build processors
             BalanceContractProcessor balanceContractProcessor = new BalanceContractProcessor()
             {
                 Client = morphClient,
                 ActiveState = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(10))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.BalanceContractWorkersSize))
             };
             ContainerContractProcessor containerContractProcessor = new ContainerContractProcessor()
             {
                 Client = morphClient,
                 ActiveState = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(10))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.ContainerContractWorkersSize))
             };
             FsContractProcessor fsContractProcessor = new FsContractProcessor()
             {
                 Client = mainClient,
                 ActiveState = this,
                 EpochState = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(10))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.FsContractWorkersSize))
             };
             NetMapContractProcessor netMapContractProcessor = new NetMapContractProcessor()
             {
@@ -59,14 +79,13 @@ namespace Neo.Plugins.FSStorage.innerring
                 ActiveState = this,
                 EpochState = this,
                 EpochTimerReseter = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(10))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.NetmapContractWorkersSize))
             };
             balanceContractProcessor.WorkPool.Tell(new Timer());
             containerContractProcessor.WorkPool.Tell(new Timer());
             fsContractProcessor.WorkPool.Tell(new Timer());
             netMapContractProcessor.WorkPool.Tell(new Timer());
-
-            //build listener
+            //Build listener
             morphEventListener = system.ActorSystem.ActorOf(Listener.Props());
             mainEventListener = system.ActorSystem.ActorOf(Listener.Props());
             timer = system.ActorSystem.ActorOf(Timers.Props());
@@ -80,8 +99,17 @@ namespace Neo.Plugins.FSStorage.innerring
             timer.Tell(new BindTimersEvent() { processor = containerContractProcessor });
             timer.Tell(new BindTimersEvent() { processor = balanceContractProcessor });
             timer.Tell(new BindTimersEvent() { processor = fsContractProcessor });
+            //Initialization
+            InitConfig(mainClient, morphClient, publicKey: key.PublicKey);
         }
 
+        public void InitConfig(Client mainClient, Client morphClient, ECPoint publicKey)
+        {
+            long epoch = ContractInvoker.GetEpoch(morphClient);
+            bool state = ContractInvoker.IsInnerRing(mainClient, publicKey);
+            SetEpochCounter((ulong)epoch);
+            SetActiveState(state);
+        }
 
         protected override void OnReceive(object message)
         {
@@ -108,6 +136,7 @@ namespace Neo.Plugins.FSStorage.innerring
         {
             timer.Tell(new Start());
         }
+
         public void OnStop()
         {
             timer.Tell(new Stop());
@@ -123,30 +152,42 @@ namespace Neo.Plugins.FSStorage.innerring
             morphEventListener.Tell(new NewContractEvent() { notify = notify });
         }
 
-
-        bool IActiveState.IsActive()
+        public void SetActiveState(bool state)
         {
-            throw new NotImplementedException();
+            WriteBatch writeBatch = new WriteBatch();
+            writeBatch.Put(Encoding.UTF8.GetBytes("ActiveState"), BitConverter.GetBytes(state));
+            db.Write(WriteOptions.Default, writeBatch);
         }
 
-        void IEpochState.SetEpochCounter(ulong epoch)
+        public bool IsActive()
         {
-            throw new NotImplementedException();
+            byte[] value = db.Get(ReadOptions.Default, Encoding.UTF8.GetBytes("ActiveState"));
+            if (value is null) return false;
+            return BitConverter.ToBoolean(value);
         }
 
-        ulong IEpochState.EpochCounter()
+        public void SetEpochCounter(ulong epoch)
         {
-            throw new NotImplementedException();
+            WriteBatch writeBatch = new WriteBatch();
+            writeBatch.Put(Encoding.UTF8.GetBytes("Epoch"), BitConverter.GetBytes(epoch));
+            db.Write(WriteOptions.Default, writeBatch);
         }
 
-        public static Props Props(NeoSystem system)
+        public ulong EpochCounter()
         {
-            return Akka.Actor.Props.Create(() => new InneringService(system)).WithMailbox("MorphEventListener-mailbox");
+            byte[] value = db.Get(ReadOptions.Default, Encoding.UTF8.GetBytes("Epoch"));
+            if (value is null) return 0;
+            return BitConverter.ToUInt64(value);
         }
 
         public void ResetEpochTimer()
         {
             timer.Tell(new Timer() { });
+        }
+
+        public static Props Props(NeoSystem system)
+        {
+            return Akka.Actor.Props.Create(() => new InneringService(system)).WithMailbox("InneringService-mailbox");
         }
     }
 }

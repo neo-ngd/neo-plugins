@@ -12,8 +12,9 @@ namespace Neo.Plugins.FSStorage.innerring.processors
     public class ContainerContractProcessor : IProcessor
     {
         private UInt160 ContainerContractHash = Settings.Default.ContainerContractHash;
-        private static string PutNotification = "containerPut";
-        private static string DeleteNotification = "containerDelete";
+
+        private string PutNotification = "containerPut";
+        private string DeleteNotification = "containerDelete";
 
         private Client client;
         private IActiveState activeState;
@@ -22,16 +23,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public Client Client { get => client; set => client = value; }
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
-
-        public ContainerContractProcessor()
-        {
-
-        }
-
-        public bool IsActive()
-        {
-            return activeState.IsActive();
-        }
 
         HandlerInfo[] IProcessor.ListenerHandlers()
         {
@@ -101,6 +92,11 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 ContainerID = deleteEvent.ContainerID,
                 Signature = deleteEvent.Signature
             });
+        }
+
+        public bool IsActive()
+        {
+            return activeState.IsActive();
         }
     }
 }

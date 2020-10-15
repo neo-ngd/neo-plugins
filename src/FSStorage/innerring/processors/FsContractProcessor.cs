@@ -2,10 +2,8 @@ using Akka.Actor;
 using Neo.IO;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
@@ -23,11 +21,10 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         private string ConfigNotification = "SetConfig";
         private string UpdateIRNotification = "InnerRingUpdate";
 
-        private Client client;
-
         private string txLogPrefix = "mainnet:";
         private ulong lockAccountLifetime = 20;
 
+        private Client client;
         private IActiveState activeState;
         private IEpochState epochState;
         private IActorRef workPool;
@@ -38,16 +35,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IEpochState EpochState { get => epochState; set => epochState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
-
-        public FsContractProcessor()
-        {
-
-        }
-
-        public bool IsActive()
-        {
-            return activeState.IsActive();
-        }
 
         HandlerInfo[] IProcessor.ListenerHandlers()
         {
@@ -213,6 +200,11 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public ulong EpochCounter()
         {
             return epochState.EpochCounter();
+        }
+
+        public bool IsActive()
+        {
+            return activeState.IsActive();
         }
     }
 }

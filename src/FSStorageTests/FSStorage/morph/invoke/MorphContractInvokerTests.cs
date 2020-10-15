@@ -37,9 +37,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeDecimalsTest()
         {
-            MorphContractInvoker invoker = new MorphContractInvoker();
-            invoker.BalanceContractHash = NativeContract.GAS.Hash;
-            long result = invoker.InvokeDecimals(client);
+            long result = MorphContractInvoker.InvokeDecimals(client);
             Assert.AreEqual(result, 8);
         }
     }

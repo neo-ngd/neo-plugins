@@ -7,6 +7,12 @@ using static Neo.Plugins.FSStorage.Utils;
 
 namespace Neo.Plugins.FSStorage
 {
+    /// <summary>
+    /// Listener is an interface of smart contract notification event listener.
+    /// It is a listener for contract events. It will distribute event to the corresponding processor according to the type of event.
+    /// The processor must be bound to the listener during initialization, otherwise it will not work.
+    /// Currently, it mainly supports four types of processor:BalanceContractProcessor,ContainerContractProcessor,FsContractProcessor and NetMapContractProcessor
+    /// </summary>
     public class Listener : UntypedActor
     {
         private Dictionary<ScriptHashWithType, Func<VM.Types.Array, IContractEvent>> parsers;

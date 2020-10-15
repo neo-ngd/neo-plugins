@@ -9,21 +9,20 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public partial class MorphContractInvoker
     {
-        private static UInt160 netMapContractHash = UInt160.Zero;
-        private string addPeerMethod = "AddPeer";
-        private string newEpochMethod = "NewEpoch";
-        private string innerRingListMethod = "InnerRingList";
-        private string updateStateMethod = "UpdateState";
-        private string netMapMethod = "NetMap";
-        private long extraFee = 0;
+        private static string addPeerMethod = "AddPeer";
+        private static string newEpochMethod = "NewEpoch";
+        private static string innerRingListMethod = "InnerRingList";
+        private static string updateStateMethod = "UpdateState";
+        private static string netMapMethod = "NetMap";
+        private static long extraFee = 0;
 
-        public static UInt160 NetMapContractHash { get => netMapContractHash; set => netMapContractHash = value; }
-        public string AddPeerMethod { get => addPeerMethod; set => addPeerMethod = value; }
-        public string NewEpochMethod { get => newEpochMethod; set => newEpochMethod = value; }
-        public string InnerRingListMethod { get => innerRingListMethod; set => innerRingListMethod = value; }
-        public string UpdateStateMethod { get => updateStateMethod; set => updateStateMethod = value; }
-        public string NetMapMethod { get => netMapMethod; set => netMapMethod = value; }
-        public long ExtraFee { get => extraFee; set => extraFee = value; }
+        public static UInt160 NetMapContractHash => Settings.Default.NetmapContractHash;
+        public static string AddPeerMethod { get => addPeerMethod; set => addPeerMethod = value; }
+        public static string NewEpochMethod { get => newEpochMethod; set => newEpochMethod = value; }
+        public static string InnerRingListMethod { get => innerRingListMethod; set => innerRingListMethod = value; }
+        public static string UpdateStateMethod { get => updateStateMethod; set => updateStateMethod = value; }
+        public static string NetMapMethod { get => netMapMethod; set => netMapMethod = value; }
+        public static long ExtraFee { get => extraFee; set => extraFee = value; }
 
         public class PeerInfo
         {
@@ -36,7 +35,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             public byte[][] Opts { get => opts; set => opts = value; }
         }
 
-        public bool InvokeAddPeer(Client client, PeerInfo peerInfo)
+        public static bool InvokeAddPeer(Client client, PeerInfo peerInfo)
         {
             VM.Types.Array array = new VM.Types.Array();
             array.Add(peerInfo.Address);
@@ -52,12 +51,12 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             return client.InvokeFunction(NetMapContractHash, AddPeerMethod, ExtraFee, contractParameters.ToArray());
         }
 
-        public bool InvokeNewEpoch(Client client, long epochNumber)
+        public static bool InvokeNewEpoch(Client client, long epochNumber)
         {
             return client.InvokeFunction(NetMapContractHash, NewEpochMethod, ExtraFee, new BigInteger(epochNumber));
         }
 
-        public byte[][] InvokeInnerRingList(Client client)
+        public static byte[][] InvokeInnerRingList(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(NetMapContractHash, InnerRingListMethod);
             if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (InnerRingList)");
@@ -71,12 +70,12 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             return resultArray.ToArray();
         }
 
-        public bool InvokeUpdateState(Client client, int state, byte[] publicKey)
+        public static bool InvokeUpdateState(Client client, int state, byte[] publicKey)
         {
             return client.InvokeFunction(NetMapContractHash, UpdateStateMethod, ExtraFee, new BigInteger(state), publicKey);
         }
 
-        public PeerInfo[] InvokeGetNetMap(Client client)
+        public static PeerInfo[] InvokeGetNetMap(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(NetMapContractHash, NetMapMethod);
             if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (NetMap)");

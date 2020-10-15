@@ -2,9 +2,6 @@ using Akka.Actor;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.innerring.timers;
 using Neo.Plugins.FSStorage.morph.invoke;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.timers.EpochTickEvent;
 using static Neo.Plugins.FSStorage.MorphEvent;
@@ -15,35 +12,23 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public class NetMapContractProcessor : IProcessor
     {
-        private string newEpochNotification = "NewEpoch";
-        private string addPeerNotification = "AddPeer";
-        private string updatePeerStateNotification = "UpdateState";
+        public UInt160 NetmapContractHash => Settings.Default.NetmapContractHash;
 
-        private UInt160 netmapContractHash;
+        private string NewEpochNotification = "NewEpoch";
+        private string AddPeerNotification = "AddPeer";
+        private string UpdatePeerStateNotification = "UpdateState";
 
-        private ContractInvoker invoker;
         private Client client;
-
         private IActiveState activeState;
         private IEpochState epochState;
         private IEpochTimerReseter epochTimerReseter;
         private IActorRef workPool;
 
-        public string NewEpochNotification { get => newEpochNotification; set => newEpochNotification = value; }
-        public string AddPeerNotification { get => addPeerNotification; set => addPeerNotification = value; }
-        public string UpdatePeerStateNotification { get => updatePeerStateNotification; set => updatePeerStateNotification = value; }
-        public UInt160 NetmapContractHash { get => netmapContractHash; set => netmapContractHash = value; }
-        public ContractInvoker Invoker { get => invoker; set => invoker = value; }
         public Client Client { get => client; set => client = value; }
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IEpochState EpochState { get => epochState; set => epochState = value; }
         public IEpochTimerReseter EpochTimerReseter { get => epochTimerReseter; set => epochTimerReseter = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
-
-        public NetMapContractProcessor()
-        {
-
-        }
 
         public bool IsActive()
         {
