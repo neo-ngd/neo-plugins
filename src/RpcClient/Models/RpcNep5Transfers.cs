@@ -30,7 +30,7 @@ namespace Neo.Network.RPC.Models
             {
                 Sent = ((JArray)json["sent"]).Select(p => RpcNep5Transfer.FromJson(p)).ToList(),
                 Received = ((JArray)json["received"]).Select(p => RpcNep5Transfer.FromJson(p)).ToList(),
-                UserScriptHash = json["address"].AsString().ToScriptHash()
+                UserScriptHash = json["address"].ToScriptHash()
             };
             return transfers;
         }
@@ -57,7 +57,7 @@ namespace Neo.Network.RPC.Models
             JObject json = new JObject();
             json["timestamp"] = TimestampMS;
             json["assethash"] = AssetHash.ToString();
-            json["transferaddress"] = UserScriptHash.ToAddress();
+            json["transferaddress"] = UserScriptHash?.ToAddress();
             json["amount"] = Amount.ToString();
             json["blockindex"] = BlockIndex;
             json["transfernotifyindex"] = TransferNotifyIndex;
@@ -69,8 +69,8 @@ namespace Neo.Network.RPC.Models
         {
             RpcNep5Transfer transfer = new RpcNep5Transfer();
             transfer.TimestampMS = (ulong)json["timestamp"].AsNumber();
-            transfer.AssetHash = UInt160.Parse(json["assethash"].AsString());
-            transfer.UserScriptHash = json["transferaddress"].AsString().ToScriptHash();
+            transfer.AssetHash = json["assethash"].ToScriptHash();
+            transfer.UserScriptHash = json["transferaddress"]?.ToScriptHash();
             transfer.Amount = BigInteger.Parse(json["amount"].AsString());
             transfer.BlockIndex = (uint)json["blockindex"].AsNumber();
             transfer.TransferNotifyIndex = (ushort)json["transfernotifyindex"].AsNumber();
