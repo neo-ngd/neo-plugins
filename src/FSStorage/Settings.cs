@@ -4,7 +4,8 @@ namespace Neo.Plugins.FSStorage
 {
     internal class Settings
     {
-        public string PrivateKey { get; }
+        public string WalletPath { get; }
+        public string Password { get; }
         public string Path { get; }
 
         public UInt160 NetmapContractHash { get; }
@@ -22,7 +23,8 @@ namespace Neo.Plugins.FSStorage
         private Settings(IConfigurationSection section)
         {
             this.Path = string.Format(section.GetSection("Path").Value, ProtocolSettings.Default.Magic.ToString("X8"));
-            this.PrivateKey = section.GetSection("PrivateKey").Value;
+            this.WalletPath = section.GetSection("WalletPath").Value;
+            this.Password = section.GetSection("Password").Value;
             this.NetmapContractHash = UInt160.Parse(section.GetSection("contracts.netmap").Value);
             this.FsContractHash = UInt160.Parse(section.GetSection("contracts.neofs").Value);
             this.BalanceContractHash = UInt160.Parse(section.GetSection("contracts.balance").Value);

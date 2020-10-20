@@ -18,6 +18,8 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         private string url;
         private Wallets.Wallet wallet;
 
+        public Wallet Wallet { get => wallet; set => wallet = value; }
+
         public bool InvokeFunction(UInt160 contractHash, string method, long fee, params object[] args)
         {
             return true;
@@ -44,8 +46,8 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         public InvokeResult InvokeLocalFunction(UInt160 contractHash, string method, params object[] args)
         {
             byte[] script = contractHash.MakeScript(method, args);
-            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
-            Signer[] signers = new Signer[] { new Signer() { Account = wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } };
+            IEnumerable<WalletAccount> accounts = Wallet.GetAccounts();
+            Signer[] signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } };
             List<JObject> parameters = new List<JObject> { script.ToHexString() };
             parameters.Add(signers.Select(p => p.ToJson()).ToArray());
 

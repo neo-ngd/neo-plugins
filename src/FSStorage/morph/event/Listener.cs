@@ -17,9 +17,12 @@ namespace Neo.Plugins.FSStorage
     {
         private Dictionary<ScriptHashWithType, Func<VM.Types.Array, IContractEvent>> parsers;
         private Dictionary<ScriptHashWithType, List<Action<IContractEvent>>> handlers;
+        private bool started;
 
         public class BindProcessorEvent { public IProcessor processor; };
         public class NewContractEvent { public NotifyEventArgs notify; };
+        public class Start { };
+        public class Stop { };
 
         public Listener()
         {
@@ -29,15 +32,18 @@ namespace Neo.Plugins.FSStorage
 
         public void ParseAndHandle(NotifyEventArgs notify)
         {
-            if (notify.State is null) throw new Exception();
-            var keyEvent = new ScriptHashWithType() { Type = notify.EventName, ScriptHashValue = notify.ScriptHash };
-            if (!parsers.TryGetValue(keyEvent, out var parser)) return;
-            IContractEvent contractEvent = parser(notify.State);
-            if (!handlers.TryGetValue(keyEvent, out var handlersArray)) throw new Exception();
-            if (handlersArray.Count == 0) throw new Exception();
-            foreach (var handler in handlersArray)
+            if (started)
             {
-                handler(contractEvent);
+                if (notify.State is null) throw new Exception();
+                var keyEvent = new ScriptHashWithType() { Type = notify.EventName, ScriptHashValue = notify.ScriptHash };
+                if (!parsers.TryGetValue(keyEvent, out var parser)) return;
+                IContractEvent contractEvent = parser(notify.State);
+                if (!handlers.TryGetValue(keyEvent, out var handlersArray)) throw new Exception();
+                if (handlersArray.Count == 0) throw new Exception();
+                foreach (var handler in handlersArray)
+                {
+                    handler(contractEvent);
+                }
             }
         }
 
@@ -66,12 +72,32 @@ namespace Neo.Plugins.FSStorage
         {
             switch (message)
             {
+                case Start start:
+                    OnStart();
+                    break;
+                case Stop stop:
+                    OnStop();
+                    break;
                 case NewContractEvent contractEvent:
                     ParseAndHandle(contractEvent.notify);
                     break;
                 case BindProcessorEvent bindMorphProcessor:
                     BindProcessor(bindMorphProcessor.processor);
                     break;
+            }
+        }
+
+        public void OnStart() {
+            if (!started)
+            {
+                started = !started;
+            }
+        }
+
+        public void OnStop() {
+            if (started)
+            {
+                started = !started;
             }
         }
 

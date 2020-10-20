@@ -13,6 +13,10 @@ using Neo.Cryptography.ECC;
 using static System.IO.Path;
 using System.Text;
 using Neo.IO.Data.LevelDB;
+using System.IO;
+using Neo.Wallets.NEP6;
+using Neo.IO.Json;
+using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage.innerring
 {
@@ -48,11 +52,17 @@ namespace Neo.Plugins.FSStorage.innerring
         public InneringService(NeoSystem system)
         {
             db = DB.Open(GetFullPath(Settings.Default.Path), new Options { CreateIfMissing = true });
-            string privateKey = Settings.Default.PrivateKey;
-            KeyPair key = new KeyPair(privateKey.HexToBytes());
+
+            NEP6Wallet wallet=new NEP6Wallet(Settings.Default.WalletPath);
+            wallet.Unlock(Settings.Default.Password);
             //Build clients
-            mainClient = new MainClient();
-            morphClient = new MorphClient();
+            mainClient = new MainClient() {
+                Wallet = wallet,
+            };
+            morphClient = new MorphClient() {
+                Wallet = wallet,
+                Blockchain = system.Blockchain,
+            };
             //Build processors
             BalanceContractProcessor balanceContractProcessor = new BalanceContractProcessor()
             {
@@ -100,7 +110,12 @@ namespace Neo.Plugins.FSStorage.innerring
             timer.Tell(new BindTimersEvent() { processor = balanceContractProcessor });
             timer.Tell(new BindTimersEvent() { processor = fsContractProcessor });
             //Initialization
-            InitConfig(mainClient, morphClient, publicKey: key.PublicKey);
+            IEnumerator<WalletAccount> accounts=wallet.GetAccounts().GetEnumerator();
+            while (accounts.MoveNext()) {
+                InitConfig(mainClient, morphClient, accounts.Current.GetKey().PublicKey);
+                break;
+            }
+            Self.Tell(new Start() { });
         }
 
         public void InitConfig(Client mainClient, Client morphClient, ECPoint publicKey)
@@ -140,6 +155,7 @@ namespace Neo.Plugins.FSStorage.innerring
         public void OnStop()
         {
             timer.Tell(new Stop());
+            if(db!=null) db.Dispose();
         }
 
         public void OnMainContractEvent(NotifyEventArgs notify)

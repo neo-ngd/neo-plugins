@@ -50,5 +50,11 @@ namespace Neo.Plugins.FSStorage
             var notify = new NotifyEventArgs(null, null, null, null);
             inneringService.Tell(new MainContractEvent() { notify = notify });
         }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            inneringService.Tell(new Stop() {});
+        }
     }
 }

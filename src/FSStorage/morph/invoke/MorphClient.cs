@@ -1,7 +1,6 @@
 using Akka.Actor;
 using Neo.IO;
 using Neo.Ledger;
-using Neo.Network.P2P;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.SmartContract;
@@ -12,13 +11,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static Akka.IO.Tcp;
 
 namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public class MorphClient : Client
     {
         private Wallets.Wallet wallet;
-        private IActorRef localNode;
+        private IActorRef blockchain;
+
+        public Wallet Wallet { get => wallet; set => wallet = value; }
+        public IActorRef Blockchain { get => blockchain; set => blockchain = value; }
 
         public class Signers : IVerifiable
         {
@@ -58,23 +61,12 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             }
         }
 
-        public MorphClient()
-        {
-
-        }
-
-        public MorphClient(Wallet wallet, IActorRef localNode, long fee)
-        {
-            this.wallet = wallet;
-            this.localNode = localNode;
-        }
-
         public bool InvokeFunction(UInt160 contractHash, string method, long fee, object[] args = null)
         {
             InvokeResult result = InvokeLocalFunction(contractHash, method, args);
             if (result.State != VMState.HALT) return false;
 
-            using (SnapshotView snapshot = Blockchain.Singleton.GetSnapshot())
+            using (SnapshotView snapshot = Ledger.Blockchain.Singleton.GetSnapshot())
             {
                 Random rand = new Random();
                 Transaction tx = new Transaction
@@ -83,14 +75,16 @@ namespace Neo.Plugins.FSStorage.morph.invoke
                     Nonce = (uint)rand.Next(),
                     Script = result.Script,
                     ValidUntilBlock = snapshot.Height + Transaction.MaxValidUntilBlockIncrement,
-                    Signers = new Signer[] { new Signer() { Account = wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } },
+                    Signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } },
                     Attributes = System.Array.Empty<TransactionAttribute>(),
                 };
                 tx.SystemFee = result.GasConsumed + fee;
                 //todo
-                tx.NetworkFee = 0;//wallet.CalculateNetworkFee();
+                tx.NetworkFee = 0;//wallet.CalculateNetworkFee(snapshot,tx);
                 var data = new ContractParametersContext(tx);
-                wallet.Sign(data);
+                Wallet.Sign(data);
+                tx.Witnesses= data.GetWitnesses();
+                Blockchain.Tell(tx);
             }
             return true;
         }
@@ -98,7 +92,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
         public InvokeResult InvokeLocalFunction(UInt160 contractHash, string method, params object[] args)
         {
             byte[] script = contractHash.MakeScript(method, args);
-            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            IEnumerable<WalletAccount> accounts = Wallet.GetAccounts();
             Signers signers = new Signers(accounts.ToArray()[0].ScriptHash);
             return GetInvokeResult(script, signers);
         }
