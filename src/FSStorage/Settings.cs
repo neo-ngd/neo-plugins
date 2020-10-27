@@ -2,23 +2,35 @@ using Microsoft.Extensions.Configuration;
 
 namespace Neo.Plugins.FSStorage
 {
-    internal class Settings
+    public class Settings
     {
-        public string WalletPath { get; }
-        public string Password { get; }
-        public string Path { get; }
+        private string walletPath;
+        private string password;
+        private string path;
 
-        public UInt160 NetmapContractHash { get; }
-        public UInt160 FsContractHash { get; }
-        public UInt160 BalanceContractHash { get; }
-        public UInt160 ContainerContractHash { get; }
+        private UInt160 netmapContractHash;
+        private UInt160 fsContractHash;
+        private UInt160 balanceContractHash;
+        private UInt160 containerContractHash;
 
-        public int NetmapContractWorkersSize { get; }
-        public int FsContractWorkersSize { get; }
-        public int BalanceContractWorkersSize { get; }
-        public int ContainerContractWorkersSize { get; }
+        private int netmapContractWorkersSize;
+        private int fsContractWorkersSize;
+        private int balanceContractWorkersSize;
+        private int containerContractWorkersSize;
 
         public static Settings Default { get; private set; }
+        public string WalletPath { get => walletPath; set => walletPath = value; }
+        public string Password { get => password; set => password = value; }
+        public string Path { get => path; set => path = value; }
+        public UInt160 NetmapContractHash { get => netmapContractHash; set => netmapContractHash = value; }
+        public UInt160 FsContractHash { get => fsContractHash; set => fsContractHash = value; }
+        public UInt160 BalanceContractHash { get => balanceContractHash; set => balanceContractHash = value; }
+        public UInt160 ContainerContractHash { get => containerContractHash; set => containerContractHash = value; }
+        public int NetmapContractWorkersSize { get => netmapContractWorkersSize; set => netmapContractWorkersSize = value; }
+        public int FsContractWorkersSize { get => fsContractWorkersSize; set => fsContractWorkersSize = value; }
+        public int BalanceContractWorkersSize { get => balanceContractWorkersSize; set => balanceContractWorkersSize = value; }
+        public int ContainerContractWorkersSize { get => containerContractWorkersSize; set => containerContractWorkersSize = value; }
+
 
         private Settings(IConfigurationSection section)
         {

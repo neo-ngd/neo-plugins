@@ -1,6 +1,10 @@
+using Neo.IO;
 using Neo.IO.Json;
 using Neo.Network.P2P.Payloads;
+using Neo.Network.RPC;
+using Neo.Network.RPC.Models;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.SmartContract;
 using Neo.VM;
 using Neo.VM.Types;
 using Neo.Wallets;
@@ -15,123 +19,62 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 {
     public class MainClient : Client
     {
-        private string url;
+        private RpcClient client;
         private Wallets.Wallet wallet;
 
+        public MainClient(string url, Wallet wallet)
+        {
+            this.Client = new RpcClient(url);
+            this.wallet = wallet;
+        }
+
         public Wallet Wallet { get => wallet; set => wallet = value; }
+        public RpcClient Client { get => client; set => client = value; }
 
         public bool InvokeFunction(UInt160 contractHash, string method, long fee, params object[] args)
         {
-            return true;
+            InvokeResult result=InvokeLocalFunction(contractHash, method, args);
+            var blockHeight = (uint)(client.RpcSendAsync("getblockcount").Result.AsNumber());
+            Random rand = new Random();
+            Transaction tx = new Transaction
+            {
+                Version = 0,
+                Nonce = (uint)rand.Next(),
+                Script = result.Script,
+                ValidUntilBlock = blockHeight + Transaction.MaxValidUntilBlockIncrement,
+                Signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash} },
+                Attributes = System.Array.Empty<TransactionAttribute>(),
+                SystemFee= result.GasConsumed + fee,
+                NetworkFee =0
+            };
+            var data = new ContractParametersContext(tx);
+            Wallet.Sign(data);
+            tx.Witnesses = data.GetWitnesses();
+            var networkFee = (uint)client.RpcSendAsync("calculatenetworkfee", tx.ToArray().ToHexString()).Result["networkfee"].AsNumber();
+            tx.NetworkFee = networkFee;
+            data = new ContractParametersContext(tx);
+            Wallet.Sign(data);
+            tx.Witnesses = data.GetWitnesses();
+            return client.RpcSendAsync("sendrawtransaction", tx.ToArray().ToHexString()).Result.AsBoolean();
         }
 
-
-        /*
-        {
-          "jsonrpc": "2.0",
-          "method": "invokefunction",
-          "params": [
-            "af7c7328eee5a275a3bcaee2bf0cf662b5e739be",
-            "balanceOf",
-            [
-              {
-                "type": "Hash160",
-                "value": "91b83e96f2a7c4fdf0c1688441ec61986c7cae26"
-              }
-            ]
-          ],
-          "id": 3
-        }
-        */
         public InvokeResult InvokeLocalFunction(UInt160 contractHash, string method, params object[] args)
         {
             byte[] script = contractHash.MakeScript(method, args);
-            IEnumerable<WalletAccount> accounts = Wallet.GetAccounts();
-            Signer[] signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } };
             List<JObject> parameters = new List<JObject> { script.ToHexString() };
-            parameters.Add(signers.Select(p => p.ToJson()).ToArray());
-
-            var json = new JObject();
-            json["id"] = 1;
-            json["jsonrpc"] = "2.0";
-            json["method"] = "invokescript";
-            json["params"] = new JArray(parameters);
-
-            var result = MakeHttpRequest(json.ToString());
-            var resultObj = JObject.Parse(result);
-
-            var invokeResult = new InvokeResult();
-            invokeResult.Script = resultObj["script"].AsString().HexToBytes();
-            invokeResult.State = resultObj["state"].TryGetEnum<VM.VMState>();
-            invokeResult.GasConsumed = (long)BigInteger.Parse(resultObj["gasconsumed"].AsString());
-            try
+            Signer[] signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash} };
+            if (signers.Length > 0)
             {
-                invokeResult.ResultStack = ((JArray)json["stack"]).Select(p => StackItemFromJson(p)).ToArray();
+                parameters.Add(signers.Select(p => p.ToJson()).ToArray());
             }
-            catch { }
-            return invokeResult;
-
-        }
-
-        public StackItem StackItemFromJson(JObject json)
-        {
-            StackItemType type = json["type"].TryGetEnum<StackItemType>();
-            switch (type)
-            {
-                case StackItemType.Boolean:
-                    return new VM.Types.Boolean(json["value"].AsBoolean());
-                case StackItemType.Buffer:
-                    return new VM.Types.Buffer(Convert.FromBase64String(json["value"].AsString()));
-                case StackItemType.ByteString:
-                    return new ByteString(Convert.FromBase64String(json["value"].AsString()));
-                case StackItemType.Integer:
-                    return new Integer(new System.Numerics.BigInteger(json["value"].AsNumber()));
-                case StackItemType.Array:
-                    VM.Types.Array array = new VM.Types.Array();
-                    foreach (var item in (JArray)json["value"])
-                        array.Add(StackItemFromJson(item));
-                    return array;
-                case StackItemType.Struct:
-                    Struct @struct = new Struct();
-                    foreach (var item in (JArray)json["value"])
-                        @struct.Add(StackItemFromJson(item));
-                    return @struct;
-                case StackItemType.Map:
-                    Map map = new Map();
-                    foreach (var item in (JArray)json["value"])
-                    {
-                        PrimitiveType key = (PrimitiveType)StackItemFromJson(item["key"]);
-                        map[key] = StackItemFromJson(item["value"]);
-                    }
-                    return map;
-                case StackItemType.Pointer:
-                    return new Pointer(null, (int)json["value"].AsNumber());
-                case StackItemType.InteropInterface:
-                    return new InteropInterface(new object()); // See https://github.com/neo-project/neo/blob/master/src/neo/VM/Helper.cs#L194
-            }
-            return null;
-        }
-
-        public string MakeHttpRequest(String jsonParemter)
-        {
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create("http://url");
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-            {
-                streamWriter.Write(jsonParemter);
-                streamWriter.Flush();
-                streamWriter.Close();
-            }
-
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-            {
-                var result = streamReader.ReadToEnd();
-                return result;
-            }
-
+            var result = client.RpcSendAsync("invokescript", parameters.ToArray()).Result;
+            RpcInvokeResult rpcInvokeResult=RpcInvokeResult.FromJson(result);
+            return new InvokeResult() {
+                Script= Convert.FromBase64String(rpcInvokeResult.Script),
+                State= rpcInvokeResult.State,
+                GasConsumed= long.Parse(rpcInvokeResult.GasConsumed),
+                ResultStack= rpcInvokeResult.Stack
+            };
         }
     }
 }

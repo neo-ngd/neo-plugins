@@ -56,9 +56,7 @@ namespace Neo.Plugins.FSStorage.innerring
             NEP6Wallet wallet=new NEP6Wallet(Settings.Default.WalletPath);
             wallet.Unlock(Settings.Default.Password);
             //Build clients
-            mainClient = new MainClient() {
-                Wallet = wallet,
-            };
+            mainClient = new MainClient("", wallet);
             morphClient = new MorphClient() {
                 Wallet = wallet,
                 Blockchain = system.Blockchain,

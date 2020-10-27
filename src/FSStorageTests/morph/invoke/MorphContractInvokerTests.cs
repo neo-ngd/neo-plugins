@@ -1,11 +1,7 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.Plugins.FSStorage.morph.client;
-using Neo.Plugins.FSStorage.morph.invoke;
 using Neo.SmartContract.Native;
 using Neo.Wallets;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using static Neo.Plugins.FSStorage.morph.client.Tests.MorphClientTests;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
@@ -20,9 +16,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void TestSetup()
         {
             TestBlockchain.InitializeMockNeoSystem();
-            Wallet wallet = new MyWallet("");
+            string ConfigFile="./FSStorage/config.json";
+            IConfigurationSection config =new ConfigurationBuilder().AddJsonFile(ConfigFile, optional: true).Build().GetSection("PluginConfiguration");
+            Settings.Load(config);
+            wallet = new MyWallet("");
             wallet.CreateAccount();
-            client = new MorphClient(wallet, null, 0);
+            client = new MorphClient() {
+                Wallet = wallet,
+            };
         }
 
         [TestMethod()]
@@ -37,6 +38,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeDecimalsTest()
         {
+            Settings.Default.BalanceContractHash = NativeContract.GAS.Hash;
             long result = MorphContractInvoker.InvokeDecimals(client);
             Assert.AreEqual(result, 8);
         }

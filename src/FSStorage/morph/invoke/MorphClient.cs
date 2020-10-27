@@ -61,7 +61,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             }
         }
 
-        public bool InvokeFunction(UInt160 contractHash, string method, long fee, object[] args = null)
+        public bool InvokeFunction(UInt160 contractHash, string method, long fee, params object[] args)
         {
             InvokeResult result = InvokeLocalFunction(contractHash, method, args);
             if (result.State != VMState.HALT) return false;

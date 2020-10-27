@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -11,10 +11,23 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.0.0" />
     <PackageReference Include="MSTest.TestFramework" Version="2.0.0" />
     <PackageReference Include="coverlet.collector" Version="1.0.1" />
+    <PackageReference Include="Akka.TestKit" Version="1.4.5" />
+    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.4.5" />
+    <PackageReference Include="Moq" Version="4.13.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FSStorage\FSStorage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="FSStorage\config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="MainContractTestCases.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

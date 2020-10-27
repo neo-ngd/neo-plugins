@@ -1,26 +1,38 @@
+using Akka.Actor;
+using Akka.TestKit.Xunit2;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.Ledger;
+using Neo.Network.P2P.Payloads;
 using Neo.Plugins.FSStorage.morph.invoke;
 using Neo.SmartContract;
 using Neo.SmartContract.Native;
+using Neo.SmartContract.Native.Tokens;
 using Neo.Wallets;
+using Neo.Wallets.NEP6;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Neo.Plugins.FSStorage.morph.client.Tests
 {
     [TestClass()]
-    public class MorphClientTests
+    public class MorphClientTests : TestKit
     {
+        private NeoSystem system;
         private MorphClient client;
         private Wallet wallet;
 
         [TestInitialize]
         public void TestSetup()
         {
-            TestBlockchain.InitializeMockNeoSystem();
-            Wallet wallet = new MyWallet("");
+            system = TestBlockchain.TheNeoSystem;
+            wallet = new MyWallet("");
             wallet.CreateAccount();
-            client = new MorphClient(wallet, null, 0);
+            client = new MorphClient()
+            {
+                Wallet = wallet,
+                Blockchain = Sys.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+            };
         }
 
         [TestMethod()]
@@ -35,9 +47,24 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
         [TestMethod()]
         public void InvokeFunctionTest()
         {
-            //Assert.Fail();
+            client.InvokeFunction(NativeContract.GAS.Hash, "balanceOf", 0, UInt160.Zero);
+            var result = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
+            Assert.IsNotNull(result);
         }
 
+        public class BlockChainFakeActor : ReceiveActor
+        {
+            public BlockChainFakeActor()
+            {
+                Receive<Transaction>(create =>
+                {
+                    // create user here
+                    Sender.Tell(new OperationResult() { tx = create });
+                });
+            }
+
+            public class OperationResult { public Transaction tx; };
+        }
         public class MyWallet : Wallet
         {
             public string path;
