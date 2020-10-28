@@ -45,7 +45,7 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
 
         public static void MockInvokeScript(Mock<RpcClient> mockClient, RpcRequest request, RpcInvokeResult result)
         {
-            mockClient.Setup(p => p.RpcSendAsync("invokescript", It.Is<JObject[]>(j => j.ToString()== request.Params.ToString())))
+            mockClient.Setup(p => p.RpcSendAsync("invokescript", It.Is<JObject[]>(j => j.ToString() == request.Params.ToString())))
                 .ReturnsAsync(result.ToJson())
                 .Verifiable();
         }
@@ -73,7 +73,7 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
                 .ReturnsAsync(true)
                 .Verifiable();
             client.Client = mockRpc.Object;
-            bool result = client.InvokeFunction(NativeContract.GAS.Hash, "balanceOf",(long)100 ,UInt160.Zero);
+            bool result = client.InvokeFunction(NativeContract.GAS.Hash, "balanceOf", (long)100, UInt160.Zero);
             Assert.AreEqual(result, true);
         }
 

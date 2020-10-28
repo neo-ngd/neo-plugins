@@ -16,7 +16,6 @@ namespace Neo.Plugins.FSStorage
     public class FSStorage : Plugin, IPersistencePlugin
     {
         public IActorRef inneringService;
-
         public override string Description => "Fs StorageNode Plugin";
 
         public FSStorage()
@@ -50,12 +49,13 @@ namespace Neo.Plugins.FSStorage
         [RpcMethod]
         public void ReceiveMainNetEvent(JArray _params)
         {
-            IVerifiable container= _params[0].AsString().HexToBytes().AsSerializable<Transaction>();
+            IVerifiable container = _params[0].AsString().HexToBytes().AsSerializable<Transaction>();
             UInt160 contractHash = UInt160.Parse(_params[0].AsString());
-            string eventName= _params[2].AsString();
-            IEnumerator<JObject> array=((JArray)_params[3]).GetEnumerator();
+            string eventName = _params[2].AsString();
+            IEnumerator<JObject> array = ((JArray)_params[3]).GetEnumerator();
             VM.Types.Array state = new VM.Types.Array();
-            while (array.MoveNext()) {
+            while (array.MoveNext())
+            {
                 state.Add(Neo.Network.RPC.Utility.StackItemFromJson(array.Current));
             }
             var notify = new NotifyEventArgs(container, contractHash, eventName, state);
@@ -65,7 +65,7 @@ namespace Neo.Plugins.FSStorage
         public override void Dispose()
         {
             base.Dispose();
-            inneringService.Tell(new Stop() {});
+            inneringService.Tell(new Stop() { });
         }
     }
 }

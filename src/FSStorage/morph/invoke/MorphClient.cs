@@ -1,6 +1,5 @@
 using Akka.Actor;
 using Neo.IO;
-using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.SmartContract;
@@ -12,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static Akka.IO.Tcp;
 
 namespace Neo.Plugins.FSStorage.morph.invoke
 {
@@ -84,7 +82,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
                 tx.NetworkFee = 0;//wallet.CalculateNetworkFee(snapshot,tx);
                 var data = new ContractParametersContext(tx);
                 Wallet.Sign(data);
-                tx.Witnesses= data.GetWitnesses();
+                tx.Witnesses = data.GetWitnesses();
                 Blockchain.Tell(tx);
             }
             return true;

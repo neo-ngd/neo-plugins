@@ -16,12 +16,13 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void TestSetup()
         {
             TestBlockchain.InitializeMockNeoSystem();
-            string ConfigFile="./FSStorage/config.json";
-            IConfigurationSection config =new ConfigurationBuilder().AddJsonFile(ConfigFile, optional: true).Build().GetSection("PluginConfiguration");
+            string ConfigFile = "./FSStorage/config.json";
+            IConfigurationSection config = new ConfigurationBuilder().AddJsonFile(ConfigFile, optional: true).Build().GetSection("PluginConfiguration");
             Settings.Load(config);
             wallet = new MyWallet("");
             wallet.CreateAccount();
-            client = new MorphClient() {
+            client = new MorphClient()
+            {
                 Wallet = wallet,
             };
         }

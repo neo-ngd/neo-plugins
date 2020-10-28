@@ -6,14 +6,10 @@ using Neo.Network.RPC.Models;
 using Neo.Plugins.FSStorage.morph.invoke;
 using Neo.SmartContract;
 using Neo.VM;
-using Neo.VM.Types;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Numerics;
 
 namespace Neo.Plugins.FSStorage.innerring.invoke
 {
@@ -33,7 +29,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public bool InvokeFunction(UInt160 contractHash, string method, long fee, params object[] args)
         {
-            InvokeResult result=InvokeLocalFunction(contractHash, method, args);
+            InvokeResult result = InvokeLocalFunction(contractHash, method, args);
             var blockHeight = (uint)(client.RpcSendAsync("getblockcount").Result.AsNumber());
             Random rand = new Random();
             Transaction tx = new Transaction
@@ -42,10 +38,10 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
                 Nonce = (uint)rand.Next(),
                 Script = result.Script,
                 ValidUntilBlock = blockHeight + Transaction.MaxValidUntilBlockIncrement,
-                Signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash} },
+                Signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash } },
                 Attributes = System.Array.Empty<TransactionAttribute>(),
-                SystemFee= result.GasConsumed + fee,
-                NetworkFee =0
+                SystemFee = result.GasConsumed + fee,
+                NetworkFee = 0
             };
             var data = new ContractParametersContext(tx);
             Wallet.Sign(data);
@@ -62,18 +58,19 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         {
             byte[] script = contractHash.MakeScript(method, args);
             List<JObject> parameters = new List<JObject> { script.ToHexString() };
-            Signer[] signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash} };
+            Signer[] signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash } };
             if (signers.Length > 0)
             {
                 parameters.Add(signers.Select(p => p.ToJson()).ToArray());
             }
             var result = client.RpcSendAsync("invokescript", parameters.ToArray()).Result;
-            RpcInvokeResult rpcInvokeResult=RpcInvokeResult.FromJson(result);
-            return new InvokeResult() {
-                Script= Convert.FromBase64String(rpcInvokeResult.Script),
-                State= rpcInvokeResult.State,
-                GasConsumed= long.Parse(rpcInvokeResult.GasConsumed),
-                ResultStack= rpcInvokeResult.Stack
+            RpcInvokeResult rpcInvokeResult = RpcInvokeResult.FromJson(result);
+            return new InvokeResult()
+            {
+                Script = Convert.FromBase64String(rpcInvokeResult.Script),
+                State = rpcInvokeResult.State,
+                GasConsumed = long.Parse(rpcInvokeResult.GasConsumed),
+                ResultStack = rpcInvokeResult.Stack
             };
         }
     }

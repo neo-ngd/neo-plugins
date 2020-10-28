@@ -87,14 +87,16 @@ namespace Neo.Plugins.FSStorage
             }
         }
 
-        public void OnStart() {
+        public void OnStart()
+        {
             if (!started)
             {
                 started = !started;
             }
         }
 
-        public void OnStop() {
+        public void OnStop()
+        {
             if (started)
             {
                 started = !started;

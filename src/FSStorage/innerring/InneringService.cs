@@ -13,9 +13,7 @@ using Neo.Cryptography.ECC;
 using static System.IO.Path;
 using System.Text;
 using Neo.IO.Data.LevelDB;
-using System.IO;
 using Neo.Wallets.NEP6;
-using Neo.IO.Json;
 using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage.innerring
@@ -53,11 +51,12 @@ namespace Neo.Plugins.FSStorage.innerring
         {
             db = DB.Open(GetFullPath(Settings.Default.Path), new Options { CreateIfMissing = true });
 
-            NEP6Wallet wallet=new NEP6Wallet(Settings.Default.WalletPath);
+            NEP6Wallet wallet = new NEP6Wallet(Settings.Default.WalletPath);
             wallet.Unlock(Settings.Default.Password);
             //Build clients
             mainClient = new MainClient(Settings.Default.Url, wallet);
-            morphClient = new MorphClient() {
+            morphClient = new MorphClient()
+            {
                 Wallet = wallet,
                 Blockchain = system.Blockchain,
             };
@@ -108,8 +107,9 @@ namespace Neo.Plugins.FSStorage.innerring
             timer.Tell(new BindTimersEvent() { processor = balanceContractProcessor });
             timer.Tell(new BindTimersEvent() { processor = fsContractProcessor });
             //Initialization
-            IEnumerator<WalletAccount> accounts=wallet.GetAccounts().GetEnumerator();
-            while (accounts.MoveNext()) {
+            IEnumerator<WalletAccount> accounts = wallet.GetAccounts().GetEnumerator();
+            while (accounts.MoveNext())
+            {
                 InitConfig(mainClient, morphClient, accounts.Current.GetKey().PublicKey);
                 break;
             }
@@ -153,7 +153,7 @@ namespace Neo.Plugins.FSStorage.innerring
         public void OnStop()
         {
             timer.Tell(new Stop());
-            if(db!=null) db.Dispose();
+            if (db != null) db.Dispose();
         }
 
         public void OnMainContractEvent(NotifyEventArgs notify)
