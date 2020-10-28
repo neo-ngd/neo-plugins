@@ -4,6 +4,7 @@ using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.SmartContract;
+using Neo.SmartContract.Native;
 using Neo.VM;
 using Neo.VM.Types;
 using Neo.Wallets;
@@ -103,9 +104,25 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             return new InvokeResult() { State = engine.State, GasConsumed = (long)engine.GasConsumed, Script = script, ResultStack = engine.ResultStack.ToArray<StackItem>() };
         }
 
-        public void TransferGas(UInt160 receiver, long amount)
+        public void TransferGas(UInt160 to, long amount)
         {
-
+            UInt160 assetId = NativeContract.GAS.Hash;
+            AssetDescriptor descriptor = new AssetDescriptor(assetId);
+            BigDecimal pamount = BigDecimal.Parse(amount.ToString(), descriptor.Decimals);
+            Transaction tx = wallet.MakeTransaction(new[]
+            {
+                new TransferOutput
+                {
+                    AssetId = assetId,
+                    Value = pamount,
+                    ScriptHash = to
+                }
+            });
+            if (tx == null) throw new Exception("Insufficient funds");
+            ContractParametersContext data = new ContractParametersContext(tx);
+            wallet.Sign(data);
+            tx.Witnesses = data.GetWitnesses();
+            Blockchain.Tell(tx);
         }
     }
 }

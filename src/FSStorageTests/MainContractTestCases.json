@@ -1,19 +1,5 @@
 [
   {
-    "Name": "getblockcount",
-    "Request": {
-      "jsonrpc": "2.0",
-      "method": "getblockcount",
-      "params": [],
-      "id": 1
-    },
-    "Response": {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "result": 991991
-    }
-  },
-  {
     "Name": "InvokeLocalScriptAsync",
     "Request": {
       "jsonrpc": "2.0",

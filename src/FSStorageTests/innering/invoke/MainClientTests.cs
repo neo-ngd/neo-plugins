@@ -23,7 +23,7 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
-            wallet = new MyWallet("");
+            wallet = new MyWallet("test");
             wallet.CreateAccount("2931fe84623e29817503fd9529bb10472cbb02b4e2de404a8edbfdc669262e16".HexToBytes());
         }
 

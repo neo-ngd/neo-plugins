@@ -140,7 +140,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Amount = depositeEvent.Amount * 1_0000_0000,
                 Comment = coment.ToArray()
             });
-            //todo
             //transferGas
             ((MorphClient)client).TransferGas(depositeEvent.To, 2);
         }

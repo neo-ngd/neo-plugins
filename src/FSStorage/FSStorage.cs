@@ -1,4 +1,6 @@
 using Akka.Actor;
+using Neo.IO;
+using Neo.IO.Json;
 using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
@@ -6,6 +8,7 @@ using Neo.Plugins.FSStorage.innerring;
 using Neo.SmartContract;
 using Neo.VM;
 using System.Collections.Generic;
+using Neo.Network.RPC;
 using static Neo.Plugins.FSStorage.innerring.InneringService;
 
 namespace Neo.Plugins.FSStorage
@@ -45,9 +48,17 @@ namespace Neo.Plugins.FSStorage
         }
 
         [RpcMethod]
-        public void ReceiveMainNetEvent()
+        public void ReceiveMainNetEvent(JArray _params)
         {
-            var notify = new NotifyEventArgs(null, null, null, null);
+            IVerifiable container= _params[0].AsString().HexToBytes().AsSerializable<Transaction>();
+            UInt160 contractHash = UInt160.Parse(_params[0].AsString());
+            string eventName= _params[2].AsString();
+            IEnumerator<JObject> array=((JArray)_params[3]).GetEnumerator();
+            VM.Types.Array state = new VM.Types.Array();
+            while (array.MoveNext()) {
+                state.Add(Neo.Network.RPC.Utility.StackItemFromJson(array.Current));
+            }
+            var notify = new NotifyEventArgs(container, contractHash, eventName, state);
             inneringService.Tell(new MainContractEvent() { notify = notify });
         }
 

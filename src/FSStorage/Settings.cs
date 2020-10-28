@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Neo.Plugins.FSStorage
 {
     public class Settings
     {
+        private string url;
         private string walletPath;
         private string password;
         private string path;
@@ -30,11 +32,12 @@ namespace Neo.Plugins.FSStorage
         public int FsContractWorkersSize { get => fsContractWorkersSize; set => fsContractWorkersSize = value; }
         public int BalanceContractWorkersSize { get => balanceContractWorkersSize; set => balanceContractWorkersSize = value; }
         public int ContainerContractWorkersSize { get => containerContractWorkersSize; set => containerContractWorkersSize = value; }
-
+        public string Url { get => url; set => url = value; }
 
         private Settings(IConfigurationSection section)
         {
             this.Path = string.Format(section.GetSection("Path").Value, ProtocolSettings.Default.Magic.ToString("X8"));
+            this.Url = section.GetSection("URL").Value;
             this.WalletPath = section.GetSection("WalletPath").Value;
             this.Password = section.GetSection("Password").Value;
             this.NetmapContractHash = UInt160.Parse(section.GetSection("contracts.netmap").Value);
