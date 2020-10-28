@@ -1,5 +1,6 @@
 {
   "PluginConfiguration": {
+    "URL": "http://seed1t.neo.org:20332",
     "Path": "FSStorage_{0}",
     "WalletPath": "FSStorage_{0}",
     "Password": "FSStorage_{0}",

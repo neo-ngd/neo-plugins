@@ -29,7 +29,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeBalanceOfTest()
         {
-            /*            MorphContractInvoker invoker = new MorphContractInvoker();
+            /*          MorphContractInvoker invoker = new MorphContractInvoker();
                         invoker.BalanceContractHash = NativeContract.GAS.Hash;
                         long result=invoker.InvokeBalanceOf(client,UInt160.Zero.toArray());
                         Assert.AreEqual(result, 0);*/

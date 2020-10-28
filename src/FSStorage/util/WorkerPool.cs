@@ -1,25 +1,29 @@
 using Akka.Actor;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using static Neo.Plugins.util.WorkerPool;
 
 namespace Neo.Plugins.util
 {
+    /// <summary>
+    /// WorkerPool is a thread pool that uses Akka's message mechanism internally.
+    /// Multiple instances can be created, and the task scheduling is independent.
+    /// Through its internal timer, it will periodically select a certain count of
+    /// tasks from the task list for execution.
+    /// [SelectCount=poolSize-hasUsed]
+    /// </summary>
     public class WorkerPool : UntypedActor
     {
         private int poolSize;
         private int hasUsed;
+
         public class Timer { }
-
         public class NewTask { public Task task; };
-
         public class CompleteTask { };
 
-        private long duration = 0;
+        private long duration = 100;
         private ICancelable timer_token;
-        private List<Task> taskArray;
+        private List<Task> taskArray = new List<Task>();
 
         public WorkerPool(int poolSize)
         {
@@ -74,7 +78,7 @@ namespace Neo.Plugins.util
 
         public static Props Props(int PoolSize)
         {
-            return Akka.Actor.Props.Create(() => new WorkerPool(PoolSize)).WithMailbox("Timers-mailbox");
+            return Akka.Actor.Props.Create(() => new WorkerPool(PoolSize));
         }
     }
 }

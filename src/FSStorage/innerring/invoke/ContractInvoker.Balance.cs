@@ -70,7 +70,5 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         {
             client.InvokeFunction(BalanceContractHash, LockMethod, ExtraFee, p.ID, p.UserAccount, p.LockAccount, p.Amount, p.Until);
         }
-
-
     }
 }
