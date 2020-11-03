@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Version>3.0.0-preview3</Version>
@@ -14,18 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Neo" Version="3.0.0-preview3-00" />
     <PackageReference Include="Neo.ConsoleService" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="morph\contract\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\3.0\master\neo\src\neo\neo.csproj" />
     <ProjectReference Include="..\LevelDBStore\LevelDBStore.csproj" />
     <ProjectReference Include="..\RpcClient\RpcClient.csproj" />
     <ProjectReference Include="..\RpcServer\RpcServer.csproj" />
   </ItemGroup>
-  
+
 </Project>

@@ -1,86 +1,60 @@
-using Akka.Actor;
-using Akka.TestKit.Xunit2;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.IO;
-using Neo.Ledger;
-using Neo.Network.P2P.Payloads;
+using Neo.Network.RPC;
+using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
 using Neo.SmartContract;
 using Neo.SmartContract.Native;
-using Neo.VM;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
+using Moq;
+using Neo.Network.RPC.Models;
+using Neo.IO.Json;
+using Neo.Network.P2P.Payloads;
+using Neo.IO;
+using Neo.VM;
 using System.Linq;
-using static Neo.Plugins.FSStorage.morph.invoke.MorphClient;
 
 namespace Neo.Plugins.FSStorage.morph.client.Tests
 {
     [TestClass()]
-    public class MorphClientTests : TestKit
+    public class FSStorageTests
     {
-        private NeoSystem system;
-        private MorphClient client;
         private Wallet wallet;
 
         [TestInitialize]
         public void TestSetup()
         {
-            system = TestBlockchain.TheNeoSystem;
-            wallet = new MyWallet("");
-            wallet.CreateAccount();
-            client = new MorphClient()
+            wallet = new MyWallet("test");
+            wallet.CreateAccount("2931fe84623e29817503fd9529bb10472cbb02b4e2de404a8edbfdc669262e16".HexToBytes());
+        }
+
+        [TestMethod()]
+        public void GetNotifyEventArgsFromJsonTest()
+        {
+            var tx = new Transaction()
             {
-                Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Attributes = Array.Empty<TransactionAttribute>(),
+                NetworkFee = 0,
+                Nonce = 0,
+                Script = new byte[] { 0x01 },
+                Signers = new Signer[] { new Signer() { Account = wallet.GetAccounts().ToArray()[0].ScriptHash } },
+                SystemFee = 0,
+                ValidUntilBlock = 0,
+                Version = 0,
             };
-            //Fake balance
-            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
-            UInt160 from = Blockchain.GetConsensusAddress(Blockchain.StandbyValidators);
-            UInt160 to = accounts.ToArray()[0].ScriptHash;
-            Signers signers = new Signers(from);
-            byte[] script = NativeContract.GAS.Hash.MakeScript("transfer", from, to, 500_00000000);
-            var snapshot = Blockchain.Singleton.GetSnapshot();
-            ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
-            snapshot.Commit();
-        }
+            var data = new ContractParametersContext(tx);
+            wallet.Sign(data);
+            tx.Witnesses = data.GetWitnesses();
 
-        [TestMethod()]
-        public void InvokeLocalFunctionTest()
-        {
-            InvokeResult result = client.InvokeLocalFunction(NativeContract.GAS.Hash, "balanceOf", UInt160.Zero);
-            Assert.AreEqual(result.State, VM.VMState.HALT);
-            Assert.AreEqual(result.GasConsumed, 2007750);
-            Assert.AreEqual(result.ResultStack[0].GetInteger(), 0);
-        }
+            JArray obj = new JArray();
+            obj.Add(tx.ToArray().ToHexString());
+            obj.Add(UInt160.Zero.ToString());
+            obj.Add("test");
+            obj.Add(new JArray(new VM.Types.Boolean(true).ToJson()));
 
-        [TestMethod()]
-        public void InvokeFunctionTest()
-        {
-            client.InvokeFunction(NativeContract.GAS.Hash, "balanceOf", 0, UInt160.Zero);
-            var result = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
-            Assert.IsNotNull(result);
-        }
-
-        [TestMethod()]
-        public void TransferGasTest()
-        {
-            client.TransferGas(UInt160.Zero, 0);
-            var result = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
-            Assert.IsNotNull(result);
-        }
-
-        public class BlockChainFakeActor : ReceiveActor
-        {
-            public BlockChainFakeActor()
-            {
-                Receive<Transaction>(create =>
-                {
-                    Sender.Tell(new OperationResult() { tx = create });
-                });
-            }
-
-            public class OperationResult { public Transaction tx; };
+            NotifyEventArgs notify = FSStorage.GetNotifyEventArgsFromJson(obj);
+            Assert.IsNotNull(notify);
         }
 
         public class MyWallet : Wallet
@@ -187,6 +161,5 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
                 key = inputKey;
             }
         }
-
     }
 }

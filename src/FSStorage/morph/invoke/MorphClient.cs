@@ -65,26 +65,24 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             InvokeResult result = InvokeLocalFunction(contractHash, method, args);
             if (result.State != VMState.HALT) return false;
 
-            using (SnapshotView snapshot = Ledger.Blockchain.Singleton.GetSnapshot())
+            StoreView snapshot = Ledger.Blockchain.Singleton.GetSnapshot().Clone();
+            Random rand = new Random();
+            Transaction tx = new Transaction
             {
-                Random rand = new Random();
-                Transaction tx = new Transaction
-                {
-                    Version = 0,
-                    Nonce = (uint)rand.Next(),
-                    Script = result.Script,
-                    ValidUntilBlock = snapshot.Height + Transaction.MaxValidUntilBlockIncrement,
-                    Signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } },
-                    Attributes = System.Array.Empty<TransactionAttribute>(),
-                };
-                tx.SystemFee = result.GasConsumed + fee;
-                //todo
-                tx.NetworkFee = 0;//wallet.CalculateNetworkFee(snapshot,tx);
-                var data = new ContractParametersContext(tx);
-                Wallet.Sign(data);
-                tx.Witnesses = data.GetWitnesses();
-                Blockchain.Tell(tx);
-            }
+                Version = 0,
+                Nonce = (uint)rand.Next(),
+                Script = result.Script,
+                ValidUntilBlock = snapshot.Height + Transaction.MaxValidUntilBlockIncrement,
+                Signers = new Signer[] { new Signer() { Account = Wallet.GetAccounts().ToArray()[0].ScriptHash, Scopes = WitnessScope.Global } },
+                Attributes = System.Array.Empty<TransactionAttribute>(),
+            };
+            tx.SystemFee = result.GasConsumed + fee;
+            //todo
+            tx.NetworkFee = 0;//wallet.CalculateNetworkFee(snapshot,tx);
+            var data = new ContractParametersContext(tx);
+            Wallet.Sign(data);
+            tx.Witnesses = data.GetWitnesses();
+            Blockchain.Tell(tx);
             return true;
         }
 
@@ -98,7 +96,8 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 
         private InvokeResult GetInvokeResult(byte[] script, Signers signers = null, bool testMode = true)
         {
-            ApplicationEngine engine = ApplicationEngine.Run(script, container: signers, null, 0, testMode);
+            StoreView snapshot = Ledger.Blockchain.Singleton.GetSnapshot().Clone();
+            ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
             return new InvokeResult() { State = engine.State, GasConsumed = (long)engine.GasConsumed, Script = script, ResultStack = engine.ResultStack.ToArray<StackItem>() };
         }
 

@@ -26,7 +26,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
                     BindProcessor(bindTimersEvent.processor);
                     break;
                 case Timer timer:
-                    ResetTimer();
+                    OnTimer();
                     break;
                 case Start start:
                     OnStart();
@@ -44,7 +44,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
             if (!started)
             {
                 started = !started;
-                ResetTimer();
+                OnTimer();
 
             }
         }
@@ -58,7 +58,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
             }
         }
 
-        private void ResetTimer()
+        private void OnTimer()
         {
             if (started)
             {
@@ -93,7 +93,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
 
         public static Props Props()
         {
-            return Akka.Actor.Props.Create(() => new Timers()).WithMailbox("Timers-mailbox");
+            return Akka.Actor.Props.Create(() => new Timers());
         }
     }
 }

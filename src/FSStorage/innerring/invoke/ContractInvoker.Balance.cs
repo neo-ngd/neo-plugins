@@ -1,4 +1,5 @@
 using Neo.Plugins.FSStorage.morph.invoke;
+using System;
 
 namespace Neo.Plugins.FSStorage.innerring.invoke
 {
@@ -9,6 +10,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         private static string LockMethod = "lock";
         private static string MintMethod = "mint";
         private static string BurnMethod = "burn";
+        private static string PrecisionMethod = "decimals";
 
         private static long ExtraFee = 1_5000_0000;
 
@@ -51,24 +53,31 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             public byte[] Comment { get => comment; set => comment = value; }
         }
 
-        public static void TransferBalanceX(Client client, TransferXParams p)
+        public static bool TransferBalanceX(Client client, TransferXParams p)
         {
-            client.InvokeFunction(BalanceContractHash, TransferXMethod, ExtraFee, p.Sender, p.Receiver, p.Amount, p.Comment);
+            return client.InvokeFunction(BalanceContractHash, TransferXMethod, ExtraFee, p.Sender, p.Receiver, p.Amount, p.Comment);
         }
 
-        public static void Mint(Client client, MintBurnParams p)
+        public static bool Mint(Client client, MintBurnParams p)
         {
-            client.InvokeFunction(BalanceContractHash, MintMethod, ExtraFee, p.ScriptHash, p.Amount, p.Comment);
+            return client.InvokeFunction(BalanceContractHash, MintMethod, ExtraFee, p.ScriptHash, p.Amount, p.Comment);
         }
 
-        public static void Burn(Client client, MintBurnParams p)
+        public static bool Burn(Client client, MintBurnParams p)
         {
-            client.InvokeFunction(BalanceContractHash, BurnMethod, ExtraFee, p.ScriptHash, p.Amount, p.Comment);
+            return client.InvokeFunction(BalanceContractHash, BurnMethod, ExtraFee, p.ScriptHash, p.Amount, p.Comment);
         }
 
-        public static void LockAsset(Client client, LockParams p)
+        public static bool LockAsset(Client client, LockParams p)
         {
-            client.InvokeFunction(BalanceContractHash, LockMethod, ExtraFee, p.ID, p.UserAccount, p.LockAccount, p.Amount, p.Until);
+            return client.InvokeFunction(BalanceContractHash, LockMethod, ExtraFee, p.ID, p.UserAccount, p.LockAccount, p.Amount, p.Until);
+        }
+
+        public static uint BalancePrecision(Client client)
+        {
+            InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, PrecisionMethod);
+            if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (Decimals)");
+            return (uint)(result.ResultStack[0].GetInteger());
         }
     }
 }

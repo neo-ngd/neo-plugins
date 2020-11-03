@@ -1,8 +1,3 @@
-using Neo.Plugins.FSStorage.morph.invoke;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public class StaticClient

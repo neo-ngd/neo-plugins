@@ -49,8 +49,14 @@ namespace Neo.Plugins.FSStorage
         [RpcMethod]
         public void ReceiveMainNetEvent(JArray _params)
         {
+            var notify = GetNotifyEventArgsFromJson(_params);
+            inneringService.Tell(new MainContractEvent() { notify = notify });
+        }
+
+        public static NotifyEventArgs GetNotifyEventArgsFromJson(JArray _params)
+        {
             IVerifiable container = _params[0].AsString().HexToBytes().AsSerializable<Transaction>();
-            UInt160 contractHash = UInt160.Parse(_params[0].AsString());
+            UInt160 contractHash = UInt160.Parse(_params[1].AsString());
             string eventName = _params[2].AsString();
             IEnumerator<JObject> array = ((JArray)_params[3]).GetEnumerator();
             VM.Types.Array state = new VM.Types.Array();
@@ -58,8 +64,7 @@ namespace Neo.Plugins.FSStorage
             {
                 state.Add(Neo.Network.RPC.Utility.StackItemFromJson(array.Current));
             }
-            var notify = new NotifyEventArgs(container, contractHash, eventName, state);
-            inneringService.Tell(new MainContractEvent() { notify = notify });
+            return new NotifyEventArgs(container, contractHash, eventName, state);
         }
 
         public override void Dispose()

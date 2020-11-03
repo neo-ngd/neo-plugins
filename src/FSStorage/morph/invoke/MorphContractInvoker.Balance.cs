@@ -25,7 +25,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
         {
             InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, DecimalsMethod);
             if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (Decimals)");
-            return (long)result.ResultStack[0].GetInteger();
+            return (long)(result.ResultStack[0].GetInteger());
         }
     }
 
