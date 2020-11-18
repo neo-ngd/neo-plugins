@@ -80,11 +80,13 @@ namespace Neo.Plugins.FSStorage
 
         public class ConfigEvent : IContractEvent
         {
+            private byte[] id;
             private byte[] key;
             private byte[] value;
 
             public byte[] Key { get => key; set => key = value; }
             public byte[] Value { get => value; set => this.value = value; }
+            public byte[] Id { get => id; set => id = value; }
 
             //todo
             public void ContractEvent() { }

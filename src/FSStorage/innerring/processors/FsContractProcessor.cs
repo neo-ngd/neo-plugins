@@ -2,6 +2,7 @@ using Akka.Actor;
 using Neo.IO;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,11 +24,17 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         private string txLogPrefix = "mainnet:";
         private ulong lockAccountLifetime = 20;
+        private int mintEmitCacheSize = Settings.Default.MintEmitCacheSize;
+        private ulong mintEmitThreshold = Settings.Default.MintEmitThreshold;
+        private long mintEmitValue = Settings.Default.MintEmitValue;
+        private Dictionary<string, ulong> mintEmitCache;
 
         private Client client;
         private IActiveState activeState;
         private IEpochState epochState;
         private IActorRef workPool;
+
+        private static readonly object lockObj = new object();
 
         public Client Client { get => client; set => client = value; }
         public string TxLogPrefix { get => txLogPrefix; set => txLogPrefix = value; }
@@ -36,7 +43,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public IEpochState EpochState { get => epochState; set => epochState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
 
-        HandlerInfo[] IProcessor.ListenerHandlers()
+        public FsContractProcessor()
+        {
+            mintEmitCache = new Dictionary<string, ulong>(mintEmitCacheSize);
+        }
+
+        public HandlerInfo[] ListenerHandlers()
         {
             HandlerInfo depositHandler = new HandlerInfo();
             depositHandler.ScriptHashWithType = new ScriptHashWithType() { Type = DepositNotification, ScriptHashValue = FsContractHash };
@@ -61,7 +73,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             return new HandlerInfo[] { depositHandler, withdrwaHandler, chequeHandler, configHandler, updateIRHandler };
         }
 
-        ParserInfo[] IProcessor.ListenerParsers()
+        public ParserInfo[] ListenerParsers()
         {
             //deposit event
             ParserInfo depositParser = new ParserInfo();
@@ -91,9 +103,9 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             return new ParserInfo[] { depositParser, withdrawParser, chequeParser, configParser, updateIRParser };
         }
 
-        HandlerInfo[] IProcessor.TimersHandlers()
+        public HandlerInfo[] TimersHandlers()
         {
-            return null;
+            return new HandlerInfo[] { };
         }
 
         public void HandleDeposit(IContractEvent morphEvent)
@@ -128,72 +140,151 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public void ProcessDeposit(DepositEvent depositeEvent)
         {
-            if (!IsActive()) return;
-            //invoke
-            List<byte> coment = new List<byte>();
-            coment.AddRange(System.Text.Encoding.UTF8.GetBytes(TxLogPrefix));
-            coment.AddRange(depositeEvent.Id);
-
-            ContractInvoker.Mint(client, new MintBurnParams()
+            if (!IsActive())
             {
-                ScriptHash = depositeEvent.To.ToArray(),
-                Amount = depositeEvent.Amount * 1_0000_0000,
-                Comment = coment.ToArray()
-            });
-            //transferGas
-            ((MorphClient)client).TransferGas(depositeEvent.To, 2);
+                Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
+                return;
+            }
+            //invoke
+            try
+            {
+                List<byte> coment = new List<byte>();
+                coment.AddRange(System.Text.Encoding.UTF8.GetBytes(TxLogPrefix));
+                coment.AddRange(depositeEvent.Id);
+                ContractInvoker.Mint(client, new MintBurnParams()
+                {
+                    ScriptHash = depositeEvent.To.ToArray(),
+                    Amount = depositeEvent.Amount,
+                    Comment = coment.ToArray()
+                });
+            }
+            catch (Exception e)
+            {
+                Utility.Log("can't transfer assets to balance contract", LogLevel.Error, e.Message);
+            }
+
+            var curEpoch = epochState.EpochCounter();
+            var receiver = depositeEvent.To;
+            lock (lockObj)
+            {
+                var ok = mintEmitCache.TryGetValue(receiver.ToString(), out ulong value);
+                if (ok && ((value + mintEmitThreshold) >= curEpoch))
+                {
+                    Dictionary<string, string> pairs = new Dictionary<string, string>();
+                    pairs.Add("receiver", receiver.ToString());
+                    pairs.Add("last_emission", value.ToString());
+                    pairs.Add("current_epoch", curEpoch.ToString());
+                    Utility.Log("double mint emission declined", LogLevel.Warning, pairs.ToString());
+                }
+                //transferGas
+                try
+                {
+                    ((MorphClient)client).TransferGas(depositeEvent.To, mintEmitValue);
+                }
+                catch (Exception e)
+                {
+                    Utility.Log("can't transfer native gas to receiver", LogLevel.Error, e.Message);
+                }
+                mintEmitCache.Add(receiver.ToString(), curEpoch);
+            }
         }
 
         public void ProcessWithdraw(WithdrawEvent withdrawEvent)
         {
-            if (!IsActive()) return;
-            if (withdrawEvent.Id.Length < UInt160.Length) return;
-
-            UInt160 lockeAccount = new UInt160(withdrawEvent.Id.Take(UInt160.Length).ToArray());
-            ulong curEpoch = EpochCounter();
-            //invoke
-            ContractInvoker.LockAsset(client, new LockParams()
+            if (!IsActive())
             {
-                ID = withdrawEvent.Id,
-                UserAccount = withdrawEvent.UserAccount,
-                LockAccount = lockeAccount,
-                Amount = withdrawEvent.Amount * 1_0000_0000,
-                Until = curEpoch + LockAccountLifetime
-            });
+                Utility.Log("passive mode, ignore withdraw", LogLevel.Info, null);
+                return;
+            }
+            if (withdrawEvent.Id.Length < UInt160.Length)
+            {
+                Utility.Log("tx id size is less than script hash size", LogLevel.Error, null);
+                return;
+            }
+            UInt160 lockeAccount = null;
+            try
+            {
+                lockeAccount = new UInt160(withdrawEvent.Id.Take(UInt160.Length).ToArray());
+            }
+            catch (Exception e)
+            {
+                Utility.Log("can't create lock account", LogLevel.Error, e.Message);
+            }
+            try
+            {
+                ulong curEpoch = EpochCounter();
+                //invoke
+                ContractInvoker.LockAsset(client, new LockParams()
+                {
+                    ID = withdrawEvent.Id,
+                    UserAccount = withdrawEvent.UserAccount,
+                    LockAccount = lockeAccount,
+                    Amount = withdrawEvent.Amount,
+                    Until = curEpoch + LockAccountLifetime
+                });
+            }
+            catch (Exception e)
+            {
+                Utility.Log("can't lock assets for withdraw", LogLevel.Error, e.Message);
+            }
         }
 
         public void ProcessCheque(ChequeEvent chequeEvent)
         {
-            if (!IsActive()) return;
+            if (!IsActive()) {
+                Utility.Log("passive mode, ignore cheque", LogLevel.Info, null);
+                return;
+            }
             //invoke
-            List<byte> coment = new List<byte>();
-            coment.AddRange(System.Text.Encoding.UTF8.GetBytes(TxLogPrefix));
-            coment.AddRange(chequeEvent.Id);
-
-            ContractInvoker.Burn(Client, new MintBurnParams()
+            try
             {
-                ScriptHash = chequeEvent.LockAccount.ToArray(),
-                Amount = chequeEvent.Amount * 1_0000_0000,
-                Comment = coment.ToArray()
-            });
+                List<byte> coment = new List<byte>();
+                coment.AddRange(System.Text.Encoding.UTF8.GetBytes(TxLogPrefix));
+                coment.AddRange(chequeEvent.Id);
+
+                ContractInvoker.Burn(Client, new MintBurnParams()
+                {
+                    ScriptHash = chequeEvent.LockAccount.ToArray(),
+                    Amount = chequeEvent.Amount * 1_0000_0000,
+                    Comment = coment.ToArray()
+                });
+            }
+            catch (Exception e) {
+                Utility.Log("can't transfer assets to fed contract", LogLevel.Error, e.Message);
+            }
         }
 
         public void ProcessConfig(ConfigEvent configEvent)
         {
-            if (!IsActive()) return;
+            if (!IsActive()) {
+                Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
+                return;
+            }
             //invoke
-            ContractInvoker.SetConfig(Client, new SetConfigArgs()
-            {
-                Key = configEvent.Key,
-                Value = configEvent.Value
-            });
+            try {
+                ContractInvoker.SetConfig(Client, new SetConfigArgs()
+                {
+                    Id= configEvent.Id,
+                    Key = configEvent.Key,
+                    Value = configEvent.Value
+                });
+            } catch (Exception e) {
+                Utility.Log("can't relay set config event", LogLevel.Error, e.Message);
+            }
         }
 
         public void ProcessUpdateInnerRing(UpdateInnerRingEvent updateInnerRingEvent)
         {
-            if (!IsActive()) return;
+            if (!IsActive()) {
+                Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
+                return;
+            }
             //invoke
-            ContractInvoker.UpdateInnerRing(Client, updateInnerRingEvent.Keys);
+            try {
+                ContractInvoker.UpdateInnerRing(Client, updateInnerRingEvent.Keys);
+            } catch (Exception e) {
+                Utility.Log("can't relay update inner ring event", LogLevel.Error, e.Message);
+            }
         }
 
         public ulong EpochCounter()

@@ -1,179 +1,69 @@
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
-using Microsoft.Extensions.Configuration;
+using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.Cryptography;
+using Neo.Cryptography.ECC;
 using Neo.IO;
 using Neo.Ledger;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.SmartContract;
-using Neo.SmartContract.Manifest;
-using Neo.SmartContract.Native;
 using Neo.VM;
 using Neo.Wallets;
+using NeoFS.API.v2.Netmap;
+using NeoFS.API.v2.Refs;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
-using static Neo.Plugins.FSStorage.morph.client.Tests.MorphClientTests;
 using static Neo.Plugins.FSStorage.morph.invoke.MorphClient;
+using Container = NeoFS.API.v2.Container.Container;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 {
     [TestClass()]
     public class ContractInvokerTests : TestKit
     {
-        private string BalanceContractHash = "0x08953affe65148d7ec4c8db5a0a6977c32ddf54c";
-        private string ContainerContractHash = "0x4a445a72c5dba72c0c4e4634cff86c48dfe2c396";
-        private string FsContractHash = "0x08953affe65148d7ec4c8db5a0a6977c32ddf54c";
-        private string NetMapContractHash = "0x3fafa517cd771afcbd744e9194065657804ef683";
-        private string AlphabetContractHash = "0x08953affe65148d7ec4c8db5a0a6977c32ddf54c";
-
-        private MorphClient client;
+        private MorphClient morphclient;
         private Wallet wallet;
 
         [TestInitialize]
         public void TestSetup()
         {
             NeoSystem system = TestBlockchain.TheNeoSystem;
-            string ConfigFilePath = "./FSStorage/config.json";
-            IConfigurationSection config = new ConfigurationBuilder().AddJsonFile(ConfigFilePath, optional: true).Build().GetSection("PluginConfiguration");
-            Settings.Load(config);
-            wallet = new MyWallet("");
-            wallet.CreateAccount();
-            client = new MorphClient()
+            wallet = TestBlockchain.wallet;
+            morphclient = new MorphClient()
             {
                 Wallet = wallet,
                 Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
             };
-            //Fake balance
-            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
-            UInt160 from = Blockchain.GetConsensusAddress(Blockchain.StandbyValidators);
-            UInt160 to = accounts.ToArray()[0].ScriptHash;
-            Signers signers = new Signers(from);
-            byte[] script = NativeContract.GAS.Hash.MakeScript("transfer", from, to, 500_00000000);
-            var snapshot = Blockchain.Singleton.GetSnapshot();
-            ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
-            //Fake contract
-            //FakeBalanceContract
-            string balanceContractNefFilePath = "./contracts/balance/balance_contract.nef";
-            string balanceContractManifestPath = "./contracts/balance/balance_contract_config.json";
-
-            var balanceContractManifest = ContractManifest.Parse(File.ReadAllBytes(balanceContractManifestPath));
-
-            NefFile balanceContractNefFile;
-            using (var stream = new BinaryReader(File.OpenRead(balanceContractNefFilePath), Utility.StrictUTF8, false))
-            {
-                balanceContractNefFile = stream.ReadSerializable<NefFile>();
-            }
-
-            UInt160 balanceContractHash = balanceContractNefFile.Script.ToScriptHash();
-            var balanceContract = new ContractState
-            {
-                Id = snapshot.ContractId.GetAndChange().NextId++,
-                Script = balanceContractNefFile.Script.ToArray(),
-                Manifest = balanceContractManifest
-            };
-            snapshot.Contracts.Add(balanceContractHash, balanceContract);
-            //FakeNetMapContract
-            string netMapContractNefFilePath = "./contracts/netmap/netmap_contract.nef";
-            string netMapContractManifestPath = "./contracts/netmap/netmap_contract_config.json";
-
-            var netMapContractManifest = ContractManifest.Parse(File.ReadAllBytes(netMapContractManifestPath));
-
-            NefFile netMapContractNefFile;
-            using (var stream = new BinaryReader(File.OpenRead(netMapContractNefFilePath), Utility.StrictUTF8, false))
-            {
-                netMapContractNefFile = stream.ReadSerializable<NefFile>();
-            }
-
-            UInt160 netMapContractHash = netMapContractNefFile.Script.ToScriptHash();
-            var netMapContract = new ContractState
-            {
-                Id = snapshot.ContractId.GetAndChange().NextId++,
-                Script = netMapContractNefFile.Script.ToArray(),
-                Manifest = netMapContractManifest
-            };
-            snapshot.Contracts.Add(netMapContractHash, netMapContract);
-            //FakeContainerContract
-            string containerContractNefFilePath = "./contracts/container/container_contract.nef";
-            string containerContractManifestPath = "./contracts/container/container_contract_config.json";
-
-            var containerContractManifest = ContractManifest.Parse(File.ReadAllBytes(containerContractManifestPath));
-
-            NefFile containerContractNefFile;
-            using (var stream = new BinaryReader(File.OpenRead(containerContractNefFilePath), Utility.StrictUTF8, false))
-            {
-                containerContractNefFile = stream.ReadSerializable<NefFile>();
-            }
-
-            UInt160 containerContractHash = containerContractNefFile.Script.ToScriptHash();
-            var containerContract = new ContractState
-            {
-                Id = snapshot.ContractId.GetAndChange().NextId++,
-                Script = containerContractNefFile.Script.ToArray(),
-                Manifest = containerContractManifest
-            };
-            snapshot.Contracts.Add(containerContractHash, containerContract);
-            //FakeBalanceInit
-            script = balanceContractHash.MakeScript("init", netMapContractHash.ToArray(), containerContractHash.ToArray());
-            engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
-            //FakeNetMapInit
-            script = MakeScript(netMapContractHash, "init", new byte[][] { accounts.ToArray()[0].GetKey().PublicKey.ToArray() });
-            engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
-            snapshot.Commit();
-            script = netMapContractHash.MakeScript("innerRingList");
-            engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
-
-            Settings.Default.BalanceContractHash = UInt160.Parse(BalanceContractHash);
-            Settings.Default.NetmapContractHash = UInt160.Parse(NetMapContractHash);
-            Settings.Default.ContainerContractHash = UInt160.Parse(ContainerContractHash);
-        }
-
-        private byte[] MakeScript(UInt160 scriptHash, string operation, byte[][] args)
-        {
-            using (ScriptBuilder sb = new ScriptBuilder())
-            {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    sb.EmitPush(args[i]);
-                    sb.EmitPush(1);
-                    sb.Emit(OpCode.PACK);
-                }
-                sb.EmitPush(args.Length);
-                sb.Emit(OpCode.PACK);
-                sb.EmitPush(operation);
-                sb.EmitPush(scriptHash);
-                sb.EmitSysCall(ApplicationEngine.System_Contract_Call);
-                return sb.ToArray();
-            }
         }
 
         [TestMethod()]
         public void InvokeTransferBalanceXTest()
         {
-            bool result = ContractInvoker.TransferBalanceX(client, new TransferXParams()
+            bool result = ContractInvoker.TransferBalanceX(morphclient, new TransferXParams()
             {
                 Sender = UInt160.Zero.ToArray(),
                 Receiver = UInt160.Zero.ToArray(),
                 Amount = 0,
                 Comment = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
 
         [TestMethod()]
-        public void InvokeMinerTest()
+        public void InvokeMintTest()
         {
-            bool result = ContractInvoker.Mint(client, new MintBurnParams()
+            bool result = ContractInvoker.Mint(morphclient, new MintBurnParams()
             {
                 ScriptHash = Settings.Default.NetmapContractHash.ToArray(),
                 Amount = 0,
                 Comment = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -181,13 +71,13 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeBurnTest()
         {
-            bool result = ContractInvoker.Burn(client, new MintBurnParams()
+            bool result = ContractInvoker.Burn(morphclient, new MintBurnParams()
             {
                 ScriptHash = Settings.Default.NetmapContractHash.ToArray(),
                 Amount = 0,
                 Comment = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -195,15 +85,16 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeLockAssetTest()
         {
-            bool result = ContractInvoker.LockAsset(client, new LockParams()
+            LockParams lockparam = new LockParams()
             {
                 ID = new byte[] { 0x01 },
                 UserAccount = UInt160.Zero,
                 LockAccount = UInt160.Zero,
                 Amount = 0,
                 Until = 100,
-            });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult>().tx;
+            };
+            bool result = ContractInvoker.LockAsset(morphclient, lockparam);
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -211,8 +102,191 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeBalancePrecisionTest()
         {
-            uint result = ContractInvoker.BalancePrecision(client);
+            uint result = ContractInvoker.BalancePrecision(morphclient);
             Assert.AreEqual(result, (uint)12);
+        }
+
+        [TestMethod()]
+        public void InvokeRegisterContainerTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            OwnerID ownerId = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToOwnerID(key.PublicKey.ToArray());
+            Container container = new Container()
+            {
+                Version = new NeoFS.API.v2.Refs.Version(),
+                BasicAcl = 0,
+                Nonce = Google.Protobuf.ByteString.CopyFrom(new byte[16], 0, 16),
+                OwnerId = ownerId,
+                PlacementPolicy = new NeoFS.API.v2.Netmap.PlacementPolicy()
+            };
+            byte[] sig = Crypto.Sign(container.ToByteArray(), key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
+            bool result = ContractInvoker.RegisterContainer(morphclient, new ContainerParams()
+            {
+                Key = key.PublicKey,
+                Container = container.ToByteArray(),
+                Signature = sig
+            });
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeRemoveContainerTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            OwnerID ownerId = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToOwnerID(key.PublicKey.ToArray());
+            Container container = new Container()
+            {
+                Version = new NeoFS.API.v2.Refs.Version()
+                {
+                    Major = 1,
+                    Minor = 1,
+                },
+                BasicAcl = 0,
+                Nonce = Google.Protobuf.ByteString.CopyFrom(new byte[16], 0, 16),
+                OwnerId = ownerId,
+                PlacementPolicy = new NeoFS.API.v2.Netmap.PlacementPolicy()
+            };
+
+            byte[] sig = Crypto.Sign(container.ToByteArray(), key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
+            var snapshot = Blockchain.Singleton.GetSnapshot();
+            var containerContractHash = Settings.Default.ContainerContractHash;
+            var script = containerContractHash.MakeScript("put", container.ToByteArray(), sig, key.PublicKey.EncodePoint(true));
+            UInt160 account = accounts.ToArray()[0].ScriptHash;
+            UInt160 from = Blockchain.GetConsensusAddress(Blockchain.StandbyValidators);
+            Signers signers = new Signers(account);
+            var engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
+            snapshot.Commit();
+
+            var containerId = container.CalCulateAndGetID.Value.ToByteArray();
+            sig = Crypto.Sign(containerId, key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
+            var result = ContractInvoker.RemoveContainer(morphclient, new RemoveContainerParams()
+            {
+                ContainerID = containerId,
+                Signature = sig
+            });
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeGetEpochTest()
+        {
+            long result = ContractInvoker.GetEpoch(morphclient);
+            Assert.AreEqual(result, 0);
+        }
+
+        [TestMethod()]
+        public void InvokeSetNewEpochTest()
+        {
+            bool result = ContractInvoker.SetNewEpoch(morphclient, 100);
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeApproveAndUpdatePeerTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            var nodeInfo = new NodeInfo()
+            {
+                PublicKey = Google.Protobuf.ByteString.CopyFrom(key.PublicKey.ToArray()),
+                Address = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToAddress(key.PublicKey.ToArray()),
+                State = NodeInfo.Types.State.Online
+            };
+            bool result = ContractInvoker.ApprovePeer(morphclient, nodeInfo.ToByteArray());
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+            result = ContractInvoker.UpdatePeerState(morphclient, new UpdatePeerArgs()
+            {
+                Key = key.PublicKey,
+                Status = (int)NodeInfo.Types.State.Offline
+            });
+            tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeSetConfigTest()
+        {
+            bool result = ContractInvoker.SetConfig(morphclient, new SetConfigArgs()
+            {
+                Id = new byte[] { 0x01 },
+                Key = Utility.StrictUTF8.GetBytes("ContainerFee"),
+                Value = BitConverter.GetBytes(0)
+            });
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeUpdateInnerRingTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            bool result = ContractInvoker.UpdateInnerRing(morphclient, new ECPoint[] { key.PublicKey });
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeNetmapSnapshotTest()
+        {
+            NodeInfo[] result = ContractInvoker.NetmapSnapshot(morphclient);
+            Assert.AreEqual(result.Length, 0);
+        }
+
+        [TestMethod()]
+        public void InvokeAlphabetEmitTest()
+        {
+            bool result = ContractInvoker.AlphabetEmit(morphclient,0);
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
+        }
+
+        [TestMethod()]
+        public void InvokeIsInnerRingTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            bool result = ContractInvoker.IsInnerRing(morphclient, key.PublicKey);
+            Assert.AreEqual(result, true);
+        }
+
+        [TestMethod()]
+        public void InvokeInnerRingIndexTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            int result = ContractInvoker.InnerRingIndex(morphclient, key.PublicKey);
+            Assert.AreEqual(result, 0);
+        }
+
+        [TestMethod()]
+        public void InvokeCashOutChequeTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            bool result = ContractInvoker.CashOutCheque(morphclient, new ChequeParams()
+            {
+                Id = new byte[] { 0x01 },
+                Amount = 0,
+                LockAccount = accounts.ToArray()[0].ScriptHash,
+                UserAccount = accounts.ToArray()[0].ScriptHash
+            });
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.AreEqual(result, true);
+            Assert.IsNotNull(tx);
         }
     }
 }

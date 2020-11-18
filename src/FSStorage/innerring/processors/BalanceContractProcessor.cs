@@ -1,6 +1,8 @@
 using Akka.Actor;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
@@ -23,53 +25,76 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
 
-        HandlerInfo[] IProcessor.ListenerHandlers()
+        public HandlerInfo[] ListenerHandlers()
         {
-            ScriptHashWithType scriptHashWithType = new ScriptHashWithType();
-            scriptHashWithType.Type = LockNotification;
-            scriptHashWithType.ScriptHashValue = BalanceContractHash;
+            ScriptHashWithType scriptHashWithType = new ScriptHashWithType()
+            {
+                Type = LockNotification,
+                ScriptHashValue = BalanceContractHash
+            };
 
-            HandlerInfo handler = new HandlerInfo();
-            handler.ScriptHashWithType = scriptHashWithType;
-            handler.Handler = HandleLock;
+            HandlerInfo handler = new HandlerInfo()
+            {
+                ScriptHashWithType = scriptHashWithType,
+                Handler = HandleLock
+            };
             return new HandlerInfo[] { handler };
-
         }
 
-        ParserInfo[] IProcessor.ListenerParsers()
+        public ParserInfo[] ListenerParsers()
         {
-            ScriptHashWithType scriptHashWithType = new ScriptHashWithType();
-            scriptHashWithType.Type = LockNotification;
-            scriptHashWithType.ScriptHashValue = BalanceContractHash;
-
-            ParserInfo parser = new ParserInfo();
-            parser.ScriptHashWithType = scriptHashWithType;
-            parser.Parser = ParseLockEvent;
+            ScriptHashWithType scriptHashWithType = new ScriptHashWithType()
+            {
+                Type = LockNotification,
+                ScriptHashValue = BalanceContractHash
+            };
+            ParserInfo parser = new ParserInfo()
+            {
+                ScriptHashWithType = scriptHashWithType,
+                Parser = ParseLockEvent,
+            };
             return new ParserInfo[] { parser };
         }
 
-        HandlerInfo[] IProcessor.TimersHandlers()
+        public HandlerInfo[] TimersHandlers()
         {
-            return null;
+            return new HandlerInfo[] { };
         }
 
         public void HandleLock(IContractEvent morphEvent)
         {
             LockEvent lockEvent = (LockEvent)morphEvent;
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "lock");
+            pairs.Add("value", lockEvent.Id.ToHexString());
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
             workPool.Tell(new NewTask() { task = new Task(() => ProcessLock(lockEvent)) });
         }
 
         public void ProcessLock(LockEvent lockEvent)
         {
-            if (!IsActive()) return;
-            //invoke
-            ContractInvoker.CashOutCheque(Client, new ChequeParams()
+            if (!IsActive())
             {
-                Id = lockEvent.Id,
-                Amount = lockEvent.Amount,
-                UserAccount = lockEvent.UserAccount,
-                LockAccount = lockEvent.LockAccount
-            });
+                Utility.Log("passive mode, ignore balance lock", LogLevel.Info, null);
+                return;
+            }
+            //invoke
+            try
+            {
+                //to do
+                //maybe need to convert precision
+                ContractInvoker.CashOutCheque(Client, new ChequeParams()
+                {
+                    Id = lockEvent.Id,
+                    Amount = lockEvent.Amount,
+                    UserAccount = lockEvent.UserAccount,
+                    LockAccount = lockEvent.LockAccount
+                });
+            }
+            catch (Exception e)
+            {
+                Utility.Log("can't send lock asset tx", LogLevel.Error, e.Message);
+            }
         }
 
         public bool IsActive()

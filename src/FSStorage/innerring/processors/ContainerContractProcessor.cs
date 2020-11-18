@@ -1,6 +1,10 @@
 using Akka.Actor;
+using Neo.Cryptography;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
+using NeoFS.API.v2.Container;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
@@ -24,21 +28,21 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
 
-        HandlerInfo[] IProcessor.ListenerHandlers()
+        public HandlerInfo[] ListenerHandlers()
         {
             HandlerInfo putHandler = new HandlerInfo();
             putHandler.ScriptHashWithType = new ScriptHashWithType() { Type = PutNotification, ScriptHashValue = ContainerContractHash };
             putHandler.Handler = HandlePut;
 
             HandlerInfo deleteHandler = new HandlerInfo();
-            putHandler.ScriptHashWithType = new ScriptHashWithType() { Type = DeleteNotification, ScriptHashValue = ContainerContractHash };
-            putHandler.Handler = HandleDelete;
+            deleteHandler.ScriptHashWithType = new ScriptHashWithType() { Type = DeleteNotification, ScriptHashValue = ContainerContractHash };
+            deleteHandler.Handler = HandleDelete;
 
             return new HandlerInfo[] { putHandler, deleteHandler };
 
         }
 
-        ParserInfo[] IProcessor.ListenerParsers()
+        public ParserInfo[] ListenerParsers()
         {
             //container put event
             ParserInfo putParser = new ParserInfo();
@@ -52,14 +56,19 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             return new ParserInfo[] { putParser, deleteParser };
         }
 
-        HandlerInfo[] IProcessor.TimersHandlers()
+        public HandlerInfo[] TimersHandlers()
         {
-            return null;
+            return new HandlerInfo[] { };
         }
 
         public void HandlePut(IContractEvent morphEvent)
         {
             ContainerPutEvent putEvent = (ContainerPutEvent)morphEvent;
+            var id = putEvent.RawContainer.Sha256();
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "container put");
+            pairs.Add("id", Base58.Encode(id));
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
             //send event to workpool
             workPool.Tell(new NewTask() { task = new Task(() => ProcessContainerPut(putEvent)) });
         }
@@ -67,36 +76,74 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public void HandleDelete(IContractEvent morphEvent)
         {
             ContainerDeleteEvent deleteEvent = (ContainerDeleteEvent)morphEvent;
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "container delete");
+            pairs.Add("id", Base58.Encode(deleteEvent.ContainerID));
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
             //send event to workpool
             workPool.Tell(new NewTask() { task = new Task(() => ProcessContainerDelete(deleteEvent)) });
         }
 
         public void ProcessContainerPut(ContainerPutEvent putEvent)
         {
-            if (!IsActive()) return;
-            //invoke
-            ContractInvoker.RegisterContainer(Client, new ContainerParams()
+            if (!IsActive()) {
+                Utility.Log("passive mode, ignore container put", LogLevel.Info, null);
+                return;
+            }
+            var cnrData = putEvent.RawContainer;
+            var container = Container.Parser.ParseFrom(cnrData);
+            try
             {
-                Key = putEvent.PublicKey,
-                Container = putEvent.RawContainer,
-                Signature = putEvent.Signature
-            });
+                CheckFormat(container);
+            }
+            catch (Exception e) {
+                Utility.Log("container with incorrect format detected", LogLevel.Error, e.Message);
+            }
+            //invoke
+            try
+            {
+                ContractInvoker.RegisterContainer(Client, new ContainerParams()
+                {
+                    Key = putEvent.PublicKey,
+                    Container = putEvent.RawContainer,
+                    Signature = putEvent.Signature
+                });
+            }
+            catch (Exception e) {
+                Utility.Log("can't invoke new container", LogLevel.Error, e.Message);
+            }
         }
 
         public void ProcessContainerDelete(ContainerDeleteEvent deleteEvent)
         {
-            if (!IsActive()) return;
+            if (!IsActive()) {
+                Utility.Log("passive mode, ignore container put", LogLevel.Info, null);
+                return;
+            }
             //invoke
-            ContractInvoker.RemoveContainer(Client, new RemoveContainerParams()
+            try
             {
-                ContainerID = deleteEvent.ContainerID,
-                Signature = deleteEvent.Signature
-            });
+                ContractInvoker.RemoveContainer(Client, new RemoveContainerParams()
+                {
+                    ContainerID = deleteEvent.ContainerID,
+                    Signature = deleteEvent.Signature
+                });
+            }
+            catch (Exception e) {
+                Utility.Log("can't invoke delete container", LogLevel.Error, e.Message);
+            }
         }
 
         public bool IsActive()
         {
             return activeState.IsActive();
+        }
+
+        public void CheckFormat(NeoFS.API.v2.Container.Container container)
+        {
+            if (container.PlacementPolicy is null) throw new Exception("placement policy is nil");
+            if (container.OwnerId.Value.Length != 25) throw new Exception("incorrect owner identifier");
+            if (container.Nonce.ToByteArray().Length != 16) throw new Exception("incorrect nonce");
         }
     }
 }

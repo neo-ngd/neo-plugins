@@ -1,5 +1,8 @@
 using Neo.Cryptography.ECC;
+using Neo.IO;
 using Neo.Plugins.FSStorage.morph.invoke;
+using NeoFS.API.v2.Netmap;
+using System;
 using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage.innerring.invoke
@@ -11,23 +14,26 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         private static string SetNewEpochMethod = "newEpoch";
         private static string ApprovePeerMethod = "addPeer";
         private static string UpdatePeerStateMethod = "updateState";
-        private static string SetConfigMethod = "setConfigMethod";
-        private static string UpdateInnerRingMethod = "updateInnerRingMethod";
+        private static string SetConfigMethod = "setConfig";
+        private static string UpdateInnerRingMethod = "updateInnerRing";
+        private static string GetNetmapSnapshotMethod = "netmap";
 
         public class UpdatePeerArgs
         {
             private ECPoint key;
-            private uint status;
+            private int status;
 
             public ECPoint Key { get => key; set => key = value; }
-            public uint Status { get => status; set => status = value; }
+            public int Status { get => status; set => status = value; }
         }
 
         public class SetConfigArgs
         {
+            private byte[] id;
             private byte[] key;
             private byte[] value;
 
+            public byte[] Id { get => id; set => id = value; }
             public byte[] Key { get => key; set => key = value; }
             public byte[] Value { get => value; set => this.value = value; }
         }
@@ -35,38 +41,53 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         public static long GetEpoch(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(NetMapContractHash, GetEpochMethod);
-            if (result.State != VM.VMState.HALT) return 0;
+            if (result.State != VM.VMState.HALT) throw new Exception();
             return (long)(result.ResultStack[0].GetInteger());
         }
 
-        public static void SetNewEpoch(Client client, ulong epoch)
+        public static bool SetNewEpoch(Client client, ulong epoch)
         {
-            client.InvokeFunction(NetMapContractHash, SetConfigMethod, ExtraFee, epoch);
+           return client.InvokeFunction(NetMapContractHash, SetNewEpochMethod, ExtraFee, epoch);
         }
 
-        public static void ApprovePeer(Client client, byte[] peer)
+        public static bool ApprovePeer(Client client, byte[] peer)
         {
-            client.InvokeFunction(NetMapContractHash, ApprovePeerMethod, ExtraFee, peer);
+            return client.InvokeFunction(NetMapContractHash, ApprovePeerMethod, ExtraFee, peer);
         }
 
-        public static void UpdatePeerState(Client client, UpdatePeerArgs p)
+        public static bool UpdatePeerState(Client client, UpdatePeerArgs p)
         {
-            client.InvokeFunction(NetMapContractHash, UpdatePeerStateMethod, ExtraFee, p.Key.EncodePoint(true), p.Status);
+           return client.InvokeFunction(NetMapContractHash, UpdatePeerStateMethod, ExtraFee, p.Status, p.Key.ToArray());
         }
 
-        public static void SetConfig(Client client, SetConfigArgs p)
+        public static bool SetConfig(Client client, SetConfigArgs p)
         {
-            client.InvokeFunction(NetMapContractHash, SetConfigMethod, ExtraFee, p.Key, p.Value);
+           return client.InvokeFunction(NetMapContractHash, SetConfigMethod, ExtraFee,p.Id, p.Key, p.Value);
         }
 
-        public static void UpdateInnerRing(Client client, ECPoint[] p)
+        public static bool UpdateInnerRing(Client client, ECPoint[] p)
         {
             List<byte[]> keys = new List<byte[]>();
             foreach (ECPoint e in p)
             {
-                keys.Add(e.EncodePoint(true));
+                keys.Add(e.ToArray());
             }
-            client.InvokeFunction(NetMapContractHash, UpdateInnerRingMethod, ExtraFee, keys.ToArray());
+            return client.InvokeFunction(NetMapContractHash, UpdateInnerRingMethod, ExtraFee, keys.ToArray());
+        }
+
+        public static NodeInfo[] NetmapSnapshot(Client client)
+        {
+            InvokeResult invokeResult=client.InvokeLocalFunction(NetMapContractHash, GetNetmapSnapshotMethod);
+            if (invokeResult.State != VM.VMState.HALT) throw new Exception("invalid RPC response");
+            var rawNodeInfos = ((VM.Types.Array)invokeResult.ResultStack[0]).GetEnumerator();
+            var result = new List<NeoFS.API.v2.Netmap.NodeInfo>();
+            while (rawNodeInfos.MoveNext()) {
+                var item = (VM.Types.Array)rawNodeInfos.Current;
+                var rawNodeInfo = item[0].GetSpan().ToArray();
+                NeoFS.API.v2.Netmap.NodeInfo node = NeoFS.API.v2.Netmap.NodeInfo.Parser.ParseFrom(rawNodeInfo);
+                result.Add(node);
+            }
+            return result.ToArray();
         }
     }
 }

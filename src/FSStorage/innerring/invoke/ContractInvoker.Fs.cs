@@ -1,5 +1,8 @@
 using Neo.Cryptography.ECC;
+using Neo.IO;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.VM.Types;
+using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage.innerring.invoke
 {
@@ -8,6 +11,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         private static UInt160 FsContractHash = Settings.Default.FsContractHash;
         private static string CheckIsInnerRingMethod = "isInnerRing";
         private static string ChequeMethod = "cheque";
+        private static string InnerRingListMethod = "innerRingList";
 
         public class ChequeParams
         {
@@ -22,16 +26,36 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
         }
 
-
         public static bool IsInnerRing(Client client, ECPoint p)
         {
-            client.InvokeLocalFunction(FsContractHash, CheckIsInnerRingMethod, p.EncodePoint(true));
-            return true;
+            InvokeResult result=client.InvokeLocalFunction(FsContractHash, CheckIsInnerRingMethod, p.EncodePoint(true));
+            if (result.State != VM.VMState.HALT) throw new System.Exception();
+            return result.ResultStack[0].GetBoolean();
         }
 
-        public static void CashOutCheque(Client client, ChequeParams p)
+        public static bool CashOutCheque(Client client, ChequeParams p)
         {
-            client.InvokeLocalFunction(FsContractHash, CheckIsInnerRingMethod, p.Id, p.UserAccount, p.Amount, p.LockAccount);
+            return client.InvokeFunction(FsContractHash, ChequeMethod, ExtraFee, p.Id, p.UserAccount, p.Amount, p.LockAccount);
+        }
+
+        public static int InnerRingIndex(Client client, ECPoint p)
+        {
+            InvokeResult result = client.InvokeLocalFunction(FsContractHash, InnerRingListMethod);
+            if (result.State != VM.VMState.HALT) throw new System.Exception();
+            var irNodes = (Array)result.ResultStack[0];
+            IEnumerator<StackItem> enumerator=irNodes.GetEnumerator();
+            var index = -1;
+            var i = -1;
+            while (enumerator.MoveNext()) {
+                i++;
+                var key = (Array)enumerator.Current;
+                var keyValue = key[0].GetSpan().ToArray();
+                if (p.ToArray().ToHexString().Equals(keyValue.ToHexString())) {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
         }
     }
 }

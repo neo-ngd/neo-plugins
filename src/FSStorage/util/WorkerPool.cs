@@ -54,6 +54,7 @@ namespace Neo.Plugins.util
             timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromMilliseconds(duration), Self, new Timer { }, ActorRefs.NoSender);
             int canUse = poolSize - hasUsed;
             if (canUse <= 0) return;
+            if (canUse > taskArray.Count) canUse = taskArray.Count;
             for (int i = 0; i < canUse; i++)
             {
                 Task task = taskArray[i];

@@ -35,7 +35,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             private long amount;
             private ulong until;
 
-            public byte[] ID { get => ID; set => ID = value; }
+            public byte[] ID { get => id; set => id = value; }
             public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
             public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
             public long Amount { get => amount; set => amount = value; }
@@ -76,7 +76,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         public static uint BalancePrecision(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, PrecisionMethod);
-            if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (Decimals)");
+            if (result.State != VM.VMState.HALT) return 0;
             return (uint)(result.ResultStack[0].GetInteger());
         }
     }

@@ -8,7 +8,7 @@ namespace Neo.Plugins.FSStorage
         private ScriptHashWithType scriptHashWithType;
         private Action<IContractEvent> handler;
 
-        internal ScriptHashWithType ScriptHashWithType { get => scriptHashWithType; set => scriptHashWithType = value; }
-        internal Action<IContractEvent> Handler { get => handler; set => handler = value; }
+        public ScriptHashWithType ScriptHashWithType { get => scriptHashWithType; set => scriptHashWithType = value; }
+        public Action<IContractEvent> Handler { get => handler; set => handler = value; }
     }
 }

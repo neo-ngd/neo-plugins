@@ -34,12 +34,33 @@ namespace Neo.Plugins.FSStorage
         {
             if (started)
             {
-                if (notify.State is null) throw new Exception();
+                Utility.Log("script hash LE", LogLevel.Info, notify.ScriptHash.ToString());
+                if (notify.State is null)
+                {
+                    Utility.Log("stack item is not an array type", LogLevel.Warning, null);
+                }
+                Utility.Log("event type", LogLevel.Info, notify.EventName);
                 var keyEvent = new ScriptHashWithType() { Type = notify.EventName, ScriptHashValue = notify.ScriptHash };
-                if (!parsers.TryGetValue(keyEvent, out var parser)) return;
-                IContractEvent contractEvent = parser(notify.State);
-                if (!handlers.TryGetValue(keyEvent, out var handlersArray)) throw new Exception();
-                if (handlersArray.Count == 0) throw new Exception();
+                if (!parsers.TryGetValue(keyEvent, out var parser))
+                {
+                    Utility.Log("event parser not set", LogLevel.Warning, null);
+                    return;
+                }
+                IContractEvent contractEvent = null;
+                try
+                {
+                    contractEvent=parser(notify.State);
+                }
+                catch (Exception e)
+                {
+                    Utility.Log("could not parse notification event", LogLevel.Warning, e.Message);
+                    return;
+                }
+                if (!handlers.TryGetValue(keyEvent, out var handlersArray) || handlersArray.Count == 0)
+                {
+                    Utility.Log("handlers for parsed notification event were not registered", LogLevel.Warning, contractEvent);
+                    return;
+                }
                 foreach (var handler in handlersArray)
                 {
                     handler(contractEvent);
@@ -49,8 +70,22 @@ namespace Neo.Plugins.FSStorage
 
         public void RegisterHandler(HandlerInfo p)
         {
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("script hash LE", p.ScriptHashWithType.ScriptHashValue.ToString());
+            pairs.Add("event type", p.ScriptHashWithType.Type);
+            Utility.Log("", LogLevel.Info, pairs.ToString());
+
             var handler = p.Handler;
-            var parser = parsers[p.ScriptHashWithType];
+            if (handler is null)
+            {
+                Utility.Log("ignore nil event handler", LogLevel.Warning, null);
+                return;
+            }
+            if (!parsers.TryGetValue(p.ScriptHashWithType, out _))
+            {
+                Utility.Log("ignore handler of event w/o parser", LogLevel.Warning, null);
+                return;
+            }
             if (handlers.TryGetValue(p.ScriptHashWithType, out var value))
             {
                 value.Add(p.Handler);
@@ -59,13 +94,29 @@ namespace Neo.Plugins.FSStorage
             {
                 handlers.Add(p.ScriptHashWithType, new List<Action<IContractEvent>>() { p.Handler });
             }
+            Utility.Log("registered new event handler", LogLevel.Info, null);
         }
 
         public void SetParser(ParserInfo p)
         {
-            if (p.Parser is null) throw new Exception();
-            if (parsers.TryGetValue(p.ScriptHashWithType, out _))
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("script hash LE", p.ScriptHashWithType.ScriptHashValue.ToString());
+            pairs.Add("event type", p.ScriptHashWithType.Type);
+            Utility.Log("", LogLevel.Info, pairs.ToString());
+
+            if (p.Parser is null)
+            {
+                Utility.Log("ignore nil event parser", LogLevel.Warning, null);
+                return;
+            }
+            if (started)
+            {
+                Utility.Log("listener has been already started, ignore parser", LogLevel.Warning, null);
+                return;
+            }
+            if (!parsers.TryGetValue(p.ScriptHashWithType, out _))
                 parsers[p.ScriptHashWithType] = p.Parser;
+            Utility.Log("registered new event parser", LogLevel.Info, null);
         }
 
         protected override void OnReceive(object message)
@@ -83,6 +134,8 @@ namespace Neo.Plugins.FSStorage
                     break;
                 case BindProcessorEvent bindMorphProcessor:
                     BindProcessor(bindMorphProcessor.processor);
+                    break;
+                default:
                     break;
             }
         }
@@ -119,7 +172,7 @@ namespace Neo.Plugins.FSStorage
 
         public static Props Props()
         {
-            return Akka.Actor.Props.Create(() => new Listener()).WithMailbox("MorphEventListener-mailbox");
+            return Akka.Actor.Props.Create(() => new Listener());
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Neo.Plugins.FSStorage
 
             public override int GetHashCode()
             {
-                return base.GetHashCode();
+                return scriptHashValue.GetHashCode()+ type.GetHashCode();
             }
 
             public override string ToString()

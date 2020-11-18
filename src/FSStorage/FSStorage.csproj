@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Neo.ConsoleService" Version="1.0.0" />
+    <PackageReference Include="NeoFS.API" Version="0.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +23,12 @@
     <ProjectReference Include="..\LevelDBStore\LevelDBStore.csproj" />
     <ProjectReference Include="..\RpcClient\RpcClient.csproj" />
     <ProjectReference Include="..\RpcServer\RpcServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="api">
+      <HintPath>..\..\..\neofs-api-csharp\src\api\bin\Debug\netstandard2.1\api.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

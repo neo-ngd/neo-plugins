@@ -97,7 +97,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
         private InvokeResult GetInvokeResult(byte[] script, Signers signers = null, bool testMode = true)
         {
             StoreView snapshot = Ledger.Blockchain.Singleton.GetSnapshot().Clone();
-            ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
+            ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 20000000000);
             return new InvokeResult() { State = engine.State, GasConsumed = (long)engine.GasConsumed, Script = script, ResultStack = engine.ResultStack.ToArray<StackItem>() };
         }
 

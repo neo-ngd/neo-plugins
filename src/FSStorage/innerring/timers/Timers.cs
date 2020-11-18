@@ -8,15 +8,15 @@ namespace Neo.Plugins.FSStorage.innerring.timers
     public class Timers : UntypedActor
     {
         public const string EpochTimer = "EpochTimer";
-        public class Timer { }
+        public const string AlphabetTimer = "AlphabetTimer";
+        public class Timer { public IContractEvent contractEvent; }
         public class Start { };
         public class Stop { };
         public class BindTimersEvent { public IProcessor processor; };
 
-        private ICancelable timer_token;
+        private LocalTimer epochTimer=new LocalTimer() { Duration=Settings.Default.EpochDuration};
+        private LocalTimer alphabetTimer = new LocalTimer() { Duration = Settings.Default.AlphabetDuration };
         private bool started = false;
-        private long epochDuration = 0;
-        private Action<IContractEvent> handler;
 
         protected override void OnReceive(object message)
         {
@@ -26,7 +26,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
                     BindProcessor(bindTimersEvent.processor);
                     break;
                 case Timer timer:
-                    OnTimer();
+                    OnTimer(timer.contractEvent);
                     break;
                 case Start start:
                     OnStart();
@@ -44,8 +44,8 @@ namespace Neo.Plugins.FSStorage.innerring.timers
             if (!started)
             {
                 started = !started;
-                OnTimer();
-
+                OnTimer(new NewAlphabetEmitTickEvent());
+                OnTimer(new NewEpochTickEvent());
             }
         }
 
@@ -54,18 +54,27 @@ namespace Neo.Plugins.FSStorage.innerring.timers
             if (started)
             {
                 started = !started;
-                timer_token.CancelIfNotNull();
+                epochTimer.Timer_token.CancelIfNotNull();
+                alphabetTimer.Timer_token.CancelIfNotNull();
             }
         }
 
-        private void OnTimer()
+        private void OnTimer(IContractEvent contractEvent)
         {
             if (started)
             {
-                TimeSpan duration = TimeSpan.FromMilliseconds(epochDuration);
-                timer_token.CancelIfNotNull();
-                timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(duration, Self, new Timer { }, ActorRefs.NoSender);
-                if (handler != null) handler(new NewEpochTickEvent() { });
+                LocalTimer timer = null;
+                if (contractEvent is NewAlphabetEmitTickEvent)
+                {
+                    timer = alphabetTimer;
+                }
+                else if (contractEvent is NewEpochTickEvent) {
+                    timer = epochTimer;
+                }
+                TimeSpan duration = TimeSpan.FromMilliseconds(timer.Duration);
+                timer.Timer_token.CancelIfNotNull();
+                if (timer.Handler != null) timer.Handler(contractEvent);
+                timer.Timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(duration, Self, new Timer { contractEvent = contractEvent }, ActorRefs.NoSender);
             }
         }
 
@@ -84,7 +93,10 @@ namespace Neo.Plugins.FSStorage.innerring.timers
             switch (p.ScriptHashWithType.Type)
             {
                 case EpochTimer:
-                    this.handler = p.Handler;
+                    epochTimer.Handler = p.Handler;
+                    break;
+                case AlphabetTimer:
+                    alphabetTimer.Handler = p.Handler;
                     break;
                 default:
                     throw new Exception("ir/timers: unknown handler type");
@@ -94,6 +106,16 @@ namespace Neo.Plugins.FSStorage.innerring.timers
         public static Props Props()
         {
             return Akka.Actor.Props.Create(() => new Timers());
+        }
+
+        public class LocalTimer {
+            private long duration;
+            private ICancelable timer_token;
+            private Action<IContractEvent> handler;
+
+            public long Duration { get => duration; set => duration = value; }
+            public ICancelable Timer_token { get => timer_token; set => timer_token = value; }
+            public Action<IContractEvent> Handler { get => handler; set => handler = value; }
         }
     }
 }

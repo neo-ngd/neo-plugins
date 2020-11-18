@@ -9,7 +9,7 @@ using Neo.SmartContract;
 using Neo.VM;
 using System.Collections.Generic;
 using Neo.Network.RPC;
-using static Neo.Plugins.FSStorage.innerring.InneringService;
+using static Neo.Plugins.FSStorage.innerring.InnerRingService;
 
 namespace Neo.Plugins.FSStorage
 {
@@ -20,7 +20,7 @@ namespace Neo.Plugins.FSStorage
 
         public FSStorage()
         {
-            inneringService = System.ActorSystem.ActorOf(InneringService.Props(Plugin.System));
+            inneringService = System.ActorSystem.ActorOf(InnerRingService.Props(Plugin.System));
             RpcServerPlugin.RegisterMethods(this);
             inneringService.Tell(new Start() { });
         }
