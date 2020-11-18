@@ -231,7 +231,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public void ProcessCheque(ChequeEvent chequeEvent)
         {
-            if (!IsActive()) {
+            if (!IsActive())
+            {
                 Utility.Log("passive mode, ignore cheque", LogLevel.Info, null);
                 return;
             }
@@ -249,40 +250,49 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     Comment = coment.ToArray()
                 });
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utility.Log("can't transfer assets to fed contract", LogLevel.Error, e.Message);
             }
         }
 
         public void ProcessConfig(ConfigEvent configEvent)
         {
-            if (!IsActive()) {
+            if (!IsActive())
+            {
                 Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
                 return;
             }
             //invoke
-            try {
+            try
+            {
                 ContractInvoker.SetConfig(Client, new SetConfigArgs()
                 {
-                    Id= configEvent.Id,
+                    Id = configEvent.Id,
                     Key = configEvent.Key,
                     Value = configEvent.Value
                 });
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't relay set config event", LogLevel.Error, e.Message);
             }
         }
 
         public void ProcessUpdateInnerRing(UpdateInnerRingEvent updateInnerRingEvent)
         {
-            if (!IsActive()) {
+            if (!IsActive())
+            {
                 Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
                 return;
             }
             //invoke
-            try {
+            try
+            {
                 ContractInvoker.UpdateInnerRing(Client, updateInnerRingEvent.Keys);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't relay update inner ring event", LogLevel.Error, e.Message);
             }
         }

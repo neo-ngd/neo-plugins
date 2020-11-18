@@ -28,7 +28,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public static bool IsInnerRing(Client client, ECPoint p)
         {
-            InvokeResult result=client.InvokeLocalFunction(FsContractHash, CheckIsInnerRingMethod, p.EncodePoint(true));
+            InvokeResult result = client.InvokeLocalFunction(FsContractHash, CheckIsInnerRingMethod, p.EncodePoint(true));
             if (result.State != VM.VMState.HALT) throw new System.Exception();
             return result.ResultStack[0].GetBoolean();
         }
@@ -43,14 +43,16 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             InvokeResult result = client.InvokeLocalFunction(FsContractHash, InnerRingListMethod);
             if (result.State != VM.VMState.HALT) throw new System.Exception();
             var irNodes = (Array)result.ResultStack[0];
-            IEnumerator<StackItem> enumerator=irNodes.GetEnumerator();
+            IEnumerator<StackItem> enumerator = irNodes.GetEnumerator();
             var index = -1;
             var i = -1;
-            while (enumerator.MoveNext()) {
+            while (enumerator.MoveNext())
+            {
                 i++;
                 var key = (Array)enumerator.Current;
                 var keyValue = key[0].GetSpan().ToArray();
-                if (p.ToArray().ToHexString().Equals(keyValue.ToHexString())) {
+                if (p.ToArray().ToHexString().Equals(keyValue.ToHexString()))
+                {
                     index = i;
                     break;
                 }

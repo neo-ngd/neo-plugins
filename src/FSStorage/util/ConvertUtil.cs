@@ -15,13 +15,15 @@ namespace Neo.Plugins.util
         public uint TargetPrecision { get => targetPrecision; set => targetPrecision = value; }
         public BigInteger Factor { get => factor; set => factor = value; }
 
-        public BigInteger Convert(BigInteger n, BigInteger factor, bool decreasePrecision) {
+        public BigInteger Convert(BigInteger n, BigInteger factor, bool decreasePrecision)
+        {
             if (decreasePrecision)
                 return BigInteger.Divide(n, factor);
             return BigInteger.Multiply(n, factor);
         }
 
-        public BigInteger ToBasePrecision(BigInteger n) {
+        public BigInteger ToBasePrecision(BigInteger n)
+        {
             return Convert(n, Factor, BasePrecision < TargetPrecision);
         }
 
@@ -35,7 +37,8 @@ namespace Neo.Plugins.util
         {
             bool decreasePrecision = false;
             var exp = (int)toPrecision - (int)fromPrecision;
-            if (exp < 0) {
+            if (exp < 0)
+            {
                 decreasePrecision = true;
                 exp = -exp;
             }
@@ -45,7 +48,8 @@ namespace Neo.Plugins.util
 
     }
 
-    public class Fixed8ConverterUtil {
+    public class Fixed8ConverterUtil
+    {
         private const uint Fixed8Precision = 8;
         private ConvertUtil converter;
 

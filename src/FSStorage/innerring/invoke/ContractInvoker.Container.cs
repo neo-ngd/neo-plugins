@@ -31,14 +31,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public static bool RegisterContainer(Client client, ContainerParams p)
         {
-           return client.InvokeFunction(ContainerContractHash, PutContainerMethod, 2 * ExtraFee, p.Container, p.Signature, p.Key.EncodePoint(true));
+            return client.InvokeFunction(ContainerContractHash, PutContainerMethod, 2 * ExtraFee, p.Container, p.Signature, p.Key.EncodePoint(true));
         }
 
         public static bool RemoveContainer(Client client, RemoveContainerParams p)
         {
-           return client.InvokeFunction(ContainerContractHash, DeleteContainerMethod, ExtraFee, p.ContainerID, p.Signature);
+            return client.InvokeFunction(ContainerContractHash, DeleteContainerMethod, ExtraFee, p.ContainerID, p.Signature);
         }
-
-
     }
 }

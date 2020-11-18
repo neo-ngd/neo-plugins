@@ -51,14 +51,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void ListenerHandlersTest()
         {
-            var handlerInfos=processor.ListenerHandlers();
+            var handlerInfos = processor.ListenerHandlers();
             Assert.IsNull(handlerInfos);
         }
 
         [TestMethod()]
         public void ListenerParsersTest()
         {
-            var parserInfos= processor.ListenerParsers();
+            var parserInfos = processor.ListenerParsers();
             Assert.IsNull(parserInfos);
         }
 

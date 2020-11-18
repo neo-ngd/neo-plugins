@@ -44,7 +44,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 Type = Timers.AlphabetTimer,
             };
-
             HandlerInfo handler = new HandlerInfo()
             {
                 ScriptHashWithType = scriptHashWithType,
@@ -65,24 +64,30 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public void ProcessEmit(NewAlphabetEmitTickEvent newAlphabetEmitTickEvent)
         {
             int index = Indexer.Index();
-            if (index < 0) {
+            if (index < 0)
+            {
                 Utility.Log("passive mode, ignore gas emission event", LogLevel.Info, null);
                 return;
-            } else if (index>=Settings.Default.AlphabetContractHash.Length) {
+            }
+            else if (index >= Settings.Default.AlphabetContractHash.Length)
+            {
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
                 pairs.Add("index", index.ToString());
                 Utility.Log("node is out of alphabet range, ignore gas emission event", LogLevel.Debug, pairs.ToString());
             }
-            try {
+            try
+            {
                 ContractInvoker.AlphabetEmit(Client, index);
-            } catch (Exception e) {
-                Utility.Log("can't invoke alphabet emit method", LogLevel.Warning,null);
             }
-            if (StorageEmission == 0) {
+            catch (Exception e)
+            {
+                Utility.Log("can't invoke alphabet emit method", LogLevel.Warning, null);
+            }
+            if (StorageEmission == 0)
+            {
                 Utility.Log("storage node emission is off", LogLevel.Info, null);
                 return;
             }
-
         }
     }
 }

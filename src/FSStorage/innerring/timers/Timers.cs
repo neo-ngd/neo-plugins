@@ -14,7 +14,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
         public class Stop { };
         public class BindTimersEvent { public IProcessor processor; };
 
-        private LocalTimer epochTimer=new LocalTimer() { Duration=Settings.Default.EpochDuration};
+        private LocalTimer epochTimer = new LocalTimer() { Duration = Settings.Default.EpochDuration };
         private LocalTimer alphabetTimer = new LocalTimer() { Duration = Settings.Default.AlphabetDuration };
         private bool started = false;
 
@@ -68,7 +68,8 @@ namespace Neo.Plugins.FSStorage.innerring.timers
                 {
                     timer = alphabetTimer;
                 }
-                else if (contractEvent is NewEpochTickEvent) {
+                else if (contractEvent is NewEpochTickEvent)
+                {
                     timer = epochTimer;
                 }
                 TimeSpan duration = TimeSpan.FromMilliseconds(timer.Duration);
@@ -108,7 +109,8 @@ namespace Neo.Plugins.FSStorage.innerring.timers
             return Akka.Actor.Props.Create(() => new Timers());
         }
 
-        public class LocalTimer {
+        public class LocalTimer
+        {
             private long duration;
             private ICancelable timer_token;
             private Action<IContractEvent> handler;

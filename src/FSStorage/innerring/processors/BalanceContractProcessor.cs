@@ -32,7 +32,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Type = LockNotification,
                 ScriptHashValue = BalanceContractHash
             };
-
             HandlerInfo handler = new HandlerInfo()
             {
                 ScriptHashWithType = scriptHashWithType,

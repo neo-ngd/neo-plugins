@@ -61,10 +61,11 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             };
             byte[] sig = Crypto.Sign(container.ToByteArray(), key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
 
-            processor.HandlePut(new ContainerPutEvent() {
-                RawContainer= container.ToByteArray(),
-                PublicKey= key.PublicKey,
-                Signature= sig
+            processor.HandlePut(new ContainerPutEvent()
+            {
+                RawContainer = container.ToByteArray(),
+                PublicKey = key.PublicKey,
+                Signature = sig
             });
             var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
@@ -73,9 +74,10 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void HandleDeleteTest()
         {
-            processor.HandleDelete(new ContainerDeleteEvent() {
-                ContainerID=new byte[] { 0x01},
-                Signature= new byte[] { 0x01 }
+            processor.HandleDelete(new ContainerDeleteEvent()
+            {
+                ContainerID = new byte[] { 0x01 },
+                Signature = new byte[] { 0x01 }
             });
             var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
@@ -96,10 +98,11 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 PlacementPolicy = new NeoFS.API.v2.Netmap.PlacementPolicy()
             };
             byte[] sig = Crypto.Sign(container.ToByteArray(), key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
-            processor.ProcessContainerPut(new ContainerPutEvent() {
-                PublicKey= key.PublicKey,
-                Signature=sig,
-                RawContainer= container.ToByteArray()
+            processor.ProcessContainerPut(new ContainerPutEvent()
+            {
+                PublicKey = key.PublicKey,
+                Signature = sig,
+                RawContainer = container.ToByteArray()
             });
             var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
@@ -136,9 +139,10 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 
             var containerId = container.CalCulateAndGetID.Value.ToByteArray();
             sig = Crypto.Sign(containerId, key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
-            processor.ProcessContainerDelete(new ContainerDeleteEvent() {
-                ContainerID= containerId,
-                Signature=sig
+            processor.ProcessContainerDelete(new ContainerDeleteEvent()
+            {
+                ContainerID = containerId,
+                Signature = sig
             });
             var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
@@ -147,14 +151,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void ListenerHandlersTest()
         {
-            var handlerInfos=processor.ListenerHandlers();
-            Assert.AreEqual(handlerInfos.Length,2);
+            var handlerInfos = processor.ListenerHandlers();
+            Assert.AreEqual(handlerInfos.Length, 2);
         }
 
         [TestMethod()]
         public void ListenerParsersTest()
         {
-            var parserInfos= processor.ListenerParsers();
+            var parserInfos = processor.ListenerParsers();
             Assert.AreEqual(parserInfos.Length, 2);
         }
 

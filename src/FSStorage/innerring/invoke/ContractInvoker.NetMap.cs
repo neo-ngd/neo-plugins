@@ -47,7 +47,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public static bool SetNewEpoch(Client client, ulong epoch)
         {
-           return client.InvokeFunction(NetMapContractHash, SetNewEpochMethod, ExtraFee, epoch);
+            return client.InvokeFunction(NetMapContractHash, SetNewEpochMethod, ExtraFee, epoch);
         }
 
         public static bool ApprovePeer(Client client, byte[] peer)
@@ -57,12 +57,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public static bool UpdatePeerState(Client client, UpdatePeerArgs p)
         {
-           return client.InvokeFunction(NetMapContractHash, UpdatePeerStateMethod, ExtraFee, p.Status, p.Key.ToArray());
+            return client.InvokeFunction(NetMapContractHash, UpdatePeerStateMethod, ExtraFee, p.Status, p.Key.ToArray());
         }
 
         public static bool SetConfig(Client client, SetConfigArgs p)
         {
-           return client.InvokeFunction(NetMapContractHash, SetConfigMethod, ExtraFee,p.Id, p.Key, p.Value);
+            return client.InvokeFunction(NetMapContractHash, SetConfigMethod, ExtraFee, p.Id, p.Key, p.Value);
         }
 
         public static bool UpdateInnerRing(Client client, ECPoint[] p)
@@ -77,11 +77,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public static NodeInfo[] NetmapSnapshot(Client client)
         {
-            InvokeResult invokeResult=client.InvokeLocalFunction(NetMapContractHash, GetNetmapSnapshotMethod);
+            InvokeResult invokeResult = client.InvokeLocalFunction(NetMapContractHash, GetNetmapSnapshotMethod);
             if (invokeResult.State != VM.VMState.HALT) throw new Exception("invalid RPC response");
             var rawNodeInfos = ((VM.Types.Array)invokeResult.ResultStack[0]).GetEnumerator();
             var result = new List<NeoFS.API.v2.Netmap.NodeInfo>();
-            while (rawNodeInfos.MoveNext()) {
+            while (rawNodeInfos.MoveNext())
+            {
                 var item = (VM.Types.Array)rawNodeInfos.Current;
                 var rawNodeInfo = item[0].GetSpan().ToArray();
                 NeoFS.API.v2.Netmap.NodeInfo node = NeoFS.API.v2.Netmap.NodeInfo.Parser.ParseFrom(rawNodeInfo);

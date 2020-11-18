@@ -16,7 +16,7 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
         [TestInitialize]
         public void TestSetup()
         {
-            timers=Sys.ActorOf(Props.Create(() => new Timers()));
+            timers = Sys.ActorOf(Props.Create(() => new Timers()));
             timers.Tell(new Timers.BindTimersEvent() { processor = this });
         }
 

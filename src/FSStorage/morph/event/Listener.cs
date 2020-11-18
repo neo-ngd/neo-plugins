@@ -49,7 +49,7 @@ namespace Neo.Plugins.FSStorage
                 IContractEvent contractEvent = null;
                 try
                 {
-                    contractEvent=parser(notify.State);
+                    contractEvent = parser(notify.State);
                 }
                 catch (Exception e)
                 {

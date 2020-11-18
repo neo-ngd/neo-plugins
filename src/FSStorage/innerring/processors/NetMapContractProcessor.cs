@@ -138,43 +138,57 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Utility.Log("passive mode, ignore new netmap cleanup tick", LogLevel.Info, null);
                 return;
             }
-            try {
+            try
+            {
                 netmapSnapshot.ForEachRemoveCandidate(netmapCleanupTickEvent.Epoch, Func);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't iterate on netmap cleaner cache", LogLevel.Warning, e.Message);
             }
         }
 
-        private void Func(string s) {
+        private void Func(string s)
+        {
             ECPoint key = null;
-            try {
+            try
+            {
                 key = ECPoint.FromBytes(s.HexToBytes(), ECCurve.Secp256r1);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't decode public key of netmap node", LogLevel.Warning, s);
             }
             Utility.Log("vote to remove node from netmap", LogLevel.Info, s);
-            try {
+            try
+            {
                 ContractInvoker.UpdatePeerState(Client, new ContractInvoker.UpdatePeerArgs()
                 {
                     Key = key,
                     Status = (int)NeoFS.API.v2.Netmap.NodeInfo.Types.State.Offline
                 });
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't invoke netmap.UpdateState", LogLevel.Error, e.Message);
             }
         }
 
         public void ProcessNewEpochTick(NewEpochTickEvent timersEvent)
         {
-            if (!IsActive()) {
+            if (!IsActive())
+            {
                 Utility.Log("passive mode, ignore new epoch tick", LogLevel.Info, null);
                 return;
             }
             ulong nextEpoch = EpochCounter() + 1;
             Utility.Log("next epoch", LogLevel.Info, nextEpoch);
-            try {
+            try
+            {
                 ContractInvoker.SetNewEpoch(client, nextEpoch);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't invoke netmap.NewEpoch", LogLevel.Error, e.Message);
             }
         }
@@ -195,7 +209,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 return;
             }
             netmapSnapshot.Update(snapshot, newEpochEvent.EpochNumber);
-            HandleCleanupTick(new NetmapCleanupTickEvent() { Epoch= newEpochEvent.EpochNumber });
+            HandleCleanupTick(new NetmapCleanupTickEvent() { Epoch = newEpochEvent.EpochNumber });
         }
 
         public void ProcessAddPeer(AddPeerEvent addPeerEvent)
@@ -206,18 +220,25 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 return;
             }
             NodeInfo nodeInfo = null;
-            try {
+            try
+            {
                 nodeInfo = NodeInfo.Parser.ParseFrom(addPeerEvent.Node);
-            } catch {
+            }
+            catch
+            {
                 Utility.Log("can't parse network map candidate", LogLevel.Warning, null);
                 return;
             }
             var key = nodeInfo.PublicKey.ToByteArray().ToHexString();
-            if (!netmapSnapshot.Touch(key, EpochState.EpochCounter())) {
+            if (!netmapSnapshot.Touch(key, EpochState.EpochCounter()))
+            {
                 Utility.Log("approving network map candidate", LogLevel.Info, key);
-                try {
+                try
+                {
                     ContractInvoker.ApprovePeer(Client, addPeerEvent.Node);
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     Utility.Log("can't invoke netmap.AddPeer", LogLevel.Error, e.Message);
                 }
             }
@@ -230,21 +251,25 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Utility.Log("passive mode, ignore new epoch tick", LogLevel.Info, null);
                 return;
             }
-            if (updateStateEvent.Status != (uint)NeoFS.API.v2.Netmap.NodeInfo.Types.State.Offline) {
+            if (updateStateEvent.Status != (uint)NeoFS.API.v2.Netmap.NodeInfo.Types.State.Offline)
+            {
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
-                pairs.Add("key",updateStateEvent.PublicKey.EncodePoint(true).ToHexString());
+                pairs.Add("key", updateStateEvent.PublicKey.EncodePoint(true).ToHexString());
                 pairs.Add("status", updateStateEvent.Status.ToString());
                 Utility.Log("node proposes unknown state", LogLevel.Warning, pairs.ToString());
                 return;
             }
             netmapSnapshot.Flag(updateStateEvent.PublicKey.ToString());
-            try {
+            try
+            {
                 ContractInvoker.UpdatePeerState(Client, new ContractInvoker.UpdatePeerArgs()
                 {
                     Key = updateStateEvent.PublicKey,
                     Status = (int)updateStateEvent.Status
                 });
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Utility.Log("can't invoke netmap.UpdatePeer", LogLevel.Error, e.Message);
             }
         }
@@ -273,7 +298,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
             public bool Enabled { get => enabled; set => enabled = value; }
 
-            public CleanupTable(bool enabled,ulong threshold)
+            public CleanupTable(bool enabled, ulong threshold)
             {
                 this.lockObject = new object();
                 this.enabled = enabled;
@@ -307,14 +332,15 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 lock (lockObject)
                 {
-                    EpochStamp epochStamp=null;
+                    EpochStamp epochStamp = null;
                     bool result = false;
                     if (lastAccess.TryGetValue(key, out EpochStamp access))
                     {
                         epochStamp = access;
                         result = !epochStamp.RemoveFlag;
                     }
-                    else {
+                    else
+                    {
                         epochStamp = new EpochStamp();
                     }
                     epochStamp.RemoveFlag = false;
@@ -336,7 +362,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                         access.RemoveFlag = true;
                         lastAccess[key] = access;
                     }
-                    else {
+                    else
+                    {
                         lastAccess[key] = new EpochStamp() { RemoveFlag = true };
                     }
                 }
@@ -346,10 +373,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 lock (lockObject)
                 {
-                    foreach (var item in lastAccess) {
+                    foreach (var item in lastAccess)
+                    {
                         var key = item.Key;
                         var access = item.Value;
-                        if (epoch - access.Epoch > threshold) {
+                        if (epoch - access.Epoch > threshold)
+                        {
                             access.RemoveFlag = true;
                             lastAccess[key] = access;
                             f(key);

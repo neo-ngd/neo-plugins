@@ -40,8 +40,9 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void HandleLockTest()
         {
-            processor.HandleLock(new LockEvent() {
-                Id=new byte[] { 0x01}
+            processor.HandleLock(new LockEvent()
+            {
+                Id = new byte[] { 0x01 }
             });
             var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
@@ -65,14 +66,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void ListenerHandlersTest()
         {
-            var handlerInfos=processor.ListenerHandlers();
-            Assert.AreEqual(handlerInfos.Length,1);
+            var handlerInfos = processor.ListenerHandlers();
+            Assert.AreEqual(handlerInfos.Length, 1);
         }
 
         [TestMethod()]
         public void ListenerParsersTest()
         {
-            var parserInfos= processor.ListenerParsers();
+            var parserInfos = processor.ListenerParsers();
             Assert.AreEqual(parserInfos.Length, 1);
         }
 

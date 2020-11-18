@@ -66,10 +66,11 @@ namespace Neo.Plugins.FSStorage
             this.FsIdContractHash = UInt160.Parse(section.GetSection("contracts.neofsId").Value);
             this.BalanceContractHash = UInt160.Parse(section.GetSection("contracts.balance").Value);
             this.ContainerContractHash = UInt160.Parse(section.GetSection("contracts.container").Value);
-            int alphabetContractCount= int.Parse(section.GetSection("contracts.alphabet").Value);
+            int alphabetContractCount = int.Parse(section.GetSection("contracts.alphabet").Value);
             UInt160[] hashes = new UInt160[alphabetContractCount];
-            for (int i = 0; i < alphabetContractCount; i++) {
-                hashes[i] = UInt160.Parse(section.GetSection("contracts.alphabet"+i).Value);
+            for (int i = 0; i < alphabetContractCount; i++)
+            {
+                hashes[i] = UInt160.Parse(section.GetSection("contracts.alphabet" + i).Value);
             }
             this.AlphabetContractHash = hashes;
             this.NetmapContractWorkersSize = int.Parse(section.GetSection("workers.netmap").Value);

@@ -33,11 +33,9 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             HandlerInfo putHandler = new HandlerInfo();
             putHandler.ScriptHashWithType = new ScriptHashWithType() { Type = PutNotification, ScriptHashValue = ContainerContractHash };
             putHandler.Handler = HandlePut;
-
             HandlerInfo deleteHandler = new HandlerInfo();
             deleteHandler.ScriptHashWithType = new ScriptHashWithType() { Type = DeleteNotification, ScriptHashValue = ContainerContractHash };
             deleteHandler.Handler = HandleDelete;
-
             return new HandlerInfo[] { putHandler, deleteHandler };
 
         }
@@ -48,7 +46,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             ParserInfo putParser = new ParserInfo();
             putParser.ScriptHashWithType = new ScriptHashWithType() { Type = PutNotification, ScriptHashValue = ContainerContractHash };
             putParser.Parser = MorphEvent.ParseContainerPutEvent;
-
             //container delete event
             ParserInfo deleteParser = new ParserInfo();
             deleteParser.ScriptHashWithType = new ScriptHashWithType() { Type = DeleteNotification, ScriptHashValue = ContainerContractHash };
@@ -86,7 +83,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public void ProcessContainerPut(ContainerPutEvent putEvent)
         {
-            if (!IsActive()) {
+            if (!IsActive())
+            {
                 Utility.Log("passive mode, ignore container put", LogLevel.Info, null);
                 return;
             }
@@ -96,7 +94,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 CheckFormat(container);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utility.Log("container with incorrect format detected", LogLevel.Error, e.Message);
             }
             //invoke
@@ -109,14 +108,16 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     Signature = putEvent.Signature
                 });
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utility.Log("can't invoke new container", LogLevel.Error, e.Message);
             }
         }
 
         public void ProcessContainerDelete(ContainerDeleteEvent deleteEvent)
         {
-            if (!IsActive()) {
+            if (!IsActive())
+            {
                 Utility.Log("passive mode, ignore container put", LogLevel.Info, null);
                 return;
             }
@@ -129,7 +130,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     Signature = deleteEvent.Signature
                 });
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utility.Log("can't invoke delete container", LogLevel.Error, e.Message);
             }
         }

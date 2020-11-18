@@ -249,7 +249,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void InvokeAlphabetEmitTest()
         {
-            bool result = ContractInvoker.AlphabetEmit(morphclient,0);
+            bool result = ContractInvoker.AlphabetEmit(morphclient, 0);
             var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);

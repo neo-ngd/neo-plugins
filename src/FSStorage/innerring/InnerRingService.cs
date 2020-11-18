@@ -23,7 +23,7 @@ namespace Neo.Plugins.FSStorage.innerring
     /// All events will be distributed according to type.(2 event types:MainContractEvent and MorphContractEvent)
     /// Life process:Start--->Assignment event--->Stop
     /// </summary>
-    public class InnerRingService : UntypedActor, IActiveState, IEpochState, IEpochTimerReseter,IIndexer
+    public class InnerRingService : UntypedActor, IActiveState, IEpochState, IEpochTimerReseter, IIndexer
     {
         public class MainContractEvent { public NotifyEventArgs notify; };
         public class MorphContractEvent { public NotifyEventArgs notify; };
@@ -56,7 +56,7 @@ namespace Neo.Plugins.FSStorage.innerring
         /// 4)Initialization
         /// </summary>
         /// <param name="system">NeoSystem</param>
-        public InnerRingService(NeoSystem system, NEP6Wallet pwallet=null,Client pMainNetClient = null, Client pMorphClient = null)
+        public InnerRingService(NeoSystem system, NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)
         {
             precision = new Fixed8ConverterUtil();
             db = DB.Open(GetFullPath(Settings.Default.Path), new Options { CreateIfMissing = true });
@@ -66,7 +66,8 @@ namespace Neo.Plugins.FSStorage.innerring
                 wallet = new NEP6Wallet(Settings.Default.WalletPath);
                 wallet.Unlock(Settings.Default.Password);
             }
-            else {
+            else
+            {
                 wallet = pwallet;
             }
             //Build 2 clients(MainNetClient&MorphClient).
@@ -74,7 +75,8 @@ namespace Neo.Plugins.FSStorage.innerring
             {
                 mainNetClient = new MainClient(Settings.Default.Url, wallet);
             }
-            else {
+            else
+            {
                 mainNetClient = pMainNetClient;
             }
             if (pMorphClient is null)
@@ -85,7 +87,8 @@ namespace Neo.Plugins.FSStorage.innerring
                     Blockchain = system.Blockchain,
                 };
             }
-            else {
+            else
+            {
                 morphClient = pMorphClient;
             }
             //Build processor of contract.
@@ -147,9 +150,12 @@ namespace Neo.Plugins.FSStorage.innerring
         public void InitConfig()
         {
             long epoch = 0;
-            try {
-                epoch=ContractInvoker.GetEpoch(morphClient);
-            } catch (Exception e) {
+            try
+            {
+                epoch = ContractInvoker.GetEpoch(morphClient);
+            }
+            catch (Exception e)
+            {
                 throw new Exception("can't read epoch");
             }
             var key = wallet.GetAccounts().ToArray()[0].GetKey().PublicKey;
@@ -158,14 +164,17 @@ namespace Neo.Plugins.FSStorage.innerring
             {
                 index = ContractInvoker.InnerRingIndex(mainNetClient, key);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 throw new Exception("can't read inner ring list");
             }
             uint balancePrecision = 0;
             try
             {
                 balancePrecision = ContractInvoker.BalancePrecision(morphClient);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 throw new Exception("can't read balance contract precision");
             }
 
@@ -173,10 +182,10 @@ namespace Neo.Plugins.FSStorage.innerring
             SetIndexer(index);
             precision.SetBalancePrecision(balancePrecision);
             Dictionary<string, string> pairs = new Dictionary<string, string>();
-            pairs.Add("active",IsActive().ToString());
+            pairs.Add("active", IsActive().ToString());
             pairs.Add("epoch", epoch.ToString());
             pairs.Add("precision", balancePrecision.ToString());
-            Utility.Log("read config from blockchain",LogLevel.Info, pairs.ToString());
+            Utility.Log("read config from blockchain", LogLevel.Info, pairs.ToString());
         }
 
         protected override void OnReceive(object message)
@@ -228,7 +237,7 @@ namespace Neo.Plugins.FSStorage.innerring
 
         public bool IsActive()
         {
-            return Index()>=0;
+            return Index() >= 0;
         }
 
         public void SetEpochCounter(ulong epoch)
@@ -264,9 +273,9 @@ namespace Neo.Plugins.FSStorage.innerring
             timer.Tell(new Timer() { });
         }
 
-        public static Props Props(NeoSystem system,NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)
+        public static Props Props(NeoSystem system, NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)
         {
-            return Akka.Actor.Props.Create(() => new InnerRingService(system,pwallet,pMainNetClient,pMorphClient));
+            return Akka.Actor.Props.Create(() => new InnerRingService(system, pwallet, pMainNetClient, pMorphClient));
         }
     }
 }
