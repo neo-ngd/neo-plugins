@@ -10,7 +10,7 @@ namespace Neo.Plugins.util
     /// Multiple instances can be created, and the task scheduling is independent.
     /// Through its internal timer, it will periodically select a certain count of
     /// tasks from the task list for execution.
-    /// [SelectCount=poolSize-hasUsed]
+    /// [free=capacity-running]
     /// </summary>
     public class WorkerPool : UntypedActor
     {
@@ -53,9 +53,6 @@ namespace Neo.Plugins.util
         {
             timer_token.CancelIfNotNull();
             timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromMilliseconds(duration), Self, new Timer { }, ActorRefs.NoSender);
-/*            int free = capacity - running;
-            if (free <= 0) return;
-            if (free > taskArray.Count) free = taskArray.Count;*/
             for (int i = 0; i < taskArray.Count; i++)
             {
                 Task task = taskArray[i];
@@ -63,10 +60,6 @@ namespace Neo.Plugins.util
                 task.Start();
             }
             taskArray.Clear();
-/*            for (int i = 0; i < free; i++)
-            {
-                taskArray.RemoveAt(0);
-            }*/
         }
 
         private void OnNewTask(NewTask newTask)
@@ -79,7 +72,8 @@ namespace Neo.Plugins.util
                 Utility.Log(string.Format("{0} processor worker pool drained", newTask.process), LogLevel.Warning, pairs.ToString());
                 Console.WriteLine(free);
             }
-            else {
+            else
+            {
                 taskArray.Add(newTask.task);
                 running++;
             }

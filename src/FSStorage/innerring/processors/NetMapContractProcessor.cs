@@ -124,7 +124,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public void HandleCleanupTick(IContractEvent morphEvent)
         {
-            if (!netmapSnapshot.Enabled) {
+            if (!netmapSnapshot.Enabled)
+            {
                 Utility.Log("netmap clean up routine is disabled", LogLevel.Debug, null);
                 return;
             }

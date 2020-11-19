@@ -1,17 +1,31 @@
 {
   "PluginConfiguration": {
-    "URL": "http://seed1t.neo.org:20332",
-    "Path": "FSStorage_{0}",
-    "WalletPath": "FSStorage_{0}",
-    "Password": "FSStorage_{0}",
-    "contracts.netmap": "0x0000000000000000000000000000000000000000",
-    "contracts.neofs": "0x0000000000000000000000000000000000000000",
-    "contracts.balance": "0x0000000000000000000000000000000000000000",
-    "contracts.container": "0x0000000000000000000000000000000000000000",
+    "Path": "./FSStorage/",
+    "WalletPath": "./FSStorage/wallet.json",
+    "Password": "123456",
+    "contracts.netmap": "0x3fafa517cd771afcbd744e9194065657804ef683",
+    "contracts.neofs": "0xbbf24e35a65a9102443206921e0a2479af7b8f9c",
+    "contracts.neofsId": "0xd376487192d0ff8f03b5878be657337e8308709b",
+    "contracts.balance": "0x79246b19e980225044b8dcef52328ec637d6b887",
+    "contracts.container": "0x4a445a72c5dba72c0c4e4634cff86c48dfe2c396",
+    "contracts.alphabet": "1",
+    "contracts.alphabet0": "0x496d839a9ccdd364066323dd7bde210dfa7267e2",
 
     "workers.netmap": "10",
     "workers.neofs": "10",
     "workers.balance": "10",
-    "workers.container": "10"
+    "workers.container": "10",
+    "workers.alphabet": "10",
+
+    "timers.epoch": 100,
+    "timers.emit": 100,
+
+    "emit.mint.cache_size": 100,
+    "emit.mint.threshold": 100,
+    "emit.mint.value": 2,
+    "emit.storage.amount": 2,
+
+    "netmap_cleaner.enabled": true,
+    "netmap_cleaner.threshold": 2
   }
 }

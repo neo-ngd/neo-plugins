@@ -54,7 +54,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void ListenerHandlersTest()
         {
             var handlerInfos = processor.ListenerHandlers();
-            Assert.AreEqual(0,handlerInfos.Length);
+            Assert.AreEqual(0, handlerInfos.Length);
         }
 
         [TestMethod()]

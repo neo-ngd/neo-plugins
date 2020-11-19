@@ -100,6 +100,5 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             }
             return peerInfoList.ToArray();
         }
-
     }
 }

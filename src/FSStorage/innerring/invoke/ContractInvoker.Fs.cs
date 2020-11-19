@@ -14,7 +14,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         private const string InnerRingListMethod = "innerRingList";
 
         private const long FeeHalfGas = 50_000_000;
-        private const long FeeOneGas = FeeHalfGas*2;
+        private const long FeeOneGas = FeeHalfGas * 2;
 
         public class ChequeParams
         {
