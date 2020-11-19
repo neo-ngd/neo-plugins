@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-using System;
 
 namespace Neo.Plugins.FSStorage
 {
@@ -91,7 +90,7 @@ namespace Neo.Plugins.FSStorage
             this.MintEmitValue = long.Parse(section.GetSection("emit.mint.value").Value);
             this.StorageEmission = ulong.Parse(section.GetSection("emit.storage.amount").Value);
 
-            this.CleanupEnabled= bool.Parse(section.GetSection("netmap_cleaner.enabled").Value);
+            this.CleanupEnabled = bool.Parse(section.GetSection("netmap_cleaner.enabled").Value);
             this.CleanupThreshold = ulong.Parse(section.GetSection("netmap_cleaner.threshold").Value);
         }
 

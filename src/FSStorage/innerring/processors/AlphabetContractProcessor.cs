@@ -60,7 +60,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "alphabet gas emit");
             Utility.Log("tick", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { process= "alphabet", task = new Task(() => ProcessEmit(newAlphabetEmitTickEvent)) });
+            workPool.Tell(new NewTask() { process = "alphabet", task = new Task(() => ProcessEmit(newAlphabetEmitTickEvent)) });
         }
 
         public void ProcessEmit(NewAlphabetEmitTickEvent newAlphabetEmitTickEvent)
@@ -92,25 +92,32 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 return;
             }
             NodeInfo[] networkMap = null;
-            try {
+            try
+            {
                 networkMap = ContractInvoker.NetmapSnapshot(Client);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
-                pairs.Add("error",e.Message);
+                pairs.Add("error", e.Message);
                 Utility.Log("can't get netmap snapshot to emit gas to storage nodes", LogLevel.Warning, pairs.ToString());
                 return;
             }
-            if (networkMap.Length == 0) {
+            if (networkMap.Length == 0)
+            {
                 Utility.Log("empty network map, do not emit gas", LogLevel.Debug, null);
                 return;
             }
-            var gasPerNode =  (long)storageEmission* 100000000 / networkMap.Length;
-            for (int i = 0; i < networkMap.Length; i++) {
+            var gasPerNode = (long)storageEmission * 100000000 / networkMap.Length;
+            for (int i = 0; i < networkMap.Length; i++)
+            {
                 ECPoint key = null;
-                try {
+                try
+                {
                     key = ECPoint.FromBytes(networkMap[i].PublicKey.ToByteArray(), ECCurve.Secp256r1);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Dictionary<string, string> pairs = new Dictionary<string, string>();
                     pairs.Add("error", e.Message);
                     Utility.Log("can't convert node public key to address", LogLevel.Warning, pairs.ToString());
@@ -120,7 +127,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 {
                     ((MorphClient)Client).TransferGas(key.EncodePoint(true).ToScriptHash(), gasPerNode);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Dictionary<string, string> pairs = new Dictionary<string, string>();
                     pairs.Add("receiver", e.Message);
                     pairs.Add("amount", key.EncodePoint(true).ToScriptHash().ToAddress());
