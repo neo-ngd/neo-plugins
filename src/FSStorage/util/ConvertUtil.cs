@@ -53,16 +53,14 @@ namespace Neo.Plugins.util
         private const uint Fixed8Precision = 8;
         private ConvertUtil converter;
 
-        public ConvertUtil Converter { get => converter; set => converter = value; }
-
         public Fixed8ConverterUtil()
         {
-            Converter = new ConvertUtil();
+            converter = new ConvertUtil();
         }
 
         public Fixed8ConverterUtil(uint precision)
         {
-            Converter = new ConvertUtil();
+            converter = new ConvertUtil();
             SetBalancePrecision(precision);
         }
 

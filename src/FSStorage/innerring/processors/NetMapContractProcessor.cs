@@ -90,7 +90,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "epoch");
             Utility.Log("tick", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessNewEpochTick(newEpochTickEvent)) });
+            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpochTick(newEpochTickEvent)) });
         }
 
         public void HandleNewEpoch(IContractEvent morphEvent)
@@ -100,7 +100,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "new epoch");
             pairs.Add("value", newEpochEvent.EpochNumber.ToString());
             Utility.Log("notification", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessNewEpoch(newEpochEvent)) });
+            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpoch(newEpochEvent)) });
         }
 
         public void HandleAddPeer(IContractEvent morphEvent)
@@ -109,7 +109,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "add peer");
             Utility.Log("notification", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessAddPeer(addPeerEvent)) });
+            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessAddPeer(addPeerEvent)) });
         }
 
         public void HandleUpdateState(IContractEvent morphEvent)
@@ -119,16 +119,20 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "update peer state");
             pairs.Add("key", updateStateEvent.PublicKey.EncodePoint(true).ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessUpdateState(updateStateEvent)) });
+            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessUpdateState(updateStateEvent)) });
         }
 
         public void HandleCleanupTick(IContractEvent morphEvent)
         {
+            if (!netmapSnapshot.Enabled) {
+                Utility.Log("netmap clean up routine is disabled", LogLevel.Debug, null);
+                return;
+            }
             NetmapCleanupTickEvent netmapCleanupTickEvent = (NetmapCleanupTickEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "netmap cleaner");
             Utility.Log("tick", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessNetmapCleanupTick(netmapCleanupTickEvent)) });
+            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNetmapCleanupTick(netmapCleanupTickEvent)) });
         }
 
         public void ProcessNetmapCleanupTick(NetmapCleanupTickEvent netmapCleanupTickEvent)

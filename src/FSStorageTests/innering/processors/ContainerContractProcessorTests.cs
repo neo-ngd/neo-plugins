@@ -166,7 +166,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void ListenerTimersHandlersTest()
         {
             var handlerInfos = processor.TimersHandlers();
-            Assert.IsNull(handlerInfos);
+            Assert.AreEqual(0,handlerInfos.Length);
         }
     }
 }

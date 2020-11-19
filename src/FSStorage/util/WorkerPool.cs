@@ -14,20 +14,21 @@ namespace Neo.Plugins.util
     /// </summary>
     public class WorkerPool : UntypedActor
     {
-        private int poolSize;
-        private int hasUsed;
+        private int capacity;
+        private int running;
 
         public class Timer { }
-        public class NewTask { public Task task; };
+        public class NewTask { public string process; public Task task; };
         public class CompleteTask { };
 
         private long duration = 100;
         private ICancelable timer_token;
-        private List<Task> taskArray = new List<Task>();
+        private List<Task> taskArray;
 
-        public WorkerPool(int poolSize)
+        public WorkerPool(int capacity)
         {
-            this.poolSize = poolSize;
+            this.capacity = capacity;
+            taskArray = new List<Task>();
         }
 
         protected override void OnReceive(object message)
@@ -52,34 +53,46 @@ namespace Neo.Plugins.util
         {
             timer_token.CancelIfNotNull();
             timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromMilliseconds(duration), Self, new Timer { }, ActorRefs.NoSender);
-            int canUse = poolSize - hasUsed;
-            if (canUse <= 0) return;
-            if (canUse > taskArray.Count) canUse = taskArray.Count;
-            for (int i = 0; i < canUse; i++)
+/*            int free = capacity - running;
+            if (free <= 0) return;
+            if (free > taskArray.Count) free = taskArray.Count;*/
+            for (int i = 0; i < taskArray.Count; i++)
             {
                 Task task = taskArray[i];
                 task.ContinueWith(t => { Self.Tell(new CompleteTask()); });
                 task.Start();
             }
-            for (int i = 0; i < canUse; i++)
+            taskArray.Clear();
+/*            for (int i = 0; i < free; i++)
             {
                 taskArray.RemoveAt(0);
-            }
+            }*/
         }
 
         private void OnNewTask(NewTask newTask)
         {
-            taskArray.Add(newTask.task);
+            int free = capacity - running;
+            if (free == 0)
+            {
+                Dictionary<string, string> pairs = new Dictionary<string, string>();
+                pairs.Add("capacity", capacity.ToString());
+                Utility.Log(string.Format("{0} processor worker pool drained", newTask.process), LogLevel.Warning, pairs.ToString());
+                Console.WriteLine(free);
+            }
+            else {
+                taskArray.Add(newTask.task);
+                running++;
+            }
         }
 
         private void OnCompleteTask()
         {
-            hasUsed--;
+            running--;
         }
 
-        public static Props Props(int PoolSize)
+        public static Props Props(int capacity)
         {
-            return Akka.Actor.Props.Create(() => new WorkerPool(PoolSize));
+            return Akka.Actor.Props.Create(() => new WorkerPool(capacity));
         }
     }
 }

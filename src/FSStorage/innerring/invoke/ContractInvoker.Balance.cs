@@ -5,13 +5,13 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
     public partial class ContractInvoker
     {
         private static UInt160 BalanceContractHash => Settings.Default.BalanceContractHash;
-        private static string TransferXMethod = "transferX";
-        private static string LockMethod = "lock";
-        private static string MintMethod = "mint";
-        private static string BurnMethod = "burn";
-        private static string PrecisionMethod = "decimals";
+        private const string TransferXMethod = "transferX";
+        private const string LockMethod = "lock";
+        private const string MintMethod = "mint";
+        private const string BurnMethod = "burn";
+        private const string PrecisionMethod = "decimals";
 
-        private static long ExtraFee = 1_5000_0000;
+        private const long ExtraFee = 1_5000_0000;
 
         public class TransferXParams
         {
@@ -69,13 +69,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public static bool LockAsset(Client client, LockParams p)
         {
-            return client.InvokeFunction(BalanceContractHash, LockMethod, ExtraFee, p.ID, p.UserAccount, p.LockAccount, p.Amount, p.Until);
+            return client.InvokeFunction(BalanceContractHash, LockMethod, ExtraFee, p.ID, p.UserAccount, p.LockAccount, p.Amount, (int)p.Until);
         }
 
         public static uint BalancePrecision(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, PrecisionMethod);
-            if (result.State != VM.VMState.HALT) return 0;
             return (uint)(result.ResultStack[0].GetInteger());
         }
     }

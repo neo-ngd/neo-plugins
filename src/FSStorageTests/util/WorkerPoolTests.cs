@@ -17,13 +17,14 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
-            workerpool = system.ActorSystem.ActorOf(WorkerPool.Props(100));
+            workerpool = system.ActorSystem.ActorOf(WorkerPool.Props(1));
         }
 
         [TestMethod()]
         public void NewTaskAndCompleteTaskTest()
         {
-            workerpool.Tell(new NewTask() { task = new Task(() => { }) });
+            workerpool.Tell(new NewTask() { process = "aaaa", task = new Task(() => { }) });
+            workerpool.Tell(new NewTask() { process = "bbb", task = new Task(() => { }) });
             workerpool.Tell(new CompleteTask());
         }
     }

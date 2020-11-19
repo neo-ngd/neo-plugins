@@ -46,20 +46,22 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void ProcessEmitTest()
         {
             processor.ProcessEmit(new NewAlphabetEmitTickEvent());
+            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            Assert.IsNotNull(tx);
         }
 
         [TestMethod()]
         public void ListenerHandlersTest()
         {
             var handlerInfos = processor.ListenerHandlers();
-            Assert.IsNull(handlerInfos);
+            Assert.AreEqual(0,handlerInfos.Length);
         }
 
         [TestMethod()]
         public void ListenerParsersTest()
         {
             var parserInfos = processor.ListenerParsers();
-            Assert.IsNull(parserInfos);
+            Assert.AreEqual(0, parserInfos.Length);
         }
 
         [TestMethod()]

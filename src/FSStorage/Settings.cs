@@ -31,6 +31,9 @@ namespace Neo.Plugins.FSStorage
         private long mintEmitValue;
         private ulong storageEmission;
 
+        private bool cleanupEnabled;
+        private ulong cleanupThreshold;
+
         public static Settings Default { get; private set; }
         public string WalletPath { get => walletPath; set => walletPath = value; }
         public string Password { get => password; set => password = value; }
@@ -54,6 +57,8 @@ namespace Neo.Plugins.FSStorage
         public ulong MintEmitThreshold { get => mintEmitThreshold; set => mintEmitThreshold = value; }
         public long MintEmitValue { get => mintEmitValue; set => mintEmitValue = value; }
         public ulong StorageEmission { get => storageEmission; set => storageEmission = value; }
+        public bool CleanupEnabled { get => cleanupEnabled; set => cleanupEnabled = value; }
+        public ulong CleanupThreshold { get => cleanupThreshold; set => cleanupThreshold = value; }
 
         private Settings(IConfigurationSection section)
         {
@@ -85,6 +90,9 @@ namespace Neo.Plugins.FSStorage
             this.MintEmitThreshold = ulong.Parse(section.GetSection("emit.mint.threshold").Value);
             this.MintEmitValue = long.Parse(section.GetSection("emit.mint.value").Value);
             this.StorageEmission = ulong.Parse(section.GetSection("emit.storage.amount").Value);
+
+            this.CleanupEnabled= bool.Parse(section.GetSection("netmap_cleaner.enabled").Value);
+            this.CleanupThreshold = ulong.Parse(section.GetSection("netmap_cleaner.threshold").Value);
         }
 
         public static void Load(IConfigurationSection section)

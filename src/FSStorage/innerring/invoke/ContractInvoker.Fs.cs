@@ -9,9 +9,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
     public partial class ContractInvoker
     {
         private static UInt160 FsContractHash = Settings.Default.FsContractHash;
-        private static string CheckIsInnerRingMethod = "isInnerRing";
-        private static string ChequeMethod = "cheque";
-        private static string InnerRingListMethod = "innerRingList";
+        private const string CheckIsInnerRingMethod = "isInnerRing";
+        private const string ChequeMethod = "cheque";
+        private const string InnerRingListMethod = "innerRingList";
+
+        private const long FeeHalfGas = 50_000_000;
+        private const long FeeOneGas = FeeHalfGas*2;
 
         public class ChequeParams
         {
@@ -29,7 +32,6 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         public static bool IsInnerRing(Client client, ECPoint p)
         {
             InvokeResult result = client.InvokeLocalFunction(FsContractHash, CheckIsInnerRingMethod, p.EncodePoint(true));
-            if (result.State != VM.VMState.HALT) throw new System.Exception();
             return result.ResultStack[0].GetBoolean();
         }
 
@@ -41,7 +43,6 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         public static int InnerRingIndex(Client client, ECPoint p)
         {
             InvokeResult result = client.InvokeLocalFunction(FsContractHash, InnerRingListMethod);
-            if (result.State != VM.VMState.HALT) throw new System.Exception();
             var irNodes = (Array)result.ResultStack[0];
             IEnumerator<StackItem> enumerator = irNodes.GetEnumerator();
             var index = -1;

@@ -15,6 +15,7 @@ using Neo.Wallets.NEP6;
 using System.Collections.Generic;
 using Neo.Plugins.innerring.processors;
 using System.Linq;
+using static Neo.Plugins.FSStorage.innerring.timers.EpochTickEvent;
 
 namespace Neo.Plugins.FSStorage.innerring
 {
@@ -45,7 +46,7 @@ namespace Neo.Plugins.FSStorage.innerring
         private readonly DB db;
         private readonly NEP6Wallet wallet;
 
-        private Fixed8ConverterUtil precision;
+        private Fixed8ConverterUtil convert;
 
         /// <summary>
         /// Constructor.
@@ -58,7 +59,7 @@ namespace Neo.Plugins.FSStorage.innerring
         /// <param name="system">NeoSystem</param>
         public InnerRingService(NeoSystem system, NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)
         {
-            precision = new Fixed8ConverterUtil();
+            convert = new Fixed8ConverterUtil();
             db = DB.Open(GetFullPath(Settings.Default.Path), new Options { CreateIfMissing = true });
             //Create wallet
             if (pwallet is null)
@@ -96,6 +97,7 @@ namespace Neo.Plugins.FSStorage.innerring
             balanceContractProcessor = new BalanceContractProcessor()
             {
                 Client = morphClient,
+                Convert= convert,
                 ActiveState = this,
                 WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.BalanceContractWorkersSize))
             };
@@ -108,6 +110,7 @@ namespace Neo.Plugins.FSStorage.innerring
             fsContractProcessor = new FsContractProcessor()
             {
                 Client = mainNetClient,
+                Convert = convert,
                 ActiveState = this,
                 EpochState = this,
                 WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.FsContractWorkersSize))
@@ -118,6 +121,7 @@ namespace Neo.Plugins.FSStorage.innerring
                 ActiveState = this,
                 EpochState = this,
                 EpochTimerReseter = this,
+                NetmapSnapshot=new NetMapContractProcessor.CleanupTable(Settings.Default.CleanupEnabled,Settings.Default.CleanupThreshold),
                 WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.NetmapContractWorkersSize))
             };
             alphabetContractProcessor = new AlphabetContractProcessor()
@@ -180,7 +184,7 @@ namespace Neo.Plugins.FSStorage.innerring
 
             SetEpochCounter((ulong)epoch);
             SetIndexer(index);
-            precision.SetBalancePrecision(balancePrecision);
+            convert.SetBalancePrecision(balancePrecision);
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("active", IsActive().ToString());
             pairs.Add("epoch", epoch.ToString());
@@ -270,7 +274,7 @@ namespace Neo.Plugins.FSStorage.innerring
 
         public void ResetEpochTimer()
         {
-            timer.Tell(new Timer() { });
+            timer.Tell(new Timer() {contractEvent=new NewEpochTickEvent() { } });
         }
 
         public static Props Props(NeoSystem system, NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)

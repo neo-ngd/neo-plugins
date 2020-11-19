@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.Plugins.FSStorage.innerring.processors;
+using Neo.Plugins.util;
 using Neo.Wallets;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             processor = new BalanceContractProcessor()
             {
                 Client = morphclient,
+                Convert = new Fixed8ConverterUtil(),
                 ActiveState = new PositiveActiveState(),
                 WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
             };
@@ -81,7 +83,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void ListenerTimersHandlersTest()
         {
             var handlerInfos = processor.TimersHandlers();
-            Assert.IsNull(handlerInfos);
+            Assert.AreEqual(0, handlerInfos.Length);
         }
 
         public class PositiveActiveState : IActiveState

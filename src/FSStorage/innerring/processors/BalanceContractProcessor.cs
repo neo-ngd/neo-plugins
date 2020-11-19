@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.Plugins.util;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,10 +21,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         private Client client;
         private IActiveState activeState;
         private IActorRef workPool;
+        private Fixed8ConverterUtil convert;
 
         public Client Client { get => client; set => client = value; }
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
+        public Fixed8ConverterUtil Convert { get => convert; set => convert = value; }
 
         public HandlerInfo[] ListenerHandlers()
         {
@@ -67,7 +70,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "lock");
             pairs.Add("value", lockEvent.Id.ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessLock(lockEvent)) });
+            workPool.Tell(new NewTask() { process = "balance", task = new Task(() => ProcessLock(lockEvent)) });
         }
 
         public void ProcessLock(LockEvent lockEvent)
@@ -80,12 +83,10 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             //invoke
             try
             {
-                //to do
-                //maybe need to convert precision
                 ContractInvoker.CashOutCheque(Client, new ChequeParams()
                 {
                     Id = lockEvent.Id,
-                    Amount = lockEvent.Amount,
+                    Amount = convert.ToFixed8(lockEvent.Amount),
                     UserAccount = lockEvent.UserAccount,
                     LockAccount = lockEvent.LockAccount
                 });

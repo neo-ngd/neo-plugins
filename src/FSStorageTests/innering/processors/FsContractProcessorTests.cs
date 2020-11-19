@@ -18,6 +18,7 @@ using static Neo.Plugins.FSStorage.morph.invoke.Tests.BalanceContractProcessorTe
 using static Neo.Plugins.FSStorage.MorphEvent;
 using System;
 using Neo.Cryptography.ECC;
+using Neo.Plugins.util;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 {
@@ -42,6 +43,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             processor = new FsContractProcessor()
             {
                 Client = morphclient,
+                Convert = new Fixed8ConverterUtil(),
                 ActiveState = new PositiveActiveState(),
                 EpochState = new EpochState(),
                 WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
@@ -198,7 +200,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void ListenerTimersHandlersTest()
         {
             var handlerInfos = processor.TimersHandlers();
-            Assert.IsNull(handlerInfos);
+            Assert.AreEqual(0,handlerInfos.Length);
         }
 
         public class EpochState : IEpochState

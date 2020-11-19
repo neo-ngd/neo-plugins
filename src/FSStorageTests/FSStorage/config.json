@@ -23,6 +23,9 @@
     "emit.mint.cache_size": 100,
     "emit.mint.threshold": 100,
     "emit.mint.value": 2,
-    "emit.storage.amount": 2
+    "emit.storage.amount": 2,
+
+    "netmap_cleaner.enabled": true,
+    "netmap_cleaner.threshold": 2
   }
 }

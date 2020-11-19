@@ -67,7 +67,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("id", Base58.Encode(id));
             Utility.Log("notification", LogLevel.Info, pairs.ToString());
             //send event to workpool
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessContainerPut(putEvent)) });
+            workPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerPut(putEvent)) });
         }
 
         public void HandleDelete(IContractEvent morphEvent)
@@ -78,7 +78,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("id", Base58.Encode(deleteEvent.ContainerID));
             Utility.Log("notification", LogLevel.Info, pairs.ToString());
             //send event to workpool
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessContainerDelete(deleteEvent)) });
+            workPool.Tell(new NewTask() { process="container", task = new Task(() => ProcessContainerDelete(deleteEvent)) });
         }
 
         public void ProcessContainerPut(ContainerPutEvent putEvent)
@@ -89,7 +89,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 return;
             }
             var cnrData = putEvent.RawContainer;
-            var container = Container.Parser.ParseFrom(cnrData);
+            Container container = null;
+            try {
+                container = Container.Parser.ParseFrom(cnrData);
+            } catch (Exception e) {
+                Utility.Log("could not unmarshal container structure", LogLevel.Error, e.Message);
+            }
             try
             {
                 CheckFormat(container);

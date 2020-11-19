@@ -2,6 +2,7 @@ using Akka.Actor;
 using Neo.IO;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.Plugins.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         private ulong mintEmitThreshold = Settings.Default.MintEmitThreshold;
         private long mintEmitValue = Settings.Default.MintEmitValue;
         private Dictionary<string, ulong> mintEmitCache;
+        private Fixed8ConverterUtil convert;
 
         private Client client;
         private IActiveState activeState;
@@ -42,6 +44,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public IActiveState ActiveState { get => activeState; set => activeState = value; }
         public IEpochState EpochState { get => epochState; set => epochState = value; }
         public IActorRef WorkPool { get => workPool; set => workPool = value; }
+        public Fixed8ConverterUtil Convert { get => convert; set => convert = value; }
 
         public FsContractProcessor()
         {
@@ -111,31 +114,51 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public void HandleDeposit(IContractEvent morphEvent)
         {
             DepositEvent depositeEvent = (DepositEvent)morphEvent;
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessDeposit(depositeEvent)) });
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "deposit");
+            pairs.Add("value", depositeEvent.Id.ToHexString());
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessDeposit(depositeEvent)) });
         }
 
         public void HandleWithdraw(IContractEvent morphEvent)
         {
             WithdrawEvent withdrawEvent = (WithdrawEvent)morphEvent;
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessWithdraw(withdrawEvent)) });
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "withdraw");
+            pairs.Add("value", withdrawEvent.Id.ToHexString());
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessWithdraw(withdrawEvent)) });
         }
 
         public void HandleCheque(IContractEvent morphEvent)
         {
             ChequeEvent chequeEvent = (ChequeEvent)morphEvent;
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessCheque(chequeEvent)) });
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "cheque");
+            pairs.Add("value", chequeEvent.Id.ToHexString());
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessCheque(chequeEvent)) });
         }
 
         public void HandleConfig(IContractEvent morphEvent)
         {
             ConfigEvent configEvent = (ConfigEvent)morphEvent;
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessConfig(configEvent)) });
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "setConfig");
+            pairs.Add("key", configEvent.Key.ToHexString());
+            pairs.Add("value", configEvent.Value.ToHexString());
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessConfig(configEvent)) });
         }
 
         public void HandleUpdateInnerRing(IContractEvent morphEvent)
         {
             UpdateInnerRingEvent updateInnerRingEvent = (UpdateInnerRingEvent)morphEvent;
-            workPool.Tell(new NewTask() { task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("type", "update inner ring");
+            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
         }
 
         public void ProcessDeposit(DepositEvent depositeEvent)
@@ -154,7 +177,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 ContractInvoker.Mint(client, new MintBurnParams()
                 {
                     ScriptHash = depositeEvent.To.ToArray(),
-                    Amount = depositeEvent.Amount,
+                    Amount = convert.ToBalancePrecision(depositeEvent.Amount),
                     Comment = coment.ToArray()
                 });
             }
@@ -219,7 +242,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     ID = withdrawEvent.Id,
                     UserAccount = withdrawEvent.UserAccount,
                     LockAccount = lockeAccount,
-                    Amount = withdrawEvent.Amount,
+                    Amount = convert.ToBalancePrecision(withdrawEvent.Amount),
                     Until = curEpoch + LockAccountLifetime
                 });
             }
@@ -246,7 +269,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 ContractInvoker.Burn(Client, new MintBurnParams()
                 {
                     ScriptHash = chequeEvent.LockAccount.ToArray(),
-                    Amount = chequeEvent.Amount * 1_0000_0000,
+                    Amount = convert.ToBalancePrecision(chequeEvent.Amount),
                     Comment = coment.ToArray()
                 });
             }

@@ -6,8 +6,8 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
     public partial class ContractInvoker
     {
         private static UInt160 ContainerContractHash => Settings.Default.ContainerContractHash;
-        private static string PutContainerMethod = "put";
-        private static string DeleteContainerMethod = "delete";
+        private const string PutContainerMethod = "put";
+        private const string DeleteContainerMethod = "delete";
 
         public class ContainerParams
         {
