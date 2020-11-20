@@ -78,7 +78,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             };
             tx.SystemFee = result.GasConsumed + fee;
             //todo
-            tx.NetworkFee = 0;//wallet.CalculateNetworkFee(snapshot,tx);
+            tx.NetworkFee = wallet.CalculateNetworkFee(snapshot,tx);
             var data = new ContractParametersContext(tx);
             Wallet.Sign(data);
             tx.Witnesses = data.GetWitnesses();

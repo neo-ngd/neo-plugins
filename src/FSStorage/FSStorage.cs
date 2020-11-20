@@ -7,22 +7,29 @@ using Neo.Persistence;
 using Neo.Plugins.FSStorage.innerring;
 using Neo.SmartContract;
 using Neo.VM;
+using System;
 using System.Collections.Generic;
-using Neo.Network.RPC;
 using static Neo.Plugins.FSStorage.innerring.InnerRingService;
 
 namespace Neo.Plugins.FSStorage
 {
     public class FSStorage : Plugin, IPersistencePlugin
     {
-        public IActorRef inneringService;
+        public IActorRef innering;
+   
         public override string Description => "Fs StorageNode Plugin";
 
         public FSStorage()
         {
-            inneringService = System.ActorSystem.ActorOf(InnerRingService.Props(Plugin.System));
-            RpcServerPlugin.RegisterMethods(this);
-            inneringService.Tell(new Start() { });
+            if (Settings.Default.IsSender)
+            {
+                innering = System.ActorSystem.ActorOf(InnerRingService.Props(Plugin.System));
+                RpcServerPlugin.RegisterMethods(this);
+                innering.Tell(new Start() { });
+            }
+            else {
+                innering = System.ActorSystem.ActorOf(InnerRingSender.Props());
+            }
         }
 
         protected override void Configure()
@@ -41,16 +48,28 @@ namespace Neo.Plugins.FSStorage
                 if (notifys is null) continue;
                 foreach (var notify in notifys)
                 {
-                    inneringService.Tell(new MorphContractEvent() { notify = notify });
+                    var contract = notify.ScriptHash;
+                    if (Settings.Default.IsSender)
+                    {
+                        if (contract != Settings.Default.FsContractHash) continue;
+                        Console.WriteLine("FS sender:执行一次");
+                        //innering.Tell(new MainContractEvent() { notify = notify });
+                    }
+                    else {
+                        if (!Settings.Default.Contracts.Contains(contract)) continue;
+                        Console.WriteLine("FS receiver:接收一次");
+                        //innering.Tell(new MorphContractEvent() { notify = notify });
+                    }
                 }
             }
         }
 
         [RpcMethod]
-        public void ReceiveMainNetEvent(JArray _params)
+        public bool ReceiveMainNetEvent(JArray _params)
         {
             var notify = GetNotifyEventArgsFromJson(_params);
-            inneringService.Tell(new MainContractEvent() { notify = notify });
+            innering.Tell(new MainContractEvent() { notify = notify });
+            return true;
         }
 
         public static NotifyEventArgs GetNotifyEventArgsFromJson(JArray _params)
@@ -70,7 +89,7 @@ namespace Neo.Plugins.FSStorage
         public override void Dispose()
         {
             base.Dispose();
-            inneringService.Tell(new Stop() { });
+            innering.Tell(new Stop() { });
         }
     }
 }

@@ -26,6 +26,8 @@
     "emit.storage.amount": 2,
 
     "netmap_cleaner.enabled": true,
-    "netmap_cleaner.threshold": 2
+    "netmap_cleaner.threshold": 2,
+
+    "isSender": true
   }
 }

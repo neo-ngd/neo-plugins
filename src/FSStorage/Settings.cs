@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage
 {
@@ -33,6 +34,8 @@ namespace Neo.Plugins.FSStorage
         private bool cleanupEnabled;
         private ulong cleanupThreshold;
 
+        private bool isSender;
+
         public static Settings Default { get; private set; }
         public string WalletPath { get => walletPath; set => walletPath = value; }
         public string Password { get => password; set => password = value; }
@@ -58,6 +61,9 @@ namespace Neo.Plugins.FSStorage
         public ulong StorageEmission { get => storageEmission; set => storageEmission = value; }
         public bool CleanupEnabled { get => cleanupEnabled; set => cleanupEnabled = value; }
         public ulong CleanupThreshold { get => cleanupThreshold; set => cleanupThreshold = value; }
+        public bool IsSender { get => isSender; set => isSender = value; }
+
+        public List<UInt160> Contracts = new List<UInt160>();
 
         private Settings(IConfigurationSection section)
         {
@@ -77,6 +83,14 @@ namespace Neo.Plugins.FSStorage
                 hashes[i] = UInt160.Parse(section.GetSection("contracts.alphabet" + i).Value);
             }
             this.AlphabetContractHash = hashes;
+
+            Contracts.Add(NetmapContractHash);
+            Contracts.Add(FsContractHash);
+            Contracts.Add(FsIdContractHash);
+            Contracts.Add(BalanceContractHash);
+            Contracts.Add(ContainerContractHash);
+            Contracts.AddRange(AlphabetContractHash);
+
             this.NetmapContractWorkersSize = int.Parse(section.GetSection("workers.netmap").Value);
             this.FsContractWorkersSize = int.Parse(section.GetSection("workers.neofs").Value);
             this.BalanceContractWorkersSize = int.Parse(section.GetSection("workers.balance").Value);
@@ -92,6 +106,8 @@ namespace Neo.Plugins.FSStorage
 
             this.CleanupEnabled = bool.Parse(section.GetSection("netmap_cleaner.enabled").Value);
             this.CleanupThreshold = ulong.Parse(section.GetSection("netmap_cleaner.threshold").Value);
+
+            this.IsSender = bool.Parse(section.GetSection("isSender").Value);
         }
 
         public static void Load(IConfigurationSection section)
