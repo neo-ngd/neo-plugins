@@ -174,7 +174,15 @@ namespace Neo.Plugins
                 UInt160 sender = signers.Size > 0 ? signers.GetSigners()[0].Account : null;
                 if (witnessSigners.Count() > 0)
                 {
-                    tx = wallet.MakeTransaction(Convert.FromBase64String(result["script"].AsString()), sender, witnessSigners);
+                    try
+                    {
+                        tx = wallet.MakeTransaction(Convert.FromBase64String(result["script"].AsString()), sender, witnessSigners);
+                    }
+                    catch (Exception e)
+                    {
+                        result["exception"] = GetExceptionMessage(e);
+                        return;
+                    }
                     ContractParametersContext context = new ContractParametersContext(tx);
                     wallet.Sign(context);
                     if (context.Completed)
@@ -183,7 +191,8 @@ namespace Neo.Plugins
                         tx = null;
                 }
             }
-            result["tx"] = tx?.ToArray().ToHexString();
+            if (tx != null)
+                result["tx"] = Convert.ToBase64String(tx.ToArray());
         }
 
         [RpcMethod]

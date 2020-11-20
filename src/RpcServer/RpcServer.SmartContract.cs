@@ -23,7 +23,7 @@ namespace Neo.Plugins
         {
             private readonly Signer[] _signers;
             public Witness[] Witnesses { get; set; }
-            public int Size { get; }
+            public int Size => _signers.Length;
 
             public Signers(Signer[] signers)
             {
@@ -63,11 +63,18 @@ namespace Neo.Plugins
 
         private JObject GetInvokeResult(byte[] script, Signers signers = null)
         {
-            using ApplicationEngine engine = ApplicationEngine.Run(script, container: signers, gas: settings.MaxGasInvoke);
+            Transaction tx = new Transaction
+            {
+                Signers = signers.GetSigners(),
+                Attributes = Array.Empty<TransactionAttribute>(),
+                Witnesses = signers.Witnesses,
+            };
+            using ApplicationEngine engine = ApplicationEngine.Run(script, container: tx, gas: settings.MaxGasInvoke);
             JObject json = new JObject();
             json["script"] = Convert.ToBase64String(script);
             json["state"] = engine.State;
             json["gasconsumed"] = engine.GasConsumed.ToString();
+            json["exception"] = GetExceptionMessage(engine.FaultException);
             try
             {
                 json["stack"] = new JArray(engine.ResultStack.Select(p => p.ToJson()));
@@ -76,7 +83,10 @@ namespace Neo.Plugins
             {
                 json["stack"] = "error: recursive reference";
             }
-            ProcessInvokeWithWallet(json, signers);
+            if (engine.State != VMState.FAULT)
+            {
+                ProcessInvokeWithWallet(json, signers);
+            }
             return json;
         }
 
@@ -116,7 +126,7 @@ namespace Neo.Plugins
         [RpcMethod]
         protected virtual JObject InvokeScript(JArray _params)
         {
-            byte[] script = _params[0].AsString().HexToBytes();
+            byte[] script = Convert.FromBase64String(_params[0].AsString());
             Signers signers = _params.Count >= 2 ? SignersFromJson((JArray)_params[1]) : null;
             return GetInvokeResult(script, signers);
         }
@@ -141,6 +151,18 @@ namespace Neo.Plugins
             json["unclaimed"] = NativeContract.NEO.UnclaimedGas(snapshot, script_hash, snapshot.Height + 1).ToString();
             json["address"] = script_hash.ToAddress();
             return json;
+        }
+
+        static string GetExceptionMessage(Exception exception)
+        {
+            if (exception == null) return null;
+
+            if (exception.InnerException != null)
+            {
+                return exception.InnerException.Message;
+            }
+
+            return exception.Message;
         }
     }
 }
