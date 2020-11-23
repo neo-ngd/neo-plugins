@@ -16,11 +16,10 @@ namespace Neo.Plugins.FSStorage
             public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
             public ECPoint[] Keys { get => keys; set => keys = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
-        public class UnBindEvent : IContractEvent
+        public class UnbindEvent : IContractEvent
         {
             private UInt160 userAccount;
             private ECPoint[] keys;
@@ -28,7 +27,6 @@ namespace Neo.Plugins.FSStorage
             public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
             public ECPoint[] Keys { get => keys; set => keys = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -44,7 +42,6 @@ namespace Neo.Plugins.FSStorage
             public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
             public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -60,7 +57,6 @@ namespace Neo.Plugins.FSStorage
             public UInt160 From { get => from; set => from = value; }
             public UInt160 To { get => to; set => to = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -74,7 +70,6 @@ namespace Neo.Plugins.FSStorage
             public long Amount { get => amount; set => amount = value; }
             public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -88,7 +83,6 @@ namespace Neo.Plugins.FSStorage
             public byte[] Value { get => value; set => this.value = value; }
             public byte[] Id { get => id; set => id = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -98,7 +92,6 @@ namespace Neo.Plugins.FSStorage
 
             public ECPoint[] Keys { get => keys; set => keys = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -109,7 +102,7 @@ namespace Neo.Plugins.FSStorage
             if (eventParams.Count != 2) throw new Exception();
             bindEvent.UserAccount = eventParams[0].GetSpan().AsSerializable<UInt160>();
             List<ECPoint> keys = new List<ECPoint>();
-            var bindKeys = ((VM.Types.Array)eventParams[0]).GetEnumerator();
+            var bindKeys = ((VM.Types.Array)eventParams[1]).GetEnumerator();
             while (bindKeys.MoveNext())
             {
                 var key = bindKeys.Current.GetSpan().AsSerializable<ECPoint>();
@@ -119,13 +112,13 @@ namespace Neo.Plugins.FSStorage
             return bindEvent;
         }
 
-        public static UnBindEvent ParseUnBindEvent(VM.Types.Array eventParams)
+        public static UnbindEvent ParseUnbindEvent(VM.Types.Array eventParams)
         {
-            var unbindEvent = new UnBindEvent();
+            var unbindEvent = new UnbindEvent();
             if (eventParams.Count != 2) throw new Exception();
             unbindEvent.UserAccount = eventParams[0].GetSpan().AsSerializable<UInt160>();
             List<ECPoint> keys = new List<ECPoint>();
-            var bindKeys = ((VM.Types.Array)eventParams[0]).GetEnumerator();
+            var bindKeys = ((VM.Types.Array)eventParams[1]).GetEnumerator();
             while (bindKeys.MoveNext())
             {
                 var key = bindKeys.Current.GetSpan().AsSerializable<ECPoint>();

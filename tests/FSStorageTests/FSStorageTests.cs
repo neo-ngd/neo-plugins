@@ -51,11 +51,10 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
             Assert.IsNotNull(notify);
         }
 
-
         [TestMethod()]
         public void InitTest()
         {
-            var sys=TestBlockchain.TheNeoSystem;
+            var sys = TestBlockchain.TheNeoSystem;
             NEP6Wallet temp = TestBlockchain.wallet;
             Console.WriteLine(temp.GetAccounts().ToArray()[0].GetKey().PublicKey.EncodePoint(true).ToHexString());
         }

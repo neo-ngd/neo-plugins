@@ -16,18 +16,19 @@ namespace Neo.Plugins.FSStorage
     public class FSStorage : Plugin, IPersistencePlugin
     {
         public IActorRef innering;
-   
-        public override string Description => "Fs StorageNode Plugin";
+        public override string Name => "FSStorage";
+        public override string Description => "Uses FSStorage to provide distributed file storage service";
 
         public FSStorage()
         {
             if (Settings.Default.IsSender)
             {
                 innering = System.ActorSystem.ActorOf(InnerRingService.Props(Plugin.System));
-                //RpcServerPlugin.RegisterMethods(this);
+                RpcServerPlugin.RegisterMethods(this);
                 innering.Tell(new Start() { });
             }
-            else {
+            else
+            {
                 innering = System.ActorSystem.ActorOf(InnerRingSender.Props());
             }
         }
@@ -52,25 +53,24 @@ namespace Neo.Plugins.FSStorage
                     if (Settings.Default.IsSender)
                     {
                         if (contract != Settings.Default.FsContractHash) continue;
-                        Console.WriteLine("FS sender:执行一次");
-                        //innering.Tell(new MainContractEvent() { notify = notify });
+                        innering.Tell(new MainContractEvent() { notify = notify });
                     }
-                    else {
+                    else
+                    {
                         if (!Settings.Default.Contracts.Contains(contract)) continue;
-                        Console.WriteLine("FS receiver:接收一次");
-                        //innering.Tell(new MorphContractEvent() { notify = notify });
+                        innering.Tell(new MorphContractEvent() { notify = notify });
                     }
                 }
             }
         }
 
-/*        [RpcMethod]
+        [RpcMethod]
         public bool ReceiveMainNetEvent(JArray _params)
         {
             var notify = GetNotifyEventArgsFromJson(_params);
             innering.Tell(new MainContractEvent() { notify = notify });
             return true;
-        }*/
+        }
 
         public static NotifyEventArgs GetNotifyEventArgsFromJson(JArray _params)
         {

@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\3.0版本\neo\src\neo\neo.csproj" />
+    <PackageReference Include="Neo" Version="3.0.0-preview3-00" />
   </ItemGroup>
 
   <ItemGroup>

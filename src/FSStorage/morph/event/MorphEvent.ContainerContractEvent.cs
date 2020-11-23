@@ -15,7 +15,6 @@ namespace Neo.Plugins.FSStorage
             public byte[] ContainerID { get => containerID; set => containerID = value; }
             public byte[] Signature { get => signature; set => signature = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -29,7 +28,6 @@ namespace Neo.Plugins.FSStorage
             public byte[] Signature { get => signature; set => signature = value; }
             public ECPoint PublicKey { get => publicKey; set => publicKey = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -45,10 +43,10 @@ namespace Neo.Plugins.FSStorage
         public static ContainerPutEvent ParseContainerPutEvent(VM.Types.Array eventParams)
         {
             var containerPutEvent = new ContainerPutEvent();
-            if (eventParams.Count != 2) throw new Exception();
+            if (eventParams.Count != 3) throw new Exception();
             containerPutEvent.RawContainer = eventParams[0].GetSpan().ToArray();
             containerPutEvent.Signature = eventParams[1].GetSpan().ToArray();
-            containerPutEvent.PublicKey = eventParams[1].GetSpan().ToArray().AsSerializable<ECPoint>(1);
+            containerPutEvent.PublicKey = eventParams[2].GetSpan().ToArray().AsSerializable<ECPoint>(1);
             return containerPutEvent;
         }
     }

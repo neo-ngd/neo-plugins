@@ -12,7 +12,6 @@ namespace Neo.Plugins.FSStorage
 
             public ulong EpochNumber { get => epochNumber; set => epochNumber = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -22,7 +21,6 @@ namespace Neo.Plugins.FSStorage
 
             public byte[] Node { get => node; set => node = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -34,7 +32,6 @@ namespace Neo.Plugins.FSStorage
             public ECPoint PublicKey { get => publicKey; set => publicKey = value; }
             public uint Status { get => status; set => status = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
@@ -59,7 +56,7 @@ namespace Neo.Plugins.FSStorage
             var updatePeerEvent = new UpdatePeerEvent();
             if (eventParams.Count != 2) throw new Exception();
             updatePeerEvent.PublicKey = eventParams[0].GetSpan().ToArray().AsSerializable<ECPoint>(1);
-            updatePeerEvent.Status = (uint)eventParams[0].GetInteger();
+            updatePeerEvent.Status = (uint)eventParams[1].GetInteger();
             return updatePeerEvent;
         }
     }

@@ -30,12 +30,13 @@ namespace Neo.Plugins.FSStorage.innerring
             }
         }
 
-        private void OnMainContractEvent(NotifyEventArgs notify) {
+        private void OnMainContractEvent(NotifyEventArgs notify)
+        {
             var container = notify.ScriptContainer.ToArray().ToHexString();
             var scriptHash = notify.ScriptHash.ToArray().ToHexString();
             var eventName = notify.EventName;
             var state = notify.State.ToJson();
-            var result=client.RpcSendAsync("receiveMainNetEvent", container,scriptHash,eventName,state).Result;
+            var result = client.RpcSendAsync("receiveMainNetEvent", container, scriptHash, eventName, state).Result;
         }
 
         public static Props Props()

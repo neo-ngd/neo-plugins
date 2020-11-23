@@ -20,7 +20,6 @@ namespace Neo.Plugins.FSStorage
             public long Amount { get => amount; set => amount = value; }
             public long Util { get => util; set => util = value; }
 
-            //todo
             public void ContractEvent() { }
         }
 
