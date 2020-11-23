@@ -2,7 +2,6 @@ using Neo.Cryptography.ECC;
 using Neo.IO;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Neo.Plugins.FSStorage
 {

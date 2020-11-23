@@ -312,27 +312,4 @@ namespace Neo.Plugins.FSStorage
             key = inputKey;
         }
     }
-
-    public class BlockChainFakeActor : ReceiveActor
-    {
-        public BlockChainFakeActor()
-        {
-            Receive<Transaction>(create =>
-            {
-                Sender.Tell(new OperationResult1() { tx = create });
-            });
-            Receive<Neo.Plugins.util.WorkerPool.NewTask>(create =>
-            {
-                Sender.Tell(new OperationResult2() { nt = create });
-            });
-            Receive<IContractEvent>(create =>
-            {
-                Sender.Tell(new OperationResult3() { ce = create });
-            });
-        }
-
-        public class OperationResult1 { public Transaction tx; };
-        public class OperationResult2 { public Neo.Plugins.util.WorkerPool.NewTask nt; };
-        public class OperationResult3 { public IContractEvent ce; };
-    }
 }

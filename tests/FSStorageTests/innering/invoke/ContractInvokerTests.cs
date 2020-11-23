@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
+using FSStorageTests.innering.processors;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography;
@@ -35,7 +36,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
 
@@ -49,7 +50,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Amount = 0,
                 Comment = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -63,7 +64,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Amount = 0,
                 Comment = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -77,7 +78,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Amount = 0,
                 Comment = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -94,7 +95,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Until = 100,
             };
             bool result = ContractInvoker.LockAsset(morphclient, lockparam);
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -127,7 +128,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Container = container.ToByteArray(),
                 Signature = sig
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -168,7 +169,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 ContainerID = containerId,
                 Signature = sig
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -184,7 +185,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void InvokeSetNewEpochTest()
         {
             bool result = ContractInvoker.SetNewEpoch(morphclient, 100);
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -201,7 +202,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 State = NodeInfo.Types.State.Online
             };
             bool result = ContractInvoker.ApprovePeer(morphclient, nodeInfo.ToByteArray());
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
             result = ContractInvoker.UpdatePeerState(morphclient, new UpdatePeerArgs()
@@ -209,7 +210,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Key = key.PublicKey,
                 Status = (int)NodeInfo.Types.State.Offline
             });
-            tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -223,7 +224,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Key = Utility.StrictUTF8.GetBytes("ContainerFee"),
                 Value = BitConverter.GetBytes(0)
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -234,7 +235,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
             KeyPair key = accounts.ToArray()[0].GetKey();
             bool result = ContractInvoker.UpdateInnerRing(morphclient, new ECPoint[] { key.PublicKey });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -250,7 +251,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void InvokeAlphabetEmitTest()
         {
             bool result = ContractInvoker.AlphabetEmit(morphclient, 0);
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }
@@ -284,7 +285,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 LockAccount = accounts.ToArray()[0].ScriptHash,
                 UserAccount = accounts.ToArray()[0].ScriptHash
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.AreEqual(result, true);
             Assert.IsNotNull(tx);
         }

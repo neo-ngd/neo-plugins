@@ -16,6 +16,7 @@ using Neo.VM;
 using static Neo.Plugins.FSStorage.morph.invoke.MorphClient;
 using static Neo.Plugins.FSStorage.morph.invoke.Tests.BalanceContractProcessorTests;
 using static Neo.Plugins.FSStorage.MorphEvent;
+using FSStorageTests.innering.processors;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 {
@@ -35,13 +36,13 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
             processor = new ContainerContractProcessor()
             {
                 Client = morphclient,
                 ActiveState = new PositiveActiveState(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
 
@@ -67,7 +68,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 PublicKey = key.PublicKey,
                 Signature = sig
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -79,7 +80,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 ContainerID = new byte[] { 0x01 },
                 Signature = new byte[] { 0x01 }
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -104,7 +105,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Signature = sig,
                 RawContainer = container.ToByteArray()
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 
@@ -144,7 +145,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 ContainerID = containerId,
                 Signature = sig
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 

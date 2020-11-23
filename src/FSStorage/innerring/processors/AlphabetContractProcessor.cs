@@ -3,7 +3,6 @@ using Neo.Cryptography.ECC;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.innerring.timers;
 using Neo.Plugins.FSStorage.morph.invoke;
-using Neo.Plugins.innerring.processors;
 using Neo.SmartContract;
 using Neo.Wallets;
 using NeoFS.API.v2.Netmap;

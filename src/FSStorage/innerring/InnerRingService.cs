@@ -13,7 +13,6 @@ using System.Text;
 using Neo.IO.Data.LevelDB;
 using Neo.Wallets.NEP6;
 using System.Collections.Generic;
-using Neo.Plugins.innerring.processors;
 using System.Linq;
 using static Neo.Plugins.FSStorage.innerring.timers.EpochTickEvent;
 

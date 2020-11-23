@@ -1,9 +1,9 @@
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
+using FSStorageTests.innering.processors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Plugins.FSStorage.innerring.processors;
 using Neo.Wallets;
-using Neo.Plugins.innerring.processors;
 using static Neo.Plugins.FSStorage.innerring.timers.EpochTickEvent;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
@@ -24,13 +24,13 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
             processor = new AlphabetContractProcessor()
             {
                 Client = morphclient,
                 Indexer = new Indexer(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
 
@@ -38,7 +38,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void HandleHandleGasEmissionTest()
         {
             processor.HandleGasEmission(new NewAlphabetEmitTickEvent());
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -46,7 +46,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void ProcessEmitTest()
         {
             processor.ProcessEmit(new NewAlphabetEmitTickEvent());
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 

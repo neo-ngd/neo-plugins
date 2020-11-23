@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
+using FSStorageTests.innering.processors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography;
 using Neo.IO;
@@ -28,14 +29,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
             processor = new BalanceContractProcessor()
             {
                 Client = morphclient,
                 Convert = new Fixed8ConverterUtil(),
                 ActiveState = new PositiveActiveState(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
 
@@ -46,7 +47,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             {
                 Id = new byte[] { 0x01 }
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -61,7 +62,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 LockAccount = accounts.ToArray()[0].ScriptHash,
                 UserAccount = accounts.ToArray()[0].ScriptHash
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 

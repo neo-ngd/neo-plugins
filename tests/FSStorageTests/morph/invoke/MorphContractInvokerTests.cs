@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
+using FSStorageTests.innering.processors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO;
 using Neo.Wallets;
@@ -21,7 +22,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             client = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
 

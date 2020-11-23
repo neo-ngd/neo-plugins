@@ -1,6 +1,5 @@
 using Neo.Cryptography.ECC;
 using Neo.IO;
-using Neo.SmartContract;
 using System;
 
 namespace Neo.Plugins.FSStorage

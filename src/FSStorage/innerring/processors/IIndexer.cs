@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Neo.Plugins.innerring.processors
+namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public interface IIndexer
     {

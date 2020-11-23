@@ -12,6 +12,7 @@ using System.Linq;
 using NeoFS.API.v2.Netmap;
 using Neo.IO;
 using Google.Protobuf;
+using FSStorageTests.innering.processors;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 {
@@ -31,7 +32,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
             processor = new NetMapContractProcessor()
             {
@@ -39,7 +40,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 ActiveState = new PositiveActiveState(),
                 EpochState = new EpochState(),
                 EpochTimerReseter = new EpochTimerReseter(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor())),
+                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor())),
                 NetmapSnapshot = new NetMapContractProcessor.CleanupTable(true, 1)
             };
         }
@@ -48,7 +49,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void HandleNewEpochTickTest()
         {
             processor.HandleNewEpochTick(new NewEpochTickEvent());
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -56,7 +57,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void HandleNewEpochTest()
         {
             processor.HandleNewEpoch(new NewEpochEvent());
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -64,7 +65,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void HandleAddPeerTest()
         {
             processor.HandleAddPeer(new AddPeerEvent());
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -78,7 +79,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 PublicKey = accounts.Current.GetKey().PublicKey,
                 Status = 2
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -86,7 +87,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void HandleCleanupTickTest()
         {
             processor.HandleCleanupTick(new NetmapCleanupTickEvent());
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -118,7 +119,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             {
                 EpochNumber = 1
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 

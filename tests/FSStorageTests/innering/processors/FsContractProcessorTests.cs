@@ -11,6 +11,7 @@ using static Neo.Plugins.FSStorage.morph.invoke.Tests.BalanceContractProcessorTe
 using static Neo.Plugins.FSStorage.MorphEvent;
 using Neo.Cryptography.ECC;
 using Neo.Plugins.util;
+using FSStorageTests.innering.processors;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 {
@@ -30,7 +31,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
-                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
             processor = new FsContractProcessor()
             {
@@ -38,7 +39,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Convert = new Fixed8ConverterUtil(),
                 ActiveState = new PositiveActiveState(),
                 EpochState = new EpochState(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new BlockChainFakeActor()))
+                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
 
@@ -52,7 +53,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 From = UInt160.Zero,
                 To = UInt160.Zero
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -65,7 +66,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Amount = 0,
                 UserAccount = UInt160.Zero
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -79,7 +80,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 UserAccount = UInt160.Zero,
                 LockAccount = UInt160.Zero
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -91,7 +92,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Key = new byte[] { 0x01 },
                 Value = new byte[] { 0x01 }
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -102,7 +103,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             {
                 Keys = new Cryptography.ECC.ECPoint[0]
             });
-            var nt = ExpectMsg<BlockChainFakeActor.OperationResult2>().nt;
+            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
@@ -117,7 +118,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 From = UInt160.Zero,
                 To = accounts.ToArray()[0].ScriptHash
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 
@@ -130,7 +131,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Amount = 0,
                 UserAccount = UInt160.Zero
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 
@@ -144,7 +145,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 UserAccount = UInt160.Zero,
                 LockAccount = UInt160.Zero
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 
@@ -157,7 +158,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Key = Utility.StrictUTF8.GetBytes("ContainerFee"),
                 Value = new byte[] { 0x01 }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 
@@ -170,7 +171,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             {
                 Keys = new ECPoint[] { key.PublicKey }
             });
-            var tx = ExpectMsg<BlockChainFakeActor.OperationResult1>().tx;
+            var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }
 
