@@ -8,14 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\3.0版本\neo\src\neo\neo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="LevelDBStore\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Neo" Version="3.0.0-CI01066" />
   </ItemGroup>
 
 </Project>

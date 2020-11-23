@@ -24,7 +24,7 @@ namespace Neo.Plugins.FSStorage
             if (Settings.Default.IsSender)
             {
                 innering = System.ActorSystem.ActorOf(InnerRingService.Props(Plugin.System));
-                RpcServerPlugin.RegisterMethods(this);
+                //RpcServerPlugin.RegisterMethods(this);
                 innering.Tell(new Start() { });
             }
             else {
@@ -64,13 +64,13 @@ namespace Neo.Plugins.FSStorage
             }
         }
 
-        [RpcMethod]
+/*        [RpcMethod]
         public bool ReceiveMainNetEvent(JArray _params)
         {
             var notify = GetNotifyEventArgsFromJson(_params);
             innering.Tell(new MainContractEvent() { notify = notify });
             return true;
-        }
+        }*/
 
         public static NotifyEventArgs GetNotifyEventArgsFromJson(JArray _params)
         {

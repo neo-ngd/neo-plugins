@@ -28,7 +28,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FSStorage", "src\FSStorage\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FSStorageTests", "src\FSStorageTests\FSStorageTests.csproj", "{5E1F1F78-82C5-4895-8FC7-18D94C595347}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "neo", "..\..\3.0\master\neo\src\neo\neo.csproj", "{2A10CB77-A115-4E22-951A-FAFB849CD84F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "neo", "..\..\3.0°æ±¾\neo\src\neo\neo.csproj", "{B178305D-7F36-4035-A9BF-21C429F03579}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,10 +80,10 @@ Global
 		{5E1F1F78-82C5-4895-8FC7-18D94C595347}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E1F1F78-82C5-4895-8FC7-18D94C595347}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E1F1F78-82C5-4895-8FC7-18D94C595347}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2A10CB77-A115-4E22-951A-FAFB849CD84F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2A10CB77-A115-4E22-951A-FAFB849CD84F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2A10CB77-A115-4E22-951A-FAFB849CD84F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2A10CB77-A115-4E22-951A-FAFB849CD84F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B178305D-7F36-4035-A9BF-21C429F03579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B178305D-7F36-4035-A9BF-21C429F03579}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B178305D-7F36-4035-A9BF-21C429F03579}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B178305D-7F36-4035-A9BF-21C429F03579}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

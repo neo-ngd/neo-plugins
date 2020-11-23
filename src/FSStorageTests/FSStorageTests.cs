@@ -7,6 +7,7 @@ using Neo.Network.P2P.Payloads;
 using Neo.IO;
 using Neo.VM;
 using System.Linq;
+using Neo.Wallets.NEP6;
 
 namespace Neo.Plugins.FSStorage.morph.client.Tests
 {
@@ -48,6 +49,15 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
 
             NotifyEventArgs notify = FSStorage.GetNotifyEventArgsFromJson(obj);
             Assert.IsNotNull(notify);
+        }
+
+
+        [TestMethod()]
+        public void InitTest()
+        {
+            var sys=TestBlockchain.TheNeoSystem;
+            NEP6Wallet temp = TestBlockchain.wallet;
+            Console.WriteLine(temp.GetAccounts().ToArray()[0].GetKey().PublicKey.EncodePoint(true).ToHexString());
         }
     }
 }
