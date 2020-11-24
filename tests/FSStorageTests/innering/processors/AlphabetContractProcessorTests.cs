@@ -45,7 +45,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void ProcessEmitTest()
         {
-            processor.ProcessEmit(new NewAlphabetEmitTickEvent());
+            processor.ProcessEmit();
             var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
         }

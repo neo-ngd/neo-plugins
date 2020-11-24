@@ -8,7 +8,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 {
     public partial class ContractInvoker
     {
-        private static UInt160 FsContractHash = Settings.Default.FsContractHash;
+        private static UInt160 FsContractHash => Settings.Default.FsContractHash;
         private const string CheckIsInnerRingMethod = "isInnerRing";
         private const string ChequeMethod = "cheque";
         private const string InnerRingListMethod = "innerRingList";

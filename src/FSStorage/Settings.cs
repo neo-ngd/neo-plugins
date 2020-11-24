@@ -71,19 +71,20 @@ namespace Neo.Plugins.FSStorage
             this.Url = section.GetSection("URL").Value;
             this.WalletPath = section.GetSection("WalletPath").Value;
             this.Password = section.GetSection("Password").Value;
-            this.NetmapContractHash = UInt160.Parse(section.GetSection("contracts.netmap").Value);
-            this.FsContractHash = UInt160.Parse(section.GetSection("contracts.neofs").Value);
-            this.FsIdContractHash = UInt160.Parse(section.GetSection("contracts.neofsId").Value);
-            this.BalanceContractHash = UInt160.Parse(section.GetSection("contracts.balance").Value);
-            this.ContainerContractHash = UInt160.Parse(section.GetSection("contracts.container").Value);
-            int alphabetContractCount = int.Parse(section.GetSection("contracts.alphabet").Value);
+
+            IConfigurationSection contracts = section.GetSection("contracts");
+            this.NetmapContractHash = UInt160.Parse(contracts.GetSection("netmap").Value);
+            this.FsContractHash = UInt160.Parse(contracts.GetSection("neofs").Value);
+            this.FsIdContractHash = UInt160.Parse(contracts.GetSection("neofsId").Value);
+            this.BalanceContractHash = UInt160.Parse(contracts.GetSection("balance").Value);
+            this.ContainerContractHash = UInt160.Parse(contracts.GetSection("container").Value);
+            int alphabetContractCount = int.Parse(contracts.GetSection("alphabet").Value);
             UInt160[] hashes = new UInt160[alphabetContractCount];
             for (int i = 0; i < alphabetContractCount; i++)
             {
-                hashes[i] = UInt160.Parse(section.GetSection("contracts.alphabet" + i).Value);
+                hashes[i] = UInt160.Parse(contracts.GetSection("alphabet" + i).Value);
             }
             this.AlphabetContractHash = hashes;
-
             Contracts.Add(NetmapContractHash);
             Contracts.Add(FsContractHash);
             Contracts.Add(FsIdContractHash);
@@ -91,21 +92,26 @@ namespace Neo.Plugins.FSStorage
             Contracts.Add(ContainerContractHash);
             Contracts.AddRange(AlphabetContractHash);
 
-            this.NetmapContractWorkersSize = int.Parse(section.GetSection("workers.netmap").Value);
-            this.FsContractWorkersSize = int.Parse(section.GetSection("workers.neofs").Value);
-            this.BalanceContractWorkersSize = int.Parse(section.GetSection("workers.balance").Value);
-            this.ContainerContractWorkersSize = int.Parse(section.GetSection("workers.container").Value);
-            this.AlphabetContractWorkersSize = int.Parse(section.GetSection("workers.alphabet").Value);
-            this.EpochDuration = long.Parse(section.GetSection("timers.epoch").Value);
-            this.AlphabetDuration = long.Parse(section.GetSection("timers.emit").Value);
+            IConfigurationSection workSizes = section.GetSection("workers");
+            this.NetmapContractWorkersSize = int.Parse(workSizes.GetSection("netmap").Value);
+            this.FsContractWorkersSize = int.Parse(workSizes.GetSection("neofs").Value);
+            this.BalanceContractWorkersSize = int.Parse(workSizes.GetSection("balance").Value);
+            this.ContainerContractWorkersSize = int.Parse(workSizes.GetSection("container").Value);
+            this.AlphabetContractWorkersSize = int.Parse(workSizes.GetSection("alphabet").Value);
 
-            this.MintEmitCacheSize = int.Parse(section.GetSection("emit.mint.cache_size").Value);
-            this.MintEmitThreshold = ulong.Parse(section.GetSection("emit.mint.threshold").Value);
-            this.MintEmitValue = long.Parse(section.GetSection("emit.mint.value").Value);
-            this.StorageEmission = ulong.Parse(section.GetSection("emit.storage.amount").Value);
+            IConfigurationSection timers = section.GetSection("timers");
+            this.EpochDuration = long.Parse(timers.GetSection("epoch").Value);
+            this.AlphabetDuration = long.Parse(timers.GetSection("emit").Value);
 
-            this.CleanupEnabled = bool.Parse(section.GetSection("netmap_cleaner.enabled").Value);
-            this.CleanupThreshold = ulong.Parse(section.GetSection("netmap_cleaner.threshold").Value);
+            IConfigurationSection emit = section.GetSection("emit");
+            this.MintEmitCacheSize = int.Parse(emit.GetSection("mint").GetSection("cache_size").Value);
+            this.MintEmitThreshold = ulong.Parse(emit.GetSection("mint").GetSection("threshold").Value);
+            this.MintEmitValue = long.Parse(emit.GetSection("mint").GetSection("value").Value);
+            this.StorageEmission = ulong.Parse(emit.GetSection("storage").GetSection("amount").Value);
+
+            IConfigurationSection netmapCleaner = section.GetSection("netmap_cleaner");
+            this.CleanupEnabled = bool.Parse(netmapCleaner.GetSection("enabled").Value);
+            this.CleanupThreshold = ulong.Parse(netmapCleaner.GetSection("threshold").Value);
 
             this.IsSender = bool.Parse(section.GetSection("isSender").Value);
         }

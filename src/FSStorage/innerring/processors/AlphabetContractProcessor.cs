@@ -3,6 +3,7 @@ using Neo.Cryptography.ECC;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.innerring.timers;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.Plugins.util;
 using Neo.SmartContract;
 using Neo.Wallets;
 using NeoFS.API.v2.Netmap;
@@ -17,8 +18,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public class AlphabetContractProcessor : IProcessor
     {
-        private UInt160[] AlphabetContractHash => Settings.Default.AlphabetContractHash;
-
         private Client client;
         private IActorRef workPool;
         private IIndexer indexer;
@@ -55,14 +54,13 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public void HandleGasEmission(IContractEvent morphEvent)
         {
-            NewAlphabetEmitTickEvent newAlphabetEmitTickEvent = (NewAlphabetEmitTickEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "alphabet gas emit");
-            Utility.Log("tick", LogLevel.Info, pairs.ToString());
-            workPool.Tell(new NewTask() { process = "alphabet", task = new Task(() => ProcessEmit(newAlphabetEmitTickEvent)) });
+            Utility.Log("tick", LogLevel.Info, pairs.ParseToString());
+            workPool.Tell(new NewTask() { process = "alphabet", task = new Task(() => ProcessEmit()) });
         }
 
-        public void ProcessEmit(NewAlphabetEmitTickEvent newAlphabetEmitTickEvent)
+        public void ProcessEmit()
         {
             int index = Indexer.Index();
             if (index < 0)
@@ -74,13 +72,13 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
                 pairs.Add("index", index.ToString());
-                Utility.Log("node is out of alphabet range, ignore gas emission event", LogLevel.Debug, pairs.ToString());
+                Utility.Log("node is out of alphabet range, ignore gas emission event", LogLevel.Debug, pairs.ParseToString());
             }
             try
             {
                 ContractInvoker.AlphabetEmit(Client, index);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Utility.Log("can't invoke alphabet emit method", LogLevel.Warning, null);
                 return;
@@ -99,7 +97,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
                 pairs.Add("error", e.Message);
-                Utility.Log("can't get netmap snapshot to emit gas to storage nodes", LogLevel.Warning, pairs.ToString());
+                Utility.Log("can't get netmap snapshot to emit gas to storage nodes", LogLevel.Warning, pairs.ParseToString());
                 return;
             }
             if (networkMap.Length == 0)
@@ -119,7 +117,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 {
                     Dictionary<string, string> pairs = new Dictionary<string, string>();
                     pairs.Add("error", e.Message);
-                    Utility.Log("can't convert node public key to address", LogLevel.Warning, pairs.ToString());
+                    Utility.Log("can't convert node public key to address", LogLevel.Warning, pairs.ParseToString());
                     continue;
                 }
                 try
@@ -131,7 +129,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     Dictionary<string, string> pairs = new Dictionary<string, string>();
                     pairs.Add("receiver", e.Message);
                     pairs.Add("amount", key.EncodePoint(true).ToScriptHash().ToAddress());
-                    Utility.Log("can't transfer gas", LogLevel.Warning, pairs.ToString());
+                    Utility.Log("can't transfer gas", LogLevel.Warning, pairs.ParseToString());
                 }
             }
         }

@@ -69,7 +69,7 @@ namespace Neo.Plugins.util
             {
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
                 pairs.Add("capacity", capacity.ToString());
-                Utility.Log(string.Format("{0} processor worker pool drained", newTask.process), LogLevel.Warning, pairs.ToString());
+                Utility.Log(string.Format("{0} processor worker pool drained", newTask.process), LogLevel.Warning, pairs.ParseToString());
                 Console.WriteLine(free);
             }
             else

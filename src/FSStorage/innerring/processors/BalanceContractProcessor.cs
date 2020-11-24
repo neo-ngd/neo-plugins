@@ -69,7 +69,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "lock");
             pairs.Add("value", lockEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "balance", task = new Task(() => ProcessLock(lockEvent)) });
         }
 

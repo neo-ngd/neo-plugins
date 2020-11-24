@@ -3,6 +3,7 @@ using Neo.Cryptography.ECC;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.innerring.timers;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.Plugins.util;
 using NeoFS.API.v2.Netmap;
 using System;
 using System.Collections.Generic;
@@ -89,7 +90,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             NewEpochTickEvent newEpochTickEvent = (NewEpochTickEvent)timersEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "epoch");
-            Utility.Log("tick", LogLevel.Info, pairs.ToString());
+            Utility.Log("tick", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpochTick(newEpochTickEvent)) });
         }
 
@@ -99,7 +100,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "new epoch");
             pairs.Add("value", newEpochEvent.EpochNumber.ToString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpoch(newEpochEvent)) });
         }
 
@@ -108,7 +109,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             AddPeerEvent addPeerEvent = (AddPeerEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "add peer");
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessAddPeer(addPeerEvent)) });
         }
 
@@ -118,7 +119,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "update peer state");
             pairs.Add("key", updateStateEvent.PublicKey.EncodePoint(true).ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessUpdateState(updateStateEvent)) });
         }
 
@@ -132,7 +133,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             NetmapCleanupTickEvent netmapCleanupTickEvent = (NetmapCleanupTickEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "netmap cleaner");
-            Utility.Log("tick", LogLevel.Info, pairs.ToString());
+            Utility.Log("tick", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNetmapCleanupTick(netmapCleanupTickEvent)) });
         }
 
@@ -160,7 +161,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 key = ECPoint.FromBytes(s.HexToBytes(), ECCurve.Secp256r1);
             }
-            catch (Exception e)
+            catch
             {
                 Utility.Log("can't decode public key of netmap node", LogLevel.Warning, s);
             }
@@ -261,7 +262,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Dictionary<string, string> pairs = new Dictionary<string, string>();
                 pairs.Add("key", updateStateEvent.PublicKey.EncodePoint(true).ToHexString());
                 pairs.Add("status", updateStateEvent.Status.ToString());
-                Utility.Log("node proposes unknown state", LogLevel.Warning, pairs.ToString());
+                Utility.Log("node proposes unknown state", LogLevel.Warning, pairs.ParseToString());
                 return;
             }
             netmapSnapshot.Flag(updateStateEvent.PublicKey.ToString());

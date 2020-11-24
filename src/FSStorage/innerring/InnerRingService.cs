@@ -152,31 +152,31 @@ namespace Neo.Plugins.FSStorage.innerring
 
         public void InitConfig()
         {
-            long epoch = 0;
+            long epoch;
             try
             {
                 epoch = ContractInvoker.GetEpoch(morphClient);
             }
-            catch (Exception e)
+            catch
             {
                 throw new Exception("can't read epoch");
             }
             var key = wallet.GetAccounts().ToArray()[0].GetKey().PublicKey;
-            int index = 0;
+            int index;
             try
             {
                 index = ContractInvoker.InnerRingIndex(mainNetClient, key);
             }
-            catch (Exception e)
+            catch
             {
                 throw new Exception("can't read inner ring list");
             }
-            uint balancePrecision = 0;
+            uint balancePrecision;
             try
             {
                 balancePrecision = ContractInvoker.BalancePrecision(morphClient);
             }
-            catch (Exception e)
+            catch
             {
                 throw new Exception("can't read balance contract precision");
             }
@@ -188,17 +188,17 @@ namespace Neo.Plugins.FSStorage.innerring
             pairs.Add("active", IsActive().ToString());
             pairs.Add("epoch", epoch.ToString());
             pairs.Add("precision", balancePrecision.ToString());
-            Utility.Log("read config from blockchain", LogLevel.Info, pairs.ToString());
+            Utility.Log("read config from blockchain", LogLevel.Info, pairs.ParseToString());
         }
 
         protected override void OnReceive(object message)
         {
             switch (message)
             {
-                case Start start:
+                case Start _:
                     OnStart();
                     break;
-                case Stop stop:
+                case Stop _:
                     OnStop();
                     break;
                 case MainContractEvent mainEvent:

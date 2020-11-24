@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Neo.Plugins.FSStorage.innerring.processors;
+using Neo.Plugins.util;
 using Neo.SmartContract;
 using System;
 using System.Collections.Generic;
@@ -73,7 +74,7 @@ namespace Neo.Plugins.FSStorage
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("script hash LE", p.ScriptHashWithType.ScriptHashValue.ToString());
             pairs.Add("event type", p.ScriptHashWithType.Type);
-            Utility.Log("", LogLevel.Info, pairs.ToString());
+            Utility.Log("", LogLevel.Info, pairs.ParseToString());
 
             var handler = p.Handler;
             if (handler is null)
@@ -102,7 +103,7 @@ namespace Neo.Plugins.FSStorage
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("script hash LE", p.ScriptHashWithType.ScriptHashValue.ToString());
             pairs.Add("event type", p.ScriptHashWithType.Type);
-            Utility.Log("", LogLevel.Info, pairs.ToString());
+            Utility.Log("", LogLevel.Info, pairs.ParseToString());
 
             if (p.Parser is null)
             {

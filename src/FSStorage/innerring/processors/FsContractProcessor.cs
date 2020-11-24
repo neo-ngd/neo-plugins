@@ -117,7 +117,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "deposit");
             pairs.Add("value", depositeEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessDeposit(depositeEvent)) });
         }
 
@@ -127,7 +127,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "withdraw");
             pairs.Add("value", withdrawEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessWithdraw(withdrawEvent)) });
         }
 
@@ -137,7 +137,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "cheque");
             pairs.Add("value", chequeEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessCheque(chequeEvent)) });
         }
 
@@ -148,7 +148,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "setConfig");
             pairs.Add("key", configEvent.Key.ToHexString());
             pairs.Add("value", configEvent.Value.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessConfig(configEvent)) });
         }
 
@@ -157,7 +157,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             UpdateInnerRingEvent updateInnerRingEvent = (UpdateInnerRingEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "update inner ring");
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
         }
 
@@ -197,7 +197,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     pairs.Add("receiver", receiver.ToString());
                     pairs.Add("last_emission", value.ToString());
                     pairs.Add("current_epoch", curEpoch.ToString());
-                    Utility.Log("double mint emission declined", LogLevel.Warning, pairs.ToString());
+                    Utility.Log("double mint emission declined", LogLevel.Warning, pairs.ParseToString());
                 }
                 //transferGas
                 try

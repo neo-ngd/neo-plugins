@@ -2,6 +2,7 @@ using Akka.Actor;
 using Neo.Cryptography;
 using Neo.Plugins.FSStorage.innerring.invoke;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.Plugins.util;
 using NeoFS.API.v2.Container;
 using System;
 using System.Collections.Generic;
@@ -65,7 +66,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "container put");
             pairs.Add("id", Base58.Encode(id));
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             //send event to workpool
             workPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerPut(putEvent)) });
         }
@@ -76,7 +77,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "container delete");
             pairs.Add("id", Base58.Encode(deleteEvent.ContainerID));
-            Utility.Log("notification", LogLevel.Info, pairs.ToString());
+            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             //send event to workpool
             workPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerDelete(deleteEvent)) });
         }

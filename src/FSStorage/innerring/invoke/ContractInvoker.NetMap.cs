@@ -77,12 +77,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         {
             InvokeResult invokeResult = client.InvokeLocalFunction(NetMapContractHash, GetNetmapSnapshotMethod);
             var rawNodeInfos = ((VM.Types.Array)invokeResult.ResultStack[0]).GetEnumerator();
-            var result = new List<NeoFS.API.v2.Netmap.NodeInfo>();
+            var result = new List<NodeInfo>();
             while (rawNodeInfos.MoveNext())
             {
                 var item = (VM.Types.Array)rawNodeInfos.Current;
                 var rawNodeInfo = item[0].GetSpan().ToArray();
-                NeoFS.API.v2.Netmap.NodeInfo node = NeoFS.API.v2.Netmap.NodeInfo.Parser.ParseFrom(rawNodeInfo);
+                NodeInfo node = NodeInfo.Parser.ParseFrom(rawNodeInfo);
                 result.Add(node);
             }
             return result.ToArray();

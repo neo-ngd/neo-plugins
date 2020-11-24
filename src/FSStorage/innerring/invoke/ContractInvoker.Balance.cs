@@ -75,7 +75,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
         public static uint BalancePrecision(Client client)
         {
             InvokeResult result = client.InvokeLocalFunction(BalanceContractHash, PrecisionMethod);
-            return (uint)(result.ResultStack[0].GetInteger());
+            return (uint)result.ResultStack[0].GetInteger();
         }
     }
 }
