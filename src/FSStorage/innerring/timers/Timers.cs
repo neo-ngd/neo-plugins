@@ -28,10 +28,10 @@ namespace Neo.Plugins.FSStorage.innerring.timers
                 case Timer timer:
                     OnTimer(timer.contractEvent);
                     break;
-                case Start start:
+                case Start _:
                     OnStart();
                     break;
-                case Stop stop:
+                case Stop _:
                     OnStop();
                     break;
                 default:

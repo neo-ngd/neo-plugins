@@ -15,6 +15,7 @@ using Neo.Wallets.NEP6;
 using System.Collections.Generic;
 using System.Linq;
 using static Neo.Plugins.FSStorage.innerring.timers.EpochTickEvent;
+using System.Threading;
 
 namespace Neo.Plugins.FSStorage.innerring
 {
@@ -44,6 +45,8 @@ namespace Neo.Plugins.FSStorage.innerring
         private Client morphClient;
         private readonly DB db;
         private readonly NEP6Wallet wallet;
+        private long epochCounter;
+        private int indexer = -1;
 
         private Fixed8ConverterUtil convert;
 
@@ -245,35 +248,28 @@ namespace Neo.Plugins.FSStorage.innerring
 
         public void SetEpochCounter(ulong epoch)
         {
-            WriteBatch writeBatch = new WriteBatch();
-            writeBatch.Put(Encoding.UTF8.GetBytes("Epoch"), BitConverter.GetBytes(epoch));
-            db.Write(WriteOptions.Default, writeBatch);
+            long temp = Convert.ToInt64(epoch);
+            Interlocked.Exchange(ref epochCounter, temp);
         }
 
         public int Index()
         {
-            byte[] value = db.Get(ReadOptions.Default, Encoding.UTF8.GetBytes("Epoch"));
-            if (value is null) return -1;
-            return BitConverter.ToInt32(value);
+            return indexer;
         }
 
         public void SetIndexer(int index)
         {
-            WriteBatch writeBatch = new WriteBatch();
-            writeBatch.Put(Encoding.UTF8.GetBytes("Index"), BitConverter.GetBytes(index));
-            db.Write(WriteOptions.Default, writeBatch);
+            Interlocked.Exchange(ref indexer, index);
         }
 
         public ulong EpochCounter()
         {
-            byte[] value = db.Get(ReadOptions.Default, Encoding.UTF8.GetBytes("Epoch"));
-            if (value is null) return 0;
-            return BitConverter.ToUInt64(value);
+            return Convert.ToUInt64(epochCounter);
         }
 
         public void ResetEpochTimer()
         {
-            timer.Tell(new Timer() { contractEvent = new NewEpochTickEvent() { } });
+            timer.Tell(new Timers.Timer() { contractEvent = new NewEpochTickEvent() { } });
         }
 
         public static Props Props(NeoSystem system, NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)
