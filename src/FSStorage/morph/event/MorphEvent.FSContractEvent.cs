@@ -9,87 +9,61 @@ namespace Neo.Plugins.FSStorage
     {
         public class BindEvent : IContractEvent
         {
-            private UInt160 userAccount;
-            private ECPoint[] keys;
-
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
-            public ECPoint[] Keys { get => keys; set => keys = value; }
+            public UInt160 UserAccount;
+            public ECPoint[] Keys;
 
             public void ContractEvent() { }
         }
 
         public class UnbindEvent : IContractEvent
         {
-            private UInt160 userAccount;
-            private ECPoint[] keys;
-
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
-            public ECPoint[] Keys { get => keys; set => keys = value; }
+            public UInt160 UserAccount;
+            public ECPoint[] Keys;
 
             public void ContractEvent() { }
         }
 
         public class ChequeEvent : IContractEvent
         {
-            private byte[] id;
-            private long amount;
-            private UInt160 userAccount;
-            private UInt160 lockAccount;
-
-            public byte[] Id { get => id; set => id = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
-            public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
+            public byte[] Id;
+            public long Amount;
+            public UInt160 UserAccount;
+            public UInt160 LockAccount;
 
             public void ContractEvent() { }
         }
 
         public class DepositEvent : IContractEvent
         {
-            private byte[] id;
-            private long amount;
-            private UInt160 from;
-            private UInt160 to;
-
-            public byte[] Id { get => id; set => id = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public UInt160 From { get => from; set => from = value; }
-            public UInt160 To { get => to; set => to = value; }
+            public byte[] Id;
+            public long Amount;
+            public UInt160 From;
+            public UInt160 To;
 
             public void ContractEvent() { }
         }
 
         public class WithdrawEvent : IContractEvent
         {
-            private byte[] id;
-            private long amount;
-            private UInt160 userAccount;
-
-            public byte[] Id { get => id; set => id = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
+            public byte[] Id;
+            public long Amount;
+            public UInt160 UserAccount;
 
             public void ContractEvent() { }
         }
 
         public class ConfigEvent : IContractEvent
         {
-            private byte[] id;
-            private byte[] key;
-            private byte[] value;
-
-            public byte[] Key { get => key; set => key = value; }
-            public byte[] Value { get => value; set => this.value = value; }
-            public byte[] Id { get => id; set => id = value; }
+            public byte[] Key;
+            public byte[] Value;
+            public byte[] Id;
 
             public void ContractEvent() { }
         }
 
         public class UpdateInnerRingEvent : IContractEvent
         {
-            private ECPoint[] keys;
-
-            public ECPoint[] Keys { get => keys; set => keys = value; }
+            public ECPoint[] Keys;
 
             public void ContractEvent() { }
         }

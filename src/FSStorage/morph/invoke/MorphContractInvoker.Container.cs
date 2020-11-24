@@ -7,20 +7,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public partial class MorphContractInvoker
     {
-        private static string putMethod = "put";
-        private static string deleteMethod = "delete";
-        private static string getMethod = "get";
-        private static string listMethod = "list";
-        private static string eACLMethod = "eACL";
-        private static string setEACLMethod = "setEACL";
+        private static string PutMethod = "put";
+        private static string DeleteMethod = "delete";
+        private static string GetMethod = "get";
+        private static string ListMethod = "list";
+        private static string EACLMethod = "eACL";
+        private static string SetEACLMethod = "setEACL";
 
-        public static UInt160 ContainerContractHash => Settings.Default.ContainerContractHash;
-        public static string PutMethod { get => putMethod; set => putMethod = value; }
-        public static string DeleteMethod { get => deleteMethod; set => deleteMethod = value; }
-        public static string GetMethod { get => getMethod; set => getMethod = value; }
-        public static string ListMethod { get => listMethod; set => listMethod = value; }
-        public static string EACLMethod { get => eACLMethod; set => eACLMethod = value; }
-        public static string SetEACLMethod { get => setEACLMethod; set => setEACLMethod = value; }
+        private static UInt160 ContainerContractHash => Settings.Default.ContainerContractHash;
 
         public static bool InvokePut(Client client, byte[] ownerID, byte[] cnr, byte[] signature)
         {

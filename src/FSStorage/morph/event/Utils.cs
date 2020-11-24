@@ -4,11 +4,8 @@ namespace Neo.Plugins.FSStorage
     {
         public class ScriptHashWithType
         {
-            private UInt160 scriptHashValue;
-            private string type;
-
-            public UInt160 ScriptHashValue { get => scriptHashValue; set => scriptHashValue = value; }
-            public string Type { get => type; set => type = value; }
+            public UInt160 ScriptHashValue;
+            public string Type;
 
             public override bool Equals(object obj)
             {
@@ -23,7 +20,7 @@ namespace Neo.Plugins.FSStorage
 
             public override int GetHashCode()
             {
-                return scriptHashValue.GetHashCode() + type.GetHashCode();
+                return ScriptHashValue.GetHashCode() + Type.GetHashCode();
             }
 
             public override string ToString()

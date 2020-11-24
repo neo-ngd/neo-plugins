@@ -8,29 +8,22 @@ namespace Neo.Plugins.FSStorage
     {
         public class NewEpochEvent : IContractEvent
         {
-            private ulong epochNumber;
-
-            public ulong EpochNumber { get => epochNumber; set => epochNumber = value; }
+            public ulong EpochNumber;
 
             public void ContractEvent() { }
         }
 
         public class AddPeerEvent : IContractEvent
         {
-            private byte[] node;
-
-            public byte[] Node { get => node; set => node = value; }
+            public byte[] Node;
 
             public void ContractEvent() { }
         }
 
         public class UpdatePeerEvent : IContractEvent
         {
-            private ECPoint publicKey;
-            private uint status;
-
-            public ECPoint PublicKey { get => publicKey; set => publicKey = value; }
-            public uint Status { get => status; set => status = value; }
+            public ECPoint PublicKey;
+            public uint Status;
 
             public void ContractEvent() { }
         }

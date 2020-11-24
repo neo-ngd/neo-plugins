@@ -8,30 +8,19 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public partial class MorphContractInvoker
     {
-        private static string addPeerMethod = "AddPeer";
-        private static string newEpochMethod = "NewEpoch";
-        private static string innerRingListMethod = "InnerRingList";
-        private static string updateStateMethod = "UpdateState";
-        private static string netMapMethod = "NetMap";
-        private static long extraFee = 0;
-
-        public static UInt160 NetMapContractHash => Settings.Default.NetmapContractHash;
-        public static string AddPeerMethod { get => addPeerMethod; set => addPeerMethod = value; }
-        public static string NewEpochMethod { get => newEpochMethod; set => newEpochMethod = value; }
-        public static string InnerRingListMethod { get => innerRingListMethod; set => innerRingListMethod = value; }
-        public static string UpdateStateMethod { get => updateStateMethod; set => updateStateMethod = value; }
-        public static string NetMapMethod { get => netMapMethod; set => netMapMethod = value; }
-        public static long ExtraFee { get => extraFee; set => extraFee = value; }
+        private static string AddPeerMethod = "AddPeer";
+        private static string NewEpochMethod = "NewEpoch";
+        private static string InnerRingListMethod = "InnerRingList";
+        private static string UpdateStateMethod = "UpdateState";
+        private static string NetMapMethod = "NetMap";
+        private static long ExtraFee = 0;
+        private static UInt160 NetMapContractHash => Settings.Default.NetmapContractHash;
 
         public class PeerInfo
         {
-            byte[] address;
-            byte[] key;
-            byte[][] opts;
-
-            public byte[] Address { get => address; set => address = value; }
-            public byte[] Key { get => key; set => key = value; }
-            public byte[][] Opts { get => opts; set => opts = value; }
+            public byte[] Address;
+            public byte[] Key;
+            public byte[][] Opts;
         }
 
         public static bool InvokeAddPeer(Client client, PeerInfo peerInfo)

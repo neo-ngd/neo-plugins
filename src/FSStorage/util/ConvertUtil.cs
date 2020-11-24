@@ -5,13 +5,9 @@ namespace Neo.Plugins.util
 {
     public class ConvertUtil
     {
-        private uint basePrecision;
-        private uint targetPrecision;
-        private BigInteger factor;
-
-        public uint BasePrecision { get => basePrecision; set => basePrecision = value; }
-        public uint TargetPrecision { get => targetPrecision; set => targetPrecision = value; }
-        public BigInteger Factor { get => factor; set => factor = value; }
+        public uint BasePrecision;
+        public uint TargetPrecision;
+        public BigInteger Factor;
 
         public BigInteger Convert(BigInteger n, BigInteger factor, bool decreasePrecision)
         {

@@ -18,15 +18,10 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public class AlphabetContractProcessor : IProcessor
     {
-        private Client client;
-        private IActorRef workPool;
-        private IIndexer indexer;
-        private ulong storageEmission;
-
-        public Client Client { get => client; set => client = value; }
-        public IActorRef WorkPool { get => workPool; set => workPool = value; }
-        public IIndexer Indexer { get => indexer; set => indexer = value; }
-        public ulong StorageEmission { get => storageEmission; set => storageEmission = value; }
+        public Client Client;
+        public IActorRef WorkPool;
+        public IIndexer Indexer;
+        public ulong StorageEmission;
 
         public HandlerInfo[] ListenerHandlers()
         {
@@ -57,7 +52,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "alphabet gas emit");
             Utility.Log("tick", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "alphabet", task = new Task(() => ProcessEmit()) });
+            WorkPool.Tell(new NewTask() { process = "alphabet", task = new Task(() => ProcessEmit()) });
         }
 
         public void ProcessEmit()
@@ -105,7 +100,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Utility.Log("empty network map, do not emit gas", LogLevel.Debug, null);
                 return;
             }
-            var gasPerNode = (long)storageEmission * 100000000 / networkMap.Length;
+            var gasPerNode = (long)StorageEmission * 100000000 / networkMap.Length;
             for (int i = 0; i < networkMap.Length; i++)
             {
                 ECPoint key = null;

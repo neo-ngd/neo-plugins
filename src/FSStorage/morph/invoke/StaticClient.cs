@@ -2,21 +2,18 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public class StaticClient
     {
-        private Client client;
-        private UInt160 contractHash;
-        private long fee;
-        public Client Client { get => client; set => client = value; }
-        public UInt160 ContractHash { get => contractHash; set => contractHash = value; }
-        public long Fee { get => fee; set => fee = value; }
+        public Client Client;
+        public UInt160 ContractHash;
+        public long Fee;
 
         public bool InvokeFunction(string method, object[] args = null)
         {
-            return client.InvokeFunction(ContractHash, method, fee, args);
+            return Client.InvokeFunction(ContractHash, method, Fee, args);
         }
 
         public InvokeResult InvokeLocalFunction(string method, object[] args = null)
         {
-            return client.InvokeLocalFunction(ContractHash, method, args);
+            return Client.InvokeLocalFunction(ContractHash, method, args);
         }
     }
 }

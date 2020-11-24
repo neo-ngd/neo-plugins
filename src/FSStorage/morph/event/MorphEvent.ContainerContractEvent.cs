@@ -8,25 +8,17 @@ namespace Neo.Plugins.FSStorage
     {
         public class ContainerDeleteEvent : IContractEvent
         {
-            private byte[] containerID;
-            private byte[] signature;
-
-            public byte[] ContainerID { get => containerID; set => containerID = value; }
-            public byte[] Signature { get => signature; set => signature = value; }
+            public byte[] ContainerID;
+            public byte[] Signature;
 
             public void ContractEvent() { }
         }
 
         public class ContainerPutEvent : IContractEvent
         {
-            private byte[] rawContainer;
-            private byte[] signature;
-            private ECPoint publicKey;
-
-            public byte[] RawContainer { get => rawContainer; set => rawContainer = value; }
-            public byte[] Signature { get => signature; set => signature = value; }
-            public ECPoint PublicKey { get => publicKey; set => publicKey = value; }
-
+            public byte[] RawContainer;
+            public byte[] Signature;
+            public ECPoint PublicKey;
             public void ContractEvent() { }
         }
 

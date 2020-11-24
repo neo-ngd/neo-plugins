@@ -19,22 +19,15 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public class UpdatePeerArgs
         {
-            private ECPoint key;
-            private int status;
-
-            public ECPoint Key { get => key; set => key = value; }
-            public int Status { get => status; set => status = value; }
+            public ECPoint Key;
+            public int Status;
         }
 
         public class SetConfigArgs
         {
-            private byte[] id;
-            private byte[] key;
-            private byte[] value;
-
-            public byte[] Id { get => id; set => id = value; }
-            public byte[] Key { get => key; set => key = value; }
-            public byte[] Value { get => value; set => this.value = value; }
+            public byte[] Id;
+            public byte[] Key;
+            public byte[] Value;
         }
 
         public static long GetEpoch(Client client)

@@ -11,22 +11,15 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public class ContainerParams
         {
-            private ECPoint key;
-            private byte[] container;
-            private byte[] signature;
-
-            public ECPoint Key { get => key; set => key = value; }
-            public byte[] Container { get => container; set => container = value; }
-            public byte[] Signature { get => signature; set => signature = value; }
+            public ECPoint Key;
+            public byte[] Container;
+            public byte[] Signature;
         }
 
         public class RemoveContainerParams
         {
-            private byte[] containerID;
-            private byte[] signature;
-
-            public byte[] ContainerID { get => containerID; set => containerID = value; }
-            public byte[] Signature { get => signature; set => signature = value; }
+            public byte[] ContainerID;
+            public byte[] Signature;
         }
 
         public static bool RegisterContainer(Client client, ContainerParams p)

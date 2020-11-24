@@ -8,17 +8,11 @@ namespace Neo.Plugins.FSStorage
     {
         public class LockEvent : IContractEvent
         {
-            private byte[] id;
-            private UInt160 userAccount;
-            private UInt160 lockAccount;
-            private long amount;
-            private long util;
-
-            public byte[] Id { get => id; set => id = value; }
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
-            public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public long Util { get => util; set => util = value; }
+            public byte[] Id;
+            public UInt160 UserAccount;
+            public UInt160 LockAccount;
+            public long Amount;
+            public long Util;
 
             public void ContractEvent() { }
         }

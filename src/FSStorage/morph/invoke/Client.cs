@@ -10,14 +10,9 @@ namespace Neo.Plugins.FSStorage.morph.invoke
     }
     public class InvokeResult
     {
-        private VMState state;
-        private long gasConsumed;
-        private byte[] script;
-        private StackItem[] resultStack;
-
-        public VMState State { get => state; set => state = value; }
-        public long GasConsumed { get => gasConsumed; set => gasConsumed = value; }
-        public byte[] Script { get => script; set => script = value; }
-        public StackItem[] ResultStack { get => resultStack; set => resultStack = value; }
+        public VMState State;
+        public long GasConsumed;
+        public byte[] Script;
+        public StackItem[] ResultStack;
     }
 }

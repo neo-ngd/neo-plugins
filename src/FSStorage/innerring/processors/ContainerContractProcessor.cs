@@ -21,13 +21,9 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         private string PutNotification = "containerPut";
         private string DeleteNotification = "containerDelete";
 
-        private Client client;
-        private IActiveState activeState;
-        private IActorRef workPool;
-
-        public Client Client { get => client; set => client = value; }
-        public IActiveState ActiveState { get => activeState; set => activeState = value; }
-        public IActorRef WorkPool { get => workPool; set => workPool = value; }
+        public Client Client;
+        public IActiveState ActiveState;
+        public IActorRef WorkPool;
 
         public HandlerInfo[] ListenerHandlers()
         {
@@ -38,7 +34,6 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             deleteHandler.ScriptHashWithType = new ScriptHashWithType() { Type = DeleteNotification, ScriptHashValue = ContainerContractHash };
             deleteHandler.Handler = HandleDelete;
             return new HandlerInfo[] { putHandler, deleteHandler };
-
         }
 
         public ParserInfo[] ListenerParsers()
@@ -68,7 +63,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("id", Base58.Encode(id));
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             //send event to workpool
-            workPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerPut(putEvent)) });
+            WorkPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerPut(putEvent)) });
         }
 
         public void HandleDelete(IContractEvent morphEvent)
@@ -79,7 +74,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("id", Base58.Encode(deleteEvent.ContainerID));
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
             //send event to workpool
-            workPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerDelete(deleteEvent)) });
+            WorkPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerDelete(deleteEvent)) });
         }
 
         public void ProcessContainerPut(ContainerPutEvent putEvent)
@@ -147,7 +142,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public bool IsActive()
         {
-            return activeState.IsActive();
+            return ActiveState.IsActive();
         }
 
         public void CheckFormat(NeoFS.API.v2.Container.Container container)

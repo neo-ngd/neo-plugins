@@ -15,22 +15,19 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 {
     public class MainClient : Client
     {
-        private RpcClient client;
-        private Wallets.Wallet wallet;
+        public Wallet Wallet;
+        public RpcClient Client;
 
         public MainClient(string url, Wallet wallet)
         {
             this.Client = new RpcClient(url);
-            this.wallet = wallet;
+            this.Wallet = wallet;
         }
-
-        public Wallet Wallet { get => wallet; set => wallet = value; }
-        public RpcClient Client { get => client; set => client = value; }
 
         public bool InvokeFunction(UInt160 contractHash, string method, long fee, params object[] args)
         {
             InvokeResult result = InvokeLocalFunction(contractHash, method, args);
-            var blockHeight = (uint)(client.RpcSendAsync("getblockcount").Result.AsNumber());
+            var blockHeight = (uint)(Client.RpcSendAsync("getblockcount").Result.AsNumber());
             Random rand = new Random();
             Transaction tx = new Transaction
             {
@@ -46,12 +43,12 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             var data = new ContractParametersContext(tx);
             Wallet.Sign(data);
             tx.Witnesses = data.GetWitnesses();
-            var networkFee = (uint)client.RpcSendAsync("calculatenetworkfee", tx.ToArray().ToHexString()).Result["networkfee"].AsNumber();
+            var networkFee = (uint)Client.RpcSendAsync("calculatenetworkfee", tx.ToArray().ToHexString()).Result["networkfee"].AsNumber();
             tx.NetworkFee = networkFee;
             data = new ContractParametersContext(tx);
             Wallet.Sign(data);
             tx.Witnesses = data.GetWitnesses();
-            return client.RpcSendAsync("sendrawtransaction", tx.ToArray().ToHexString()).Result.AsBoolean();
+            return Client.RpcSendAsync("sendrawtransaction", tx.ToArray().ToHexString()).Result.AsBoolean();
         }
 
         public InvokeResult InvokeLocalFunction(UInt160 contractHash, string method, params object[] args)
@@ -63,7 +60,7 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
             {
                 parameters.Add(signers.Select(p => p.ToJson()).ToArray());
             }
-            var result = client.RpcSendAsync("invokescript", parameters.ToArray()).Result;
+            var result = Client.RpcSendAsync("invokescript", parameters.ToArray()).Result;
             RpcInvokeResult rpcInvokeResult = RpcInvokeResult.FromJson(result);
             return new InvokeResult()
             {

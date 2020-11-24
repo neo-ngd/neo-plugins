@@ -15,41 +15,26 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public class TransferXParams
         {
-            private byte[] sender;
-            private byte[] receiver;
-            private long amount;
-            private byte[] comment;
-
-            public byte[] Sender { get => sender; set => sender = value; }
-            public byte[] Receiver { get => receiver; set => receiver = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public byte[] Comment { get => comment; set => comment = value; }
+            public byte[] Sender;
+            public byte[] Receiver;
+            public long Amount;
+            public byte[] Comment;
         }
 
         public class LockParams
         {
-            private byte[] id;
-            private UInt160 userAccount;
-            private UInt160 lockAccount;
-            private long amount;
-            private ulong until;
-
-            public byte[] ID { get => id; set => id = value; }
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
-            public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public ulong Until { get => until; set => until = value; }
+            public byte[] ID;
+            public UInt160 UserAccount;
+            public UInt160 LockAccount;
+            public long Amount;
+            public ulong Until;
         }
 
         public class MintBurnParams
         {
-            private byte[] scriptHash;
-            private long amount;
-            private byte[] comment;
-
-            public byte[] ScriptHash { get => scriptHash; set => scriptHash = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public byte[] Comment { get => comment; set => comment = value; }
+            public byte[] ScriptHash;
+            public long Amount;
+            public byte[] Comment;
         }
 
         public static bool TransferBalanceX(Client client, TransferXParams p)

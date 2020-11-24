@@ -14,9 +14,7 @@ namespace Neo.Plugins.FSStorage.innerring.timers
 
         public class NetmapCleanupTickEvent : IContractEvent
         {
-            private ulong epoch;
-
-            public ulong Epoch { get => epoch; set => epoch = value; }
+            public ulong Epoch;
 
             public void ContractEvent() { }
         }

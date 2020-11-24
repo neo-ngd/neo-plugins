@@ -4,12 +4,10 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public partial class MorphContractInvoker
     {
-        private static string balanceOfMethod = "balanceOf";
-        private static string decimalsMethod = "decimals";
+        private static string BalanceOfMethod = "balanceOf";
+        private static string DecimalsMethod = "decimals";
 
-        public static UInt160 BalanceContractHash => Settings.Default.BalanceContractHash;
-        public static string BalanceOfMethod { get => balanceOfMethod; set => balanceOfMethod = value; }
-        public static string DecimalsMethod { get => decimalsMethod; set => decimalsMethod = value; }
+        private static UInt160 BalanceContractHash => Settings.Default.BalanceContractHash;
 
         public static long InvokeBalanceOf(Client client, byte[] holder)
         {

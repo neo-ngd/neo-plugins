@@ -23,24 +23,17 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         private string AddPeerNotification = "AddPeer";
         private string UpdatePeerStateNotification = "UpdateState";
 
-        private Client client;
-        private IActiveState activeState;
-        private IEpochState epochState;
-        private IEpochTimerReseter epochTimerReseter;
-        private IActorRef workPool;
+        public Client Client;
+        public IActiveState ActiveState;
+        public IEpochState EpochState;
+        public IEpochTimerReseter EpochTimerReseter;
+        public IActorRef WorkPool;
 
-        private CleanupTable netmapSnapshot;
-
-        public Client Client { get => client; set => client = value; }
-        public IActiveState ActiveState { get => activeState; set => activeState = value; }
-        public IEpochState EpochState { get => epochState; set => epochState = value; }
-        public IEpochTimerReseter EpochTimerReseter { get => epochTimerReseter; set => epochTimerReseter = value; }
-        public IActorRef WorkPool { get => workPool; set => workPool = value; }
-        public CleanupTable NetmapSnapshot { get => netmapSnapshot; set => netmapSnapshot = value; }
+        public CleanupTable NetmapSnapshot;
 
         public bool IsActive()
         {
-            return activeState.IsActive();
+            return ActiveState.IsActive();
         }
 
         public HandlerInfo[] ListenerHandlers()
@@ -91,7 +84,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "epoch");
             Utility.Log("tick", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpochTick(newEpochTickEvent)) });
+            WorkPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpochTick(newEpochTickEvent)) });
         }
 
         public void HandleNewEpoch(IContractEvent morphEvent)
@@ -101,7 +94,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "new epoch");
             pairs.Add("value", newEpochEvent.EpochNumber.ToString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpoch(newEpochEvent)) });
+            WorkPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNewEpoch(newEpochEvent)) });
         }
 
         public void HandleAddPeer(IContractEvent morphEvent)
@@ -110,7 +103,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "add peer");
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessAddPeer(addPeerEvent)) });
+            WorkPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessAddPeer(addPeerEvent)) });
         }
 
         public void HandleUpdateState(IContractEvent morphEvent)
@@ -120,12 +113,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "update peer state");
             pairs.Add("key", updateStateEvent.PublicKey.EncodePoint(true).ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessUpdateState(updateStateEvent)) });
+            WorkPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessUpdateState(updateStateEvent)) });
         }
 
         public void HandleCleanupTick(IContractEvent morphEvent)
         {
-            if (!netmapSnapshot.Enabled)
+            if (!NetmapSnapshot.Enabled)
             {
                 Utility.Log("netmap clean up routine is disabled", LogLevel.Debug, null);
                 return;
@@ -134,7 +127,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "netmap cleaner");
             Utility.Log("tick", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNetmapCleanupTick(netmapCleanupTickEvent)) });
+            WorkPool.Tell(new NewTask() { process = "netmap", task = new Task(() => ProcessNetmapCleanupTick(netmapCleanupTickEvent)) });
         }
 
         public void ProcessNetmapCleanupTick(NetmapCleanupTickEvent netmapCleanupTickEvent)
@@ -146,7 +139,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             try
             {
-                netmapSnapshot.ForEachRemoveCandidate(netmapCleanupTickEvent.Epoch, Func);
+                NetmapSnapshot.ForEachRemoveCandidate(netmapCleanupTickEvent.Epoch, Func);
             }
             catch (Exception e)
             {
@@ -191,7 +184,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Utility.Log("next epoch", LogLevel.Info, nextEpoch);
             try
             {
-                ContractInvoker.SetNewEpoch(client, nextEpoch);
+                ContractInvoker.SetNewEpoch(Client, nextEpoch);
             }
             catch (Exception e)
             {
@@ -201,8 +194,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public void ProcessNewEpoch(NewEpochEvent newEpochEvent)
         {
-            epochState.SetEpochCounter(newEpochEvent.EpochNumber);
-            epochTimerReseter.ResetEpochTimer();
+            EpochState.SetEpochCounter(newEpochEvent.EpochNumber);
+            EpochTimerReseter.ResetEpochTimer();
 
             NodeInfo[] snapshot;
             try
@@ -214,7 +207,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Utility.Log("can't get netmap snapshot to perform cleanup", LogLevel.Info, e.Message);
                 return;
             }
-            netmapSnapshot.Update(snapshot, newEpochEvent.EpochNumber);
+            NetmapSnapshot.Update(snapshot, newEpochEvent.EpochNumber);
             HandleCleanupTick(new NetmapCleanupTickEvent() { Epoch = newEpochEvent.EpochNumber });
         }
 
@@ -236,7 +229,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 return;
             }
             var key = nodeInfo.PublicKey.ToByteArray().ToHexString();
-            if (!netmapSnapshot.Touch(key, EpochState.EpochCounter()))
+            if (!NetmapSnapshot.Touch(key, EpochState.EpochCounter()))
             {
                 Utility.Log("approving network map candidate", LogLevel.Info, key);
                 try
@@ -265,7 +258,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Utility.Log("node proposes unknown state", LogLevel.Warning, pairs.ParseToString());
                 return;
             }
-            netmapSnapshot.Flag(updateStateEvent.PublicKey.ToString());
+            NetmapSnapshot.Flag(updateStateEvent.PublicKey.ToString());
             try
             {
                 ContractInvoker.UpdatePeerState(Client, new ContractInvoker.UpdatePeerArgs()
@@ -282,17 +275,17 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public ulong EpochCounter()
         {
-            return epochState.EpochCounter();
+            return EpochState.EpochCounter();
         }
 
         public void SetEpochCounter(ulong epoch)
         {
-            epochState.SetEpochCounter(epoch);
+            EpochState.SetEpochCounter(epoch);
         }
 
         public void ResetEpochTimer()
         {
-            epochTimerReseter.ResetEpochTimer();
+            EpochTimerReseter.ResetEpochTimer();
         }
 
         public class CleanupTable

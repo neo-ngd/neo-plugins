@@ -18,15 +18,10 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         private string LockNotification = "Lock";
 
-        private Client client;
-        private IActiveState activeState;
-        private IActorRef workPool;
-        private Fixed8ConverterUtil convert;
-
-        public Client Client { get => client; set => client = value; }
-        public IActiveState ActiveState { get => activeState; set => activeState = value; }
-        public IActorRef WorkPool { get => workPool; set => workPool = value; }
-        public Fixed8ConverterUtil Convert { get => convert; set => convert = value; }
+        public Client Client;
+        public IActiveState ActiveState;
+        public IActorRef WorkPool;
+        public Fixed8ConverterUtil Convert;
 
         public HandlerInfo[] ListenerHandlers()
         {
@@ -70,7 +65,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "lock");
             pairs.Add("value", lockEvent.Id.ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "balance", task = new Task(() => ProcessLock(lockEvent)) });
+            WorkPool.Tell(new NewTask() { process = "balance", task = new Task(() => ProcessLock(lockEvent)) });
         }
 
         public void ProcessLock(LockEvent lockEvent)
@@ -86,7 +81,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 ContractInvoker.CashOutCheque(Client, new ChequeParams()
                 {
                     Id = lockEvent.Id,
-                    Amount = convert.ToFixed8(lockEvent.Amount),
+                    Amount = Convert.ToFixed8(lockEvent.Amount),
                     UserAccount = lockEvent.UserAccount,
                     LockAccount = lockEvent.LockAccount
                 });
@@ -99,7 +94,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public bool IsActive()
         {
-            return activeState.IsActive();
+            return ActiveState.IsActive();
         }
     }
 }

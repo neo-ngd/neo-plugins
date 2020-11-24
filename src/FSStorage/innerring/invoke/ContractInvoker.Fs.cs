@@ -18,15 +18,10 @@ namespace Neo.Plugins.FSStorage.innerring.invoke
 
         public class ChequeParams
         {
-            private byte[] id;
-            private long amount;
-            private UInt160 userAccount;
-            private UInt160 lockAccount;
-
-            public byte[] Id { get => id; set => id = value; }
-            public long Amount { get => amount; set => amount = value; }
-            public UInt160 UserAccount { get => userAccount; set => userAccount = value; }
-            public UInt160 LockAccount { get => lockAccount; set => lockAccount = value; }
+            public byte[] Id;
+            public long Amount;
+            public UInt160 UserAccount;
+            public UInt160 LockAccount;
         }
 
         public static bool IsInnerRing(Client client, ECPoint p)

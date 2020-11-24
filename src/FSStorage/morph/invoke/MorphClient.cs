@@ -16,11 +16,8 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 {
     public class MorphClient : Client
     {
-        private Wallets.Wallet wallet;
-        private IActorRef blockchain;
-
-        public Wallet Wallet { get => wallet; set => wallet = value; }
-        public IActorRef Blockchain { get => blockchain; set => blockchain = value; }
+        public Wallet Wallet;
+        public IActorRef Blockchain;
 
         public class Signers : IVerifiable
         {
@@ -78,7 +75,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             };
             tx.SystemFee = result.GasConsumed + fee;
             //todo
-            tx.NetworkFee = wallet.CalculateNetworkFee(snapshot, tx);
+            tx.NetworkFee = Wallet.CalculateNetworkFee(snapshot, tx);
             var data = new ContractParametersContext(tx);
             Wallet.Sign(data);
             tx.Witnesses = data.GetWitnesses();
@@ -106,7 +103,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             UInt160 assetId = NativeContract.GAS.Hash;
             AssetDescriptor descriptor = new AssetDescriptor(assetId);
             BigDecimal pamount = BigDecimal.Parse(amount.ToString(), descriptor.Decimals);
-            Transaction tx = wallet.MakeTransaction(new[]
+            Transaction tx = Wallet.MakeTransaction(new[]
             {
                 new TransferOutput
                 {
@@ -117,7 +114,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
             });
             if (tx == null) throw new Exception("Insufficient funds");
             ContractParametersContext data = new ContractParametersContext(tx);
-            wallet.Sign(data);
+            Wallet.Sign(data);
             tx.Witnesses = data.GetWitnesses();
             Blockchain.Tell(tx);
         }

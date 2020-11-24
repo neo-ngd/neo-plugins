@@ -23,28 +23,20 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         private string ConfigNotification = "SetConfig";
         private string UpdateIRNotification = "InnerRingUpdate";
 
-        private string txLogPrefix = "mainnet:";
-        private ulong lockAccountLifetime = 20;
+        public string TxLogPrefix = "mainnet:";
+        public ulong LockAccountLifetime = 20;
         private int mintEmitCacheSize = Settings.Default.MintEmitCacheSize;
         private ulong mintEmitThreshold = Settings.Default.MintEmitThreshold;
         private long mintEmitValue = Settings.Default.MintEmitValue;
         private Dictionary<string, ulong> mintEmitCache;
-        private Fixed8ConverterUtil convert;
+        public Fixed8ConverterUtil Convert;
 
-        private Client client;
-        private IActiveState activeState;
-        private IEpochState epochState;
-        private IActorRef workPool;
+        public Client Client;
+        public IActiveState ActiveState;
+        public IEpochState EpochState;
+        public IActorRef WorkPool;
 
         private static readonly object lockObj = new object();
-
-        public Client Client { get => client; set => client = value; }
-        public string TxLogPrefix { get => txLogPrefix; set => txLogPrefix = value; }
-        public ulong LockAccountLifetime { get => lockAccountLifetime; set => lockAccountLifetime = value; }
-        public IActiveState ActiveState { get => activeState; set => activeState = value; }
-        public IEpochState EpochState { get => epochState; set => epochState = value; }
-        public IActorRef WorkPool { get => workPool; set => workPool = value; }
-        public Fixed8ConverterUtil Convert { get => convert; set => convert = value; }
 
         public FsContractProcessor()
         {
@@ -118,7 +110,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "deposit");
             pairs.Add("value", depositeEvent.Id.ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessDeposit(depositeEvent)) });
+            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessDeposit(depositeEvent)) });
         }
 
         public void HandleWithdraw(IContractEvent morphEvent)
@@ -128,7 +120,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "withdraw");
             pairs.Add("value", withdrawEvent.Id.ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessWithdraw(withdrawEvent)) });
+            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessWithdraw(withdrawEvent)) });
         }
 
         public void HandleCheque(IContractEvent morphEvent)
@@ -138,7 +130,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("type", "cheque");
             pairs.Add("value", chequeEvent.Id.ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessCheque(chequeEvent)) });
+            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessCheque(chequeEvent)) });
         }
 
         public void HandleConfig(IContractEvent morphEvent)
@@ -149,7 +141,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             pairs.Add("key", configEvent.Key.ToHexString());
             pairs.Add("value", configEvent.Value.ToHexString());
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessConfig(configEvent)) });
+            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessConfig(configEvent)) });
         }
 
         public void HandleUpdateInnerRing(IContractEvent morphEvent)
@@ -158,7 +150,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("type", "update inner ring");
             Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            workPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
+            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
         }
 
         public void ProcessDeposit(DepositEvent depositeEvent)
@@ -174,10 +166,10 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 List<byte> coment = new List<byte>();
                 coment.AddRange(System.Text.Encoding.UTF8.GetBytes(TxLogPrefix));
                 coment.AddRange(depositeEvent.Id);
-                ContractInvoker.Mint(client, new MintBurnParams()
+                ContractInvoker.Mint(Client, new MintBurnParams()
                 {
                     ScriptHash = depositeEvent.To.ToArray(),
-                    Amount = convert.ToBalancePrecision(depositeEvent.Amount),
+                    Amount = Convert.ToBalancePrecision(depositeEvent.Amount),
                     Comment = coment.ToArray()
                 });
             }
@@ -186,7 +178,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 Utility.Log("can't transfer assets to balance contract", LogLevel.Error, e.Message);
             }
 
-            var curEpoch = epochState.EpochCounter();
+            var curEpoch = EpochState.EpochCounter();
             var receiver = depositeEvent.To;
             lock (lockObj)
             {
@@ -202,7 +194,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 //transferGas
                 try
                 {
-                    ((MorphClient)client).TransferGas(depositeEvent.To, mintEmitValue);
+                    ((MorphClient)Client).TransferGas(depositeEvent.To, mintEmitValue);
                 }
                 catch (Exception e)
                 {
@@ -237,12 +229,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             {
                 ulong curEpoch = EpochCounter();
                 //invoke
-                ContractInvoker.LockAsset(client, new LockParams()
+                ContractInvoker.LockAsset(Client, new LockParams()
                 {
                     ID = withdrawEvent.Id,
                     UserAccount = withdrawEvent.UserAccount,
                     LockAccount = lockeAccount,
-                    Amount = convert.ToBalancePrecision(withdrawEvent.Amount),
+                    Amount = Convert.ToBalancePrecision(withdrawEvent.Amount),
                     Until = curEpoch + LockAccountLifetime
                 });
             }
@@ -269,7 +261,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 ContractInvoker.Burn(Client, new MintBurnParams()
                 {
                     ScriptHash = chequeEvent.LockAccount.ToArray(),
-                    Amount = convert.ToBalancePrecision(chequeEvent.Amount),
+                    Amount = Convert.ToBalancePrecision(chequeEvent.Amount),
                     Comment = coment.ToArray()
                 });
             }
@@ -322,12 +314,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
 
         public ulong EpochCounter()
         {
-            return epochState.EpochCounter();
+            return EpochState.EpochCounter();
         }
 
         public bool IsActive()
         {
-            return activeState.IsActive();
+            return ActiveState.IsActive();
         }
     }
 }
