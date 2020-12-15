@@ -3,6 +3,8 @@ using NeoFS.API.v2.Cryptography;
 using NeoFS.API.v2.Netmap;
 using NeoFS.API.v2.Refs;
 using NeoFS.API.v2.Session;
+using static NeoFS.API.v2.Session.ObjectSessionContext.Types;
+using static NeoFS.API.v2.Session.SessionToken.Types.Body;
 using V2Cotainer = NeoFS.API.v2.Container;
 using V2Acl = NeoFS.API.v2.Acl;
 using V2Object = NeoFS.API.v2.Object;
@@ -17,22 +19,27 @@ namespace Neo.Fs.Services.Object.Acl
     {
         public readonly IInnerRingFetcher InnerRing;
         public readonly INetmapSource NetmapSource;
+        public readonly IState NetmapState;
         private readonly IContainerSource ContainerSource;
+        private readonly IEAclStorage EAclStorage;
         private readonly IRequest Request;
-        private readonly NeoFS.API.v2.Acl.Operation Op;
+        private V2Acl.Operation op;
+
         private bool Prepared;
 
         public uint BasicAcl;
+        public BearerToken Bearer;
         public Role Role;
         public OwnerID Owner;
         public V2Cotainer.Container Cnr;
         public ContainerID Cid;
         public byte[] SenderKey;
+        public V2Acl.Operation Op => op;
 
-        public RequestInfo(IRequest request, NeoFS.API.v2.Acl.Operation op, IContainerSource container_source)
+        public RequestInfo(IRequest request, V2Acl.Operation op, IContainerSource container_source)
         {
             Request = request;
-            Op = op;
+            this.op = op;
             ContainerSource = container_source;
             Role = Role.Unspecified;
         }
@@ -43,9 +50,11 @@ namespace Neo.Fs.Services.Object.Acl
             Prepared = true;
             Cid = GetContainerIDFromRequest(Request);
             if (Cid is null) throw new InvalidOperationException(nameof(Prepare) + " no container id");
+            Bearer = Request.MetaHeader?.BearerToken;
             Cnr = ContainerSource.Get(Cid);
             if (Cnr is null || Cnr.OwnerId is null) throw new InvalidOperationException(nameof(Prepare) + " unkown container");
             Classify();
+            SourceVerbOfRequest();
             if (Role == Role.Unspecified)
                 throw new InvalidOperationException(nameof(Prepare) + " unkown role");
             BasicAcl = Cnr.BasicAcl;
@@ -154,9 +163,66 @@ namespace Neo.Fs.Services.Object.Acl
             return false;
         }
 
-        private V2Acl.Action CalculateAction()
+        private void SourceVerbOfRequest()
         {
+            if (Request.MetaHeader?.SessionToken != null)
+            {
+                if (Request.MetaHeader.SessionToken.Body?.ContextCase == ContextOneofCase.Object)
+                {
+                    var ctx = Request.MetaHeader.SessionToken.Body?.Object;
+                    if (ctx is null) return;
+                    switch (ctx.Verb)
+                    {
+                        case Verb.Get:
+                            op = V2Acl.Operation.Get;
+                            break;
+                        case Verb.Put:
+                            op = V2Acl.Operation.Put;
+                            break;
+                        case Verb.Head:
+                            op = V2Acl.Operation.Head;
+                            break;
+                        case Verb.Search:
+                            op = V2Acl.Operation.Search;
+                            break;
+                        case Verb.Delete:
+                            op = V2Acl.Operation.Delete;
+                            break;
+                        case Verb.Range:
+                            op = V2Acl.Operation.Getrangehash;
+                            break;
+                        case Verb.Rangehash:
+                            op = V2Acl.Operation.Getrangehash;
+                            break;
+                        default:
+                            op = V2Acl.Operation.Unspecified;
+                            break;
+                    }
+                }
+            }
+        }
 
+        public bool IsValidBearer()
+        {
+            if (Bearer is null || Bearer.Body is null && Bearer.Signature is null)
+                return true;
+
+            if (!IsValidLifetime(Bearer.Body.Lifetime, NetmapState.CurrentEpoch()))
+                return false;
+            if (!Bearer.Body.VerifyMessagePart(Bearer.Signature))
+                return false;
+            var tokenIssueKey = Bearer.Signature.Key.ToByteArray();
+            if (Cnr.OwnerId.Value != tokenIssueKey.PublicKeyToOwnerID().Value)
+                return false;
+            var tokenOwnerField = Bearer.Body.OwnerId;
+            if (tokenOwnerField.Value != SenderKey.PublicKeyToOwnerID().Value)
+                return false;
+            return true;
+        }
+
+        private bool IsValidLifetime(BearerToken.Types.Body.Types.TokenLifetime lifetime, ulong epoch)
+        {
+            return epoch >= lifetime.Nbf && epoch <= lifetime.Exp;
         }
     }
 }

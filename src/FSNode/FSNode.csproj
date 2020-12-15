@@ -20,7 +20,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\LevelDBStore\LevelDBStore.csproj" />
-    <ProjectReference Include="..\..\..\..\neo-ngd\neofs-api-csharp\src\api\api.csproj" />
   </ItemGroup>
 
 </Project>
