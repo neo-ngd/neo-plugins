@@ -15,11 +15,11 @@ namespace Neo.Fs.Services.Object.Head
             relationSearcher = relation_searcher;
         }
 
-        public V2Object.Object Head(HeadPrm prm)
+        public HeadResult Head(HeadPrm prm)
         {
             var distribute_header = new DistributedHeader();
-            var obj = distribute_header.Head(prm);
-            if (obj != null || prm.Local) return obj;
+            var res = distribute_header.Head(prm);
+            if (res != null || prm.Local) return res;
             var oid = relationSearcher.SearchRelation(prm.Address, prm);
             var address = new Address
             {
@@ -31,9 +31,9 @@ namespace Neo.Fs.Services.Object.Head
                 Address = address,
             };
             right_child_prm.WithCommonPrm(prm);
-            obj = Head(right_child_prm);
-            if (obj is null) throw new InvalidOperationException(nameof(Head) + " could not get right child header");
-            return obj;
+            res = Head(right_child_prm);
+            if (res is null) throw new InvalidOperationException(nameof(Head) + " could not get right child header");
+            return res;
         }
     }
 }

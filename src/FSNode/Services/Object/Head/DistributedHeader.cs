@@ -10,7 +10,7 @@ namespace Neo.Fs.Services.Object.Head
         private INetmapSource netmapSource;
         private IContainerSource containerSource;
 
-        public V2Object.Object Head(HeadPrm prm)
+        public HeadResult Head(HeadPrm prm)
         {
             Prepare(prm);
             return Finish(prm);
@@ -23,10 +23,10 @@ namespace Neo.Fs.Services.Object.Head
             //TODO
         }
 
-        private V2Object.Object Finish(HeadPrm prm)
+        private HeadResult Finish(HeadPrm prm)
         {
             //TODO
-            return new V2Object.Object();
+            return new HeadResult();
         }
     }
 }
