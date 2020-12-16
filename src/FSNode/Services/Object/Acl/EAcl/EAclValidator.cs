@@ -45,7 +45,7 @@ namespace Neo.Fs.Services.Object.Acl.EAcl
         {
             foreach (var target in record.Targets)
             {
-                foreach (var key in target.KeyList)
+                foreach (var key in target.Keys)
                 {
                     if (key.SequenceEqual(unit.Key)) return true;
                 }
@@ -65,14 +65,14 @@ namespace Neo.Fs.Services.Object.Acl.EAcl
                 foreach (var header in headers)
                 {
                     if (header is null) continue;
-                    if (header.Key != filter.HeaderName) continue;
+                    if (header.Key != filter.Key) continue;
                     switch (filter.MatchType)
                     {
                         case MatchType.StringEqual:
-                            if (header.Value != filter.HeaderVal) continue;
+                            if (header.Value != filter.Value) continue;
                             break;
                         case MatchType.StringNotEqual:
-                            if (header.Value == filter.HeaderVal) continue;
+                            if (header.Value == filter.Value) continue;
                             break;
                         default:
                             continue;
