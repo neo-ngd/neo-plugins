@@ -1,6 +1,6 @@
-using Google.Protobuf;
 using NeoFS.API.v2.Refs;
 using V2Object = NeoFS.API.v2.Object;
+using Neo.Fs.Core.Object;
 using Neo.Fs.Services.Object.Head;
 using Neo.Fs.Services.Object.Put;
 using System.Collections.Generic;
@@ -16,9 +16,13 @@ namespace Neo.Fs.Services.Object.Delete
 
         public bool Delete(DeletePrm prm)
         {
-            var owner = prm.Token?.Body.OwnerId ?? selfId;
+            var owner = prm.SessionToken?.Body.OwnerId ?? selfId;
             if (owner is null) return false;
             var addrs = GetRelations(prm);
+            var tombstone = new Tombstone
+            {
+                Addresses = addrs,
+            };
             var obj = new V2Object.Object
             {
                 Header = new V2Object.Header
@@ -27,7 +31,7 @@ namespace Neo.Fs.Services.Object.Delete
                     OwnerId = owner,
                     ObjectType = V2Object.ObjectType.Tombstone,
                 },
-                Payload = ByteString.CopyFrom(addrs.ToRepeatedField().ToByteArray()),
+                Payload = tombstone.ToByteString(),
             };
             putService.Put(obj);
             return true;

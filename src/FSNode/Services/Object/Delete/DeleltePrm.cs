@@ -10,10 +10,12 @@ namespace Neo.Fs.Services.Object.Delete
 
         public static DeletePrm FromRequest(DeleteRequest request)
         {
-            return new DeletePrm
+            var prm = new DeletePrm
             {
                 Address = request.Body.Address,
             };
+            prm.WithCommonPrm(CommonPrm.FromRequest(request));
+            return prm;
         }
     }
 }

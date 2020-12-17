@@ -11,11 +11,13 @@ namespace Neo.Fs.Services.Object.Head
 
         public static HeadPrm FromRequest(HeadRequest request)
         {
-            return new HeadPrm
+            var prm = new HeadPrm
             {
                 Short = request.Body.MainOnly,
                 Address = request.Body.Address,
             };
+            prm.WithCommonPrm(CommonPrm.FromRequest(request));
+            return prm;
         }
     }
 }
