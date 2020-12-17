@@ -9,8 +9,8 @@ namespace Neo.Fs.Services.Object.Util
     public class CommonPrm
     {
         public bool Local;
-        public SessionToken Token;
-        public BearerToken Bearer;
+        public SessionToken SessionToken;
+        public BearerToken BearerToken;
 
         public static CommonPrm FromRequest(IRequest request)
         {
@@ -18,16 +18,16 @@ namespace Neo.Fs.Services.Object.Util
             return new CommonPrm
             {
                 Local = meta.Ttl <= 1,
-                Token = meta.SessionToken,
-                Bearer = meta.BearerToken,
+                SessionToken = meta.SessionToken,
+                BearerToken = meta.BearerToken,
             };
         }
 
         public void WithCommonPrm(CommonPrm cprm)
         {
             Local = cprm.Local;
-            Token = cprm.Token;
-            Bearer = cprm.Bearer;
+            SessionToken = cprm.SessionToken;
+            BearerToken = cprm.BearerToken;
         }
     }
 }

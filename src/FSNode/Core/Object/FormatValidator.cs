@@ -14,56 +14,47 @@ namespace Neo.Fs.Core.Object
         void DeleteObjects(params Address[] objAddrs);
     }
 
-    public class Cfg
-    {
-        private IDeleteHandler deleteHandler;
-    }
-
     public class FormatValidator
     {
-        private Cfg cfg;
+        private IDeleteHandler deleteHandler;
 
-        public FormatValidator(FormatValidatorOption[] opts)
+        public FormatValidator()
         {
-            var c = new Cfg();
 
-            foreach (var opt in opts)
-            {
-                opt(c);
-            }
-
-            this.cfg = c;
         }
 
-        public void Validate(V2Object obj)
+        public bool Validate(V2Object obj)
         {
             if (obj is null)
-                throw new ArgumentNullException("object is null");
+                return false;
             else if (obj.ObjectId is null)
-                throw new ArgumentException("missing identifier");
+                return false;
             else if (obj.Header is null || obj.Header.ContainerId is null)
-                throw new ArgumentException("missing container identifier");
+                return false;
 
             while (obj != null)
             {
-
-
-
+                obj = obj.Parent();
+                if (!ValidateSignatureKey(obj)) return false;
+                if (!obj.VerifyIDSignature()) return false;
+                if (!obj.VerifyID()) return false;
             }
+            return true;
         }
 
-        private void ValidateSignatureKey(V2Object obj)
+        private bool ValidateSignatureKey(V2Object obj)
         {
             var token = obj.Header.SessionToken;
             var key = obj.Signature.Key;
 
             if (token is null || !token.Body.SessionKey.Equals(key))
-                CheckOwnerKey(obj.Header.OwnerId, obj.Signature.Key.ToByteArray());
+                return CheckOwnerKey(obj.Header.OwnerId, obj.Signature.Key.ToByteArray());
 
             // TODO: perform token verification
+            return true;
         }
 
-        private void CheckOwnerKey(OwnerID id, byte[] key)
+        private bool CheckOwnerKey(OwnerID id, byte[] key)
         {
             var pubKey = ECPoint.FromBytes(key, ECCurve.Secp256r1);
             var scriptHash = pubKey.EncodePoint(true).ToScriptHash();
@@ -71,11 +62,10 @@ namespace Neo.Fs.Core.Object
 
             var id2 = new OwnerID() { Value = ByteString.CopyFrom(w) };
 
-            if (id.ToByteString() != id2.ToByteString())
-                throw new Exception(string.Format("different owner identifiers: {0}, {1}", id.ToByteString(), id2.ToByteString()));
+            return id.ToByteString() == id2.ToByteString();
         }
 
-        public void ValidateContent(ObjectType t, byte[] payload)
+        public bool ValidateContent(ObjectType t, ByteString payload)
         {
             switch (t)
             {
@@ -83,19 +73,25 @@ namespace Neo.Fs.Core.Object
                     break;
                 case ObjectType.Tombstone:
                     if (payload.Length == 0)
-                        throw new Exception("empty payload in tombstone");
+                        return false;
+                    var tombstone = Tombstone.FromByteString(payload);
+                    foreach (var address in tombstone.Addresses)
+                    {
+                        if (address.ObjectId is null || address.ContainerId is null)
+                        {
+                            return false;
+                        }
+                    }
+                    if (deleteHandler != null)
+                        deleteHandler.DeleteObjects(tombstone.Addresses.ToArray());
                     break;
                 case ObjectType.StorageGroup:
                     break;
                 default:
                     break;
             }
-
+            return true;
         }
 
     }
-
-    public delegate void FormatValidatorOption(Cfg cfg);
-
-
 }

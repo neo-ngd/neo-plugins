@@ -61,8 +61,8 @@ namespace Neo.Fs.Services.Object
         public override async Task<PutResponse> Put(IAsyncStreamReader<PutRequest> requestStream, ServerCallContext context)
         {
             var init_received = false;
-            var obj = new V2Object.Object();
             var payload = new byte[0];
+            IPutTarget target = null;
             while (await requestStream.MoveNext())
             {
                 var request = requestStream.Current;
@@ -72,10 +72,16 @@ namespace Neo.Fs.Services.Object
                         new RpcException(new Status(StatusCode.DataLoss, " missing init"));
                     var init = request.Body.Init;
                     if (!init.VerifyRequest()) throw new RpcException(new Status(StatusCode.Unauthenticated, " verify header failed"));
-                    obj.ObjectId = init.ObjectId;
-                    obj.Signature = init.Signature;
-                    obj.Header = init.Header;
-                    init_received = true;
+                    var put_init_prm = PutInitPrm.FromRequest(request);
+                    try
+                    {
+                        target = putService.Init(put_init_prm);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new RpcException(new Status(StatusCode.FailedPrecondition, e.Message));
+                    }
+
                 }
                 else
                 {
@@ -85,22 +91,22 @@ namespace Neo.Fs.Services.Object
                     payload = payload.Concat(chunk).ToArray();
                 }
             }
-            obj.Payload = ByteString.CopyFrom(payload);
             try
             {
-                var oid = putService.Put(obj);
+                if (target is null) throw new RpcException(new Status(StatusCode.DataLoss, "init missing"));
+                var result = target.PutPayload(ByteString.CopyFrom(payload));
                 var resp = new PutResponse
                 {
                     Body = new PutResponse.Types.Body
                     {
-                        ObjectId = oid,
+                        ObjectId = result.Current,
                     }
                 };
                 return resp;
             }
             catch (Exception e)
             {
-                throw new RpcException(new Status(StatusCode.FailedPrecondition, e.Message));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, e.Message));
             }
         }
 
