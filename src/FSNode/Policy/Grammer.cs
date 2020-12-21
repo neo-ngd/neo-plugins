@@ -39,15 +39,13 @@ namespace Neo.Fs.Policy
     public class SelectorStmt
     {
         public uint Count { get; set; }
-        public string Clause { get; set; }
-        public string Bucket { get; set; }
+        public string[] Bucket { get; set; }
         public string Filter { get; set; }
         public string Name { get; set; }
 
-        public SelectorStmt(uint count, string clause, string bucket, string filter, string name)
+        public SelectorStmt(uint count, string[] bucket, string filter, string name)
         {
             this.Count = count;
-            this.Clause = clause;
             this.Bucket = bucket;
             this.Filter = filter;
             this.Name = name;

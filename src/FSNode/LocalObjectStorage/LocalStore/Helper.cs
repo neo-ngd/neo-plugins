@@ -1,23 +1,23 @@
 using NeoFS.API.v2.Refs;
-using FsObject = NeoFS.API.v2.Object.Object;
+using V2Object = NeoFS.API.v2.Object.Object;
 
 namespace Neo.Fs.LocalObjectStorage.LocalStore
 {
     public static class Helper
     {
-        public static Address Address(this FsObject fsObject)
+        public static Address Address(this V2Object obj)
         {
             return new Address()
             {
-                ObjectId = fsObject.ObjectId,
-                ContainerId = fsObject.Header.ContainerId
+                ObjectId = obj.ObjectId,
+                ContainerId = obj.Header.ContainerId
             };
         }
 
-        public static FsObject CutPayload(this FsObject fsObject)
+        public static V2Object CutPayload(this V2Object obj)
         {
-            fsObject.Payload = null;
-            return fsObject;
+            obj.Payload = null;
+            return obj;
         }
     }
 }

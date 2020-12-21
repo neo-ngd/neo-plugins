@@ -1,17 +1,19 @@
 using Google.Protobuf;
 using Neo.Fs.LocalObjectStorage.Bucket;
+using Neo.Fs.LocalObjectStorage.MetaBase;
+using NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
-using FsObject = NeoFS.API.v2.Object.Object;
+using V2Object = NeoFS.API.v2.Object.Object;
 
 namespace Neo.Fs.LocalObjectStorage.LocalStore
 {
     public class Storage
     {
-        private TempLogger logger;
-        private IBucket metaBucket;
+        //private IBucket metaBucket;
+        private Db metaBase;
         private IBucket blobBucket;
 
-        public Storage(IBucket blob, IBucket meta, params Option[] opts)
+        public Storage(IBucket blob, Db meta, params Option[] opts)
         {
             var cfg = Cfg.DefaultCfg;
             foreach (var opt in opts)
@@ -20,63 +22,41 @@ namespace Neo.Fs.LocalObjectStorage.LocalStore
             }
 
             this.blobBucket = blob;
-            this.metaBucket = meta;
-            this.logger = cfg.logger;
+            this.metaBase = meta;
         }
 
-        public void Put(FsObject obj)
+        public void Put(V2Object obj)
         {
             var addrBytes = obj.Address().ToByteArray();
             var objBytes = obj.ToByteArray();
-            var metaBytes = ObjectMeta.MetaFromObject(obj).MetaToBytes();
 
             this.blobBucket.Set(addrBytes, objBytes);
-            this.metaBucket.Set(addrBytes, metaBytes);
+            this.metaBase.Put(obj.CutPayload());
         }
 
         public void Delete(Address addr)
         {
             var addrBytes = addr.ToByteArray();
             this.blobBucket.Del(addrBytes);
-            this.metaBucket.Del(addrBytes);
+            this.metaBase.Delete(addr);
         }
 
-        public FsObject Get(Address addr)
+        public V2Object Get(Address addr)
         {
             var addrBytes = addr.ToByteArray();
             var objBytes = this.blobBucket.Get(addrBytes);
 
-            return FsObject.Parser.ParseFrom(objBytes);
+            return V2Object.Parser.ParseFrom(objBytes);
         }
 
-        public ObjectMeta Head(Address addr)
+        public V2Object Head(Address addr)
         {
-            var addrBytes = addr.ToByteArray();
-            var metaBytes = this.metaBucket.Get(addrBytes);
-
-            return ObjectMeta.MetaFromBytes(metaBytes);
+            return this.metaBase.Get(addr);
         }
 
-        public delegate bool StorageHandler(ObjectMeta meta);
-
-        public void Iterate(IFilterPipeline filter, StorageHandler handler)
+        public Address[] Select(SearchFilters fs)
         {
-            if (filter is null)
-            {
-                filter = new FilterPipeline(new FilterParam()
-                {
-                    Name = "SKIPPING_FILTER",
-                    FilterFunc = (ctx, meta) => { return FilterResult.FrPass; }
-                });
-            }
-
-            this.metaBucket.Iterate((k, v) =>
-            {
-                var meta = ObjectMeta.MetaFromBytes(v);
-                if (filter.Pass(new WrapperContext(), meta).C == FilterCode.CodePass)
-                    return !handler(meta);
-                return true;
-            });
+            return this.metaBase.Select(fs);
         }
     }
 

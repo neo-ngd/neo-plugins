@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.Fs.Netmap;
+using NeoFS.API.v2.Netmap;
 using Sprache;
-using System;
 
 namespace Neo.Fs.Policy.Tests
 {
@@ -39,7 +38,22 @@ SELECT 1 IN City FROM * AS SPB";
 
             var expected = new PlacementPolicy(0,
                 new Replica[] { new Replica(1, "SPB") },
-                new Selector[] { new Selector(1, Clause.UnspecifiedClause, "City", "*", "SPB") },
+                new Selector[] { new Selector("SPB", "City", Clause.Unspecified, 1, "*") },
+                new Filter[0]);
+            var actual = Helper.ParsePlacementPolicy(q);
+
+            Assert.IsTrue(expected.Equals(actual));
+        }
+
+        [TestMethod]
+        public void TestSelectFrom2()
+        {
+            string q = @"REP 1 IN SPB
+SELECT 1 IN DISTINCT City FROM * AS SPB";
+
+            var expected = new PlacementPolicy(0,
+                new Replica[] { new Replica(1, "SPB") },
+                new Selector[] { new Selector("SPB", "City", Clause.Distinct, 1, "*") },
                 new Filter[0]);
             var actual = Helper.ParsePlacementPolicy(q);
 
@@ -58,9 +72,9 @@ SELECT 1 IN DISTINCT Continent FROM *";
                 new Replica[] { new Replica(4, "") },
                 new Selector[]
                 {
-                    new Selector(3, Clause.UnspecifiedClause, "Country", "*", ""),
-                    new Selector(2, Clause.Same, "City", "*", ""),
-                    new Selector(1, Clause.Distinct, "Continent", "*", "")
+                    new Selector("", "Country", Clause.Unspecified, 3, "*"),
+                    new Selector("", "City", Clause.Same, 2, "*"),
+                    new Selector("", "Continent", Clause.Distinct, 1, "*")
                 },
                 new Filter[0]);
             var actual = Helper.ParsePlacementPolicy(q);
@@ -85,8 +99,8 @@ FILTER Rating GT 7 AS Good";
 
             var expected = new PlacementPolicy(0,
                 new Replica[] { new Replica(1, "") },
-                new Selector[] { new Selector(1, Clause.UnspecifiedClause, "City", "Good", "") },
-                new Filter[] { new Filter("Good", "Rating", "7", Operation.GT) });
+                new Selector[] { new Selector("", "City", Clause.Unspecified, 1, "Good") },
+                new Filter[] { new Filter("Good", "Rating", "7", Operation.Gt) });
             var actual = Helper.ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
@@ -107,13 +121,13 @@ FILTER @FromRU AND Rating GT 7 AS Good";
 
             var expected = new PlacementPolicy(0,
                 new Replica[] { new Replica(1, "") },
-                new Selector[] { new Selector(2, Clause.UnspecifiedClause, "City", "Good", "") },
+                new Selector[] { new Selector("", "City", Clause.Unspecified, 2, "Good") },
                 new Filter[]
                 {
-                    new Filter("FromRU", "Country", "RU", Operation.EQ),
-                    new Filter("Good", "", "", Operation.AND,
-                        new Filter("FromRU"),
-                        new Filter("", "Rating", "7", Operation.GT)
+                    new Filter("FromRU", "Country", "RU", Operation.Eq),
+                    new Filter("Good", "", "", Operation.And,
+                        new Filter(){ Name = "FromRU" },
+                        new Filter("", "Rating", "7", Operation.Gt)
                     )
                 });
             var actual = Helper.ParsePlacementPolicy(q);
@@ -131,16 +145,16 @@ FILTER A GT 1 AND B GE 2 AND C LT 3 AND D LE 4
 
             var expected = new PlacementPolicy(0,
                 new Replica[] { new Replica(1, "") },
-                new Selector[] { new Selector(2, Clause.UnspecifiedClause, "City", "Good", "") },
+                new Selector[] { new Selector("", "City", Clause.Unspecified, 2, "Good") },
                 new Filter[]
                 {
-                    new Filter("Good", "", "", Operation.AND,
-                        new Filter("", "A", "1", Operation.GT),
-                        new Filter("", "B", "2", Operation.GE),
-                        new Filter("", "C", "3", Operation.LT),
-                        new Filter("", "D", "4", Operation.LE),
-                        new Filter("", "E", "5", Operation.EQ),
-                        new Filter("", "F", "6", Operation.NE)
+                    new Filter("Good", "", "", Operation.And,
+                        new Filter("", "A", "1", Operation.Gt),
+                        new Filter("", "B", "2", Operation.Ge),
+                        new Filter("", "C", "3", Operation.Lt),
+                        new Filter("", "D", "4", Operation.Le),
+                        new Filter("", "E", "5", Operation.Eq),
+                        new Filter("", "F", "6", Operation.Ne)
                     )
                 });
             var actual = Helper.ParsePlacementPolicy(q);
@@ -157,17 +171,17 @@ FILTER City EQ SPB AND SSD EQ true OR City EQ SPB AND Rating GE 5 AS SPBSSD";
 
             var expected = new PlacementPolicy(0,
                new Replica[] { new Replica(7, "SPB") },
-               new Selector[] { new Selector(1, Clause.UnspecifiedClause, "City", "SPBSSD", "SPB") },
+               new Selector[] { new Selector("SPB", "City", Clause.Unspecified, 1, "SPBSSD") },
                new Filter[]
                {
-                    new Filter("SPBSSD", "", "", Operation.OR,
-                        new Filter("", "", "", Operation.AND,
-                            new Filter("", "City", "SPB", Operation.EQ),
-                            new Filter("", "SSD", "true", Operation.EQ)
+                    new Filter("SPBSSD", "", "", Operation.Or,
+                        new Filter("", "", "", Operation.And,
+                            new Filter("", "City", "SPB", Operation.Eq),
+                            new Filter("", "SSD", "true", Operation.Eq)
                         ),
-                        new Filter("", "", "", Operation.AND,
-                            new Filter("", "City", "SPB", Operation.EQ),
-                            new Filter("", "Rating", "5", Operation.GE)
+                        new Filter("", "", "", Operation.And,
+                            new Filter("", "City", "SPB", Operation.Eq),
+                            new Filter("", "Rating", "5", Operation.Ge)
                         )
                     )
                });
