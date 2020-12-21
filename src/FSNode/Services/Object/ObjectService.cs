@@ -10,6 +10,7 @@ using Neo.Fs.Core.Container;
 using Neo.Fs.Services.Object.Acl;
 using Neo.Fs.Services.Object.Head;
 using Neo.Fs.Services.Object.Put;
+using Neo.Fs.Services.Object.Range;
 using Neo.Fs.Services.Object.Search;
 using Neo.Fs.Services.Object.Sign;
 using Neo.Fs.Services.Object.Util;
@@ -29,6 +30,7 @@ namespace Neo.Fs.Services.Object
         private readonly Signer signer;
         private readonly HeadService headService;
         private readonly PutService putService;
+        private readonly RangeService rangeService;
 
         public ObjectServiceImpl(IContainerSource container_source, Storage local_storage, IEAclStorage eacl_storage)
         {
@@ -38,6 +40,7 @@ namespace Neo.Fs.Services.Object
             signer = new Signer();
             headService = new HeadService(new RelationSearcher());
             putService = new PutService();
+            rangeService = new RangeService();
         }
 
         public override Task Get(GetRequest request, IServerStreamWriter<GetResponse> responseStream, ServerCallContext context)
@@ -163,7 +166,17 @@ namespace Neo.Fs.Services.Object
             {
                 throw new RpcException(new Status(StatusCode.PermissionDenied, e.Message));
             }
-            throw new RpcException(new Status(StatusCode.Unimplemented, ""));
+            var prm = RangePrm.FromRequest(request);
+            var head_result = rangeService.Range(prm);
+            var resp = new GetRangeResponse
+            {
+                Body = new GetRangeResponse.Types.Body
+                {
+                    Chunk = head_result.Chunk,
+                }
+            };
+            resp.SignResponse(key);
+            return responseStream.WriteAsync(resp);
         }
 
         public override Task<GetRangeHashResponse> GetRangeHash(GetRangeHashRequest request, ServerCallContext context)

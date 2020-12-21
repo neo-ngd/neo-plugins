@@ -4,70 +4,7 @@ using V2Object = NeoFS.API.v2.Object.Object;
 using V2Range = NeoFS.API.v2.Object.Range;
 
 namespace Neo.Fs.Services.Object.Util
-{
-    public class RangeChain
-    {
-        private RangeChain prev, next;
-        private RangeBounds bounds;
-        private ObjectID id;
-
-        public RangeChain Prev
-        {
-            get => prev;
-            set => this.prev = value;
-        }
-
-        public RangeChain Next
-        {
-            get => next;
-            set => this.next = value;
-        }
-
-        public ObjectID Id
-        {
-            get => this.id;
-            set => this.id = value;
-        }
-
-        public RangeBounds Bounds
-        {
-            get => this.bounds;
-            set => this.bounds = value;
-        }
-
-        //public RangeChain(RangeBounds rngBounds, ObjectID objId, RangeChain previous = null, RangeChain nxt = null)
-        //{
-        //    this.bounds = rngBounds;
-        //    this.id = objId;
-        //    this.prev = previous;
-        //    this.next = nxt;
-        //}
-    }
-
-    public class RangeBounds
-    {
-        private ulong left;
-        private ulong right;
-
-        public ulong Left
-        {
-            get => this.left;
-            set => this.left = value;
-        }
-
-        public ulong Right
-        {
-            get => this.right;
-            set => this.right = value;
-        }
-
-        public RangeBounds(ulong l, ulong r)
-        {
-            this.left = l;
-            this.right = r;
-        }
-    }
-
+{ 
     public class RangeTraverser
     {
         private RangeChain chain;
