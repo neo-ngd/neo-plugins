@@ -102,7 +102,7 @@ namespace Neo.Fs.Services.Object.Range
                         }
                         else
                         {
-                            rangeSource = new RemoteRangeSource();
+                            rangeSource = new RemoteRangeSource(addr);
                         }
                         var piece = rangeSource.Range(address, next_range);
                         range_traverser.PushSuccessSize((ulong)chunk.Length);

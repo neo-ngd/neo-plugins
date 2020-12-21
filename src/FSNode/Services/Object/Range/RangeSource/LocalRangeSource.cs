@@ -11,7 +11,13 @@ namespace Neo.Fs.Services.Object.Range.RangeSource
 
         public byte[] Range(Address address, V2Range range)
         {
-            return Array.Empty<byte>();
+            var obj = localStorage.Get(address);
+            if (obj is null)
+                throw new InvalidOperationException(nameof(Range) + " could not get object from local storage");
+            var payload = obj.Payload;
+            var start = (int)range.Offset;
+            var end = (int)(range.Offset + range.Length);
+            return payload.ToByteArray()[start..end];
         }
     }
 }
