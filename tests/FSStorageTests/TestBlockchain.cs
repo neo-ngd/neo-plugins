@@ -1,5 +1,6 @@
-using Akka.Actor;
+using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
+using Neo.Cryptography;
 using Neo.IO;
 using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
@@ -9,6 +10,8 @@ using Neo.SmartContract.Native;
 using Neo.VM;
 using Neo.Wallets;
 using Neo.Wallets.NEP6;
+using NeoFS.API.v2.Container;
+using NeoFS.API.v2.Netmap;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,7 +53,7 @@ namespace Neo.Plugins.FSStorage
             IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
             UInt160 from = Blockchain.GetConsensusAddress(Blockchain.StandbyValidators);
             UInt160 to = accounts.ToArray()[0].ScriptHash;
-            Signers signers = new Signers(from);
+            FakeSigners signers = new FakeSigners(from);
             byte[] script = NativeContract.GAS.Hash.MakeScript("transfer", from, to, 500_00000000);
             var snapshot = Blockchain.Singleton.GetSnapshot();
             ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
@@ -157,11 +160,113 @@ namespace Neo.Plugins.FSStorage
                 Manifest = alphabetAzContractManifest
             };
             snapshot.Contracts.Add(alphabetAzContractHash, alphabetAzContract);
+            //AlphabetBukyContract
+            string alphabetBukyContractNefFilePath = "./contracts/alphabet/buky/buky_contract.nef";
+            string alphabetBukyContractManifestPath = "./contracts/alphabet/buky/buky_contract_config.json";
+            var alphabetBukyContractManifest = ContractManifest.Parse(File.ReadAllBytes(alphabetBukyContractManifestPath));
+            NefFile alphabetBukyContractNefFile;
+            using (var stream = new BinaryReader(File.OpenRead(alphabetBukyContractNefFilePath), Utility.StrictUTF8, false))
+            {
+                alphabetBukyContractNefFile = stream.ReadSerializable<NefFile>();
+            }
+            UInt160 alphabetBukyContractHash = alphabetBukyContractNefFile.Script.ToScriptHash();
+            var alphabetBukyContract = new ContractState
+            {
+                Id = snapshot.ContractId.GetAndChange().NextId++,
+                Script = alphabetBukyContractNefFile.Script.ToArray(),
+                Manifest = alphabetBukyContractManifest
+            };
+            snapshot.Contracts.Add(alphabetBukyContractHash, alphabetBukyContract);
+            //AlphabetDobroContract
+            string alphabetDobroContractNefFilePath = "./contracts/alphabet/dobro/dobro_contract.nef";
+            string alphabetDobroContractManifestPath = "./contracts/alphabet/dobro/dobro_contract_config.json";
+            var alphabetDobroContractManifest = ContractManifest.Parse(File.ReadAllBytes(alphabetDobroContractManifestPath));
+            NefFile alphabetDobroContractNefFile;
+            using (var stream = new BinaryReader(File.OpenRead(alphabetDobroContractNefFilePath), Utility.StrictUTF8, false))
+            {
+                alphabetDobroContractNefFile = stream.ReadSerializable<NefFile>();
+            }
+            UInt160 alphabetDobroContractHash = alphabetDobroContractNefFile.Script.ToScriptHash();
+            var alphabetDobroContract = new ContractState
+            {
+                Id = snapshot.ContractId.GetAndChange().NextId++,
+                Script = alphabetDobroContractNefFile.Script.ToArray(),
+                Manifest = alphabetDobroContractManifest
+            };
+            snapshot.Contracts.Add(alphabetDobroContractHash, alphabetDobroContract);
+            //AlphabetGlagoliContract
+            string alphabetGlagoliContractNefFilePath = "./contracts/alphabet/glagoli/glagoli_contract.nef";
+            string alphabetGlagoliContractManifestPath = "./contracts/alphabet/glagoli/glagoli_contract_config.json";
+            var alphabetGlagoliContractManifest = ContractManifest.Parse(File.ReadAllBytes(alphabetGlagoliContractManifestPath));
+            NefFile alphabetGlagoliContractNefFile;
+            using (var stream = new BinaryReader(File.OpenRead(alphabetGlagoliContractNefFilePath), Utility.StrictUTF8, false))
+            {
+                alphabetGlagoliContractNefFile = stream.ReadSerializable<NefFile>();
+            }
+            UInt160 alphabetGlagoliContractHash = alphabetGlagoliContractNefFile.Script.ToScriptHash();
+            var alphabetGlagoliContract = new ContractState
+            {
+                Id = snapshot.ContractId.GetAndChange().NextId++,
+                Script = alphabetGlagoliContractNefFile.Script.ToArray(),
+                Manifest = alphabetGlagoliContractManifest
+            };
+            snapshot.Contracts.Add(alphabetGlagoliContractHash, alphabetGlagoliContract);
+            //AlphabetJestContract
+            string alphabetJestContractNefFilePath = "./contracts/alphabet/jest/jest_contract.nef";
+            string alphabetJestContractManifestPath = "./contracts/alphabet/jest/jest_contract_config.json";
+            var alphabetJestContractManifest = ContractManifest.Parse(File.ReadAllBytes(alphabetJestContractManifestPath));
+            NefFile alphabetJestContractNefFile;
+            using (var stream = new BinaryReader(File.OpenRead(alphabetJestContractNefFilePath), Utility.StrictUTF8, false))
+            {
+                alphabetJestContractNefFile = stream.ReadSerializable<NefFile>();
+            }
+            UInt160 alphabetJestContractHash = alphabetJestContractNefFile.Script.ToScriptHash();
+            var alphabetJestContract = new ContractState
+            {
+                Id = snapshot.ContractId.GetAndChange().NextId++,
+                Script = alphabetJestContractNefFile.Script.ToArray(),
+                Manifest = alphabetJestContractManifest
+            };
+            snapshot.Contracts.Add(alphabetJestContractHash, alphabetJestContract);
+            //AlphabetVediContract
+            string alphabetVediContractNefFilePath = "./contracts/alphabet/vedi/vedi_contract.nef";
+            string alphabetVediContractManifestPath = "./contracts/alphabet/vedi/vedi_contract_config.json";
+            var alphabetVediContractManifest = ContractManifest.Parse(File.ReadAllBytes(alphabetVediContractManifestPath));
+            NefFile alphabetVediContractNefFile;
+            using (var stream = new BinaryReader(File.OpenRead(alphabetVediContractNefFilePath), Utility.StrictUTF8, false))
+            {
+                alphabetVediContractNefFile = stream.ReadSerializable<NefFile>();
+            }
+            UInt160 alphabetVediContractHash = alphabetVediContractNefFile.Script.ToScriptHash();
+            var alphabetVediContract = new ContractState
+            {
+                Id = snapshot.ContractId.GetAndChange().NextId++,
+                Script = alphabetVediContractNefFile.Script.ToArray(),
+                Manifest = alphabetVediContractManifest
+            };
+            snapshot.Contracts.Add(alphabetVediContractHash, alphabetVediContract);
+            //AlphabetZhiveteContract
+            string alphabetZhiveteContractNefFilePath = "./contracts/alphabet/zhivete/zhivete_contract.nef";
+            string alphabetZhiveteContractManifestPath = "./contracts/alphabet/zhivete/zhivete_contract_config.json";
+            var alphabetZhiveteContractManifest = ContractManifest.Parse(File.ReadAllBytes(alphabetZhiveteContractManifestPath));
+            NefFile alphabetZhiveteContractNefFile;
+            using (var stream = new BinaryReader(File.OpenRead(alphabetZhiveteContractNefFilePath), Utility.StrictUTF8, false))
+            {
+                alphabetZhiveteContractNefFile = stream.ReadSerializable<NefFile>();
+            }
+            UInt160 alphabetZhiveteContractHash = alphabetZhiveteContractNefFile.Script.ToScriptHash();
+            var alphabetZhiveteContract = new ContractState
+            {
+                Id = snapshot.ContractId.GetAndChange().NextId++,
+                Script = alphabetZhiveteContractNefFile.Script.ToArray(),
+                Manifest = alphabetZhiveteContractManifest
+            };
+            snapshot.Contracts.Add(alphabetZhiveteContractHash, alphabetZhiveteContract);
             //FakeBalanceInit
             script = balanceContractHash.MakeScript("init", netMapContractHash.ToArray(), containerContractHash.ToArray());
             engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
             //FakeNetMapInit
-            script = MakeScript(netMapContractHash, "init", new byte[][] { accounts.ToArray()[0].GetKey().PublicKey.ToArray() });
+            script = MakeScript(netMapContractHash, "init", new byte[][] { accounts.ToArray()[0].GetKey().PublicKey.ToArray()});
             engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
             //FakeNetMapConfigInit/ContainerFee
             script = MakeScript(netMapContractHash, "initConfig", new byte[][] { Utility.StrictUTF8.GetBytes("ContainerFee"), BitConverter.GetBytes(0) });
@@ -178,13 +283,45 @@ namespace Neo.Plugins.FSStorage
             //FakeAZInit
             script = alphabetAzContractHash.MakeScript("init", netMapContractHash.ToArray());
             engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
+            //Fake peer
+            NodeInfo nodeInfo = new NodeInfo();
+            nodeInfo.Address = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToAddress(accounts.ToArray()[0].GetKey().PublicKey.ToArray());
+            nodeInfo.PublicKey = Google.Protobuf.ByteString.CopyFrom(accounts.ToArray()[0].GetKey().PublicKey.ToArray());
+            var rawNodeInfo = nodeInfo.ToByteArray();
+            script = netMapContractHash.MakeScript("addPeer", rawNodeInfo);
+            engine = ApplicationEngine.Run(script, snapshot, container: new FakeSigners(to), null, 0, 2000000000);
+            //Fake container
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            NeoFS.API.v2.Refs.OwnerID ownerId = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToOwnerID(key.PublicKey.ToArray());
+            Container container = new Container()
+            {
+                Version = new NeoFS.API.v2.Refs.Version(),
+                BasicAcl = 0,
+                Nonce = Google.Protobuf.ByteString.CopyFrom(new byte[16], 0, 16),
+                OwnerId = ownerId,
+                PlacementPolicy = new NeoFS.API.v2.Netmap.PlacementPolicy()
+            };
+            byte[] sig = Crypto.Sign(container.ToByteArray(), key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
+            script = containerContractHash.MakeScript("put", container.ToByteArray(),sig, key.PublicKey.ToArray());
+            engine = ApplicationEngine.Run(script, snapshot, container: new FakeSigners(to), null, 0, 2000000000);
+            //Fake eacl
+            NeoFS.API.v2.Acl.EACLTable eACLTable = new NeoFS.API.v2.Acl.EACLTable()
+            {
+                ContainerId = container.CalCulateAndGetID,
+                Version = new NeoFS.API.v2.Refs.Version(),
+            };
+            eACLTable.Records.Add(new NeoFS.API.v2.Acl.EACLRecord());
+            sig = Crypto.Sign(eACLTable.ToByteArray(), key.PrivateKey, key.PublicKey.EncodePoint(false)[1..]);
+            script = containerContractHash.MakeScript("setEACL", eACLTable.ToByteArray(), sig);
+            engine = ApplicationEngine.Run(script, snapshot, container: new FakeSigners(to), null, 0, 2000000000);
+            //Fake Epoch
+            script = netMapContractHash.MakeScript("newEpoch",2);
+            engine = ApplicationEngine.Run(script, snapshot, new FakeSigners(to), null, 0, 2000000000);
+            script = netMapContractHash.MakeScript("newEpoch", 2);
+            engine = ApplicationEngine.Run(script, snapshot, new FakeSigners(accounts.ToArray()[1].ScriptHash), null, 0, 2000000000);
+            script = netMapContractHash.MakeScript("newEpoch",2);
+            engine = ApplicationEngine.Run(script, snapshot, container: new FakeSigners(accounts.ToArray()[2].ScriptHash), null, 0, 2000000000);
             snapshot.Commit();
-            Settings.Default.BalanceContractHash = UInt160.Parse(BalanceContractHash);
-            Settings.Default.NetmapContractHash = UInt160.Parse(NetMapContractHash);
-            Settings.Default.ContainerContractHash = UInt160.Parse(ContainerContractHash);
-            Settings.Default.AlphabetContractHash = new UInt160[] { UInt160.Parse(AlphabetAZContractHash0) };
-            Settings.Default.FsContractHash = UInt160.Parse(FsContractHash);
-            Settings.Default.FsIdContractHash = UInt160.Parse(FsIdContractHash);
         }
 
         private static byte[] MakeScript(UInt160 scriptHash, string operation, byte[][] args)
@@ -205,7 +342,6 @@ namespace Neo.Plugins.FSStorage
                 return sb.ToArray();
             }
         }
-
     }
 
     public class MyWallet : Wallet

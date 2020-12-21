@@ -8,9 +8,6 @@ using System;
 using static Neo.Plugins.FSStorage.innerring.timers.Timers;
 using static Neo.Plugins.FSStorage.Listener;
 using Neo.Plugins.util;
-using static System.IO.Path;
-using System.Text;
-using Neo.IO.Data.LevelDB;
 using Neo.Wallets.NEP6;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +40,6 @@ namespace Neo.Plugins.FSStorage.innerring
 
         private Client mainNetClient;
         private Client morphClient;
-        private readonly DB db;
         private readonly NEP6Wallet wallet;
         private long epochCounter;
         private int indexer = -1;
@@ -62,7 +58,6 @@ namespace Neo.Plugins.FSStorage.innerring
         public InnerRingService(NeoSystem system, NEP6Wallet pwallet = null, Client pMainNetClient = null, Client pMorphClient = null)
         {
             convert = new Fixed8ConverterUtil();
-            db = DB.Open(GetFullPath(Settings.Default.Path), new Options { CreateIfMissing = true });
             //Create wallet
             if (pwallet is null)
             {
@@ -76,7 +71,7 @@ namespace Neo.Plugins.FSStorage.innerring
             //Build 2 clients(MainNetClient&MorphClient).
             if (pMainNetClient is null)
             {
-                mainNetClient = new MainClient(Settings.Default.Url, wallet);
+                mainNetClient = new MainClient(Settings.Default.Urls, wallet);
             }
             else
             {
@@ -98,24 +93,24 @@ namespace Neo.Plugins.FSStorage.innerring
             //There are 5 processors.
             balanceContractProcessor = new BalanceContractProcessor()
             {
-                Client = morphClient,
+                Client = mainNetClient,
                 Convert = convert,
                 ActiveState = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.BalanceContractWorkersSize))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props("BalanceContract Processor", Settings.Default.BalanceContractWorkersSize))
             };
             containerContractProcessor = new ContainerContractProcessor()
             {
                 Client = morphClient,
                 ActiveState = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.ContainerContractWorkersSize))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props("ContainerContract Processor", Settings.Default.ContainerContractWorkersSize))
             };
             fsContractProcessor = new FsContractProcessor()
             {
-                Client = mainNetClient,
+                Client = morphClient,
                 Convert = convert,
                 ActiveState = this,
                 EpochState = this,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.FsContractWorkersSize))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props("FsContract Processor", Settings.Default.FsContractWorkersSize))
             };
             netMapContractProcessor = new NetMapContractProcessor()
             {
@@ -124,14 +119,14 @@ namespace Neo.Plugins.FSStorage.innerring
                 EpochState = this,
                 EpochTimerReseter = this,
                 NetmapSnapshot = new NetMapContractProcessor.CleanupTable(Settings.Default.CleanupEnabled, Settings.Default.CleanupThreshold),
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.NetmapContractWorkersSize))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props("NetMapContract Processor", Settings.Default.NetmapContractWorkersSize))
             };
             alphabetContractProcessor = new AlphabetContractProcessor()
             {
                 Client = morphClient,
                 Indexer = this,
                 StorageEmission = Settings.Default.StorageEmission,
-                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props(Settings.Default.AlphabetContractWorkersSize))
+                WorkPool = system.ActorSystem.ActorOf(WorkerPool.Props("AlphabetContract Processor", Settings.Default.AlphabetContractWorkersSize))
             };
             balanceContractProcessor.WorkPool.Tell(new WorkerPool.Timer());
             containerContractProcessor.WorkPool.Tell(new WorkerPool.Timer());
@@ -139,8 +134,8 @@ namespace Neo.Plugins.FSStorage.innerring
             netMapContractProcessor.WorkPool.Tell(new WorkerPool.Timer());
             alphabetContractProcessor.WorkPool.Tell(new WorkerPool.Timer());
             //Build listener
-            morphEventListener = system.ActorSystem.ActorOf(Listener.Props());
-            mainEventListener = system.ActorSystem.ActorOf(Listener.Props());
+            morphEventListener = system.ActorSystem.ActorOf(Listener.Props("MorphEventListener"));
+            mainEventListener = system.ActorSystem.ActorOf(Listener.Props("MainEventListener"));
             morphEventListener.Tell(new BindProcessorEvent() { processor = netMapContractProcessor });
             morphEventListener.Tell(new BindProcessorEvent() { processor = containerContractProcessor });
             morphEventListener.Tell(new BindProcessorEvent() { processor = balanceContractProcessor });
@@ -188,10 +183,11 @@ namespace Neo.Plugins.FSStorage.innerring
             SetIndexer(index);
             convert.SetBalancePrecision(balancePrecision);
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("read config from blockchain", ":");
             pairs.Add("active", IsActive().ToString());
             pairs.Add("epoch", epoch.ToString());
             pairs.Add("precision", balancePrecision.ToString());
-            Utility.Log("read config from blockchain", LogLevel.Info, pairs.ParseToString());
+            Utility.Log("", LogLevel.Info, pairs.ParseToString());
         }
 
         protected override void OnReceive(object message)
@@ -217,10 +213,15 @@ namespace Neo.Plugins.FSStorage.innerring
 
         private void OnStart()
         {
-            InitConfig();
-            morphEventListener.Tell(new Listener.Start());
-            mainEventListener.Tell(new Listener.Start());
-            timer.Tell(new Timers.Start());
+            try {
+                InitConfig();
+                morphEventListener.Tell(new Listener.Start());
+                mainEventListener.Tell(new Listener.Start());
+                timer.Tell(new Timers.Start());
+            } catch (Exception e){
+                Utility.Log("", LogLevel.Error, e.Message);
+                return;
+            }
         }
 
         private void OnStop()
@@ -228,11 +229,11 @@ namespace Neo.Plugins.FSStorage.innerring
             timer.Tell(new Timers.Stop());
             morphEventListener.Tell(new Listener.Stop());
             mainEventListener.Tell(new Listener.Stop());
-            if (db != null) db.Dispose();
         }
 
         private void OnMainContractEvent(NotifyEventArgs notify)
         {
+            Console.WriteLine("接收到主网事件：" + notify.ScriptHash.ToString() + ";" + notify.EventName);
             mainEventListener.Tell(new NewContractEvent() { notify = notify });
         }
 

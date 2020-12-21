@@ -20,12 +20,15 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         private BalanceContractProcessor processor;
         private MorphClient morphclient;
         private Wallet wallet;
+        private TestActiveState activeState;
 
         [TestInitialize]
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
             wallet = TestBlockchain.wallet;
+            activeState = new TestActiveState();
+            activeState.SetActive(true);
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
@@ -35,7 +38,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             {
                 Client = morphclient,
                 Convert = new Fixed8ConverterUtil(),
-                ActiveState = new PositiveActiveState(),
+                ActiveState = activeState,
                 WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
@@ -64,6 +67,15 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             });
             var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
+            activeState.SetActive(false);
+            processor.ProcessLock(new LockEvent()
+            {
+                Id = new byte[] { 0x01 },
+                Amount = 0,
+                LockAccount = accounts.ToArray()[0].ScriptHash,
+                UserAccount = accounts.ToArray()[0].ScriptHash
+            });
+            ExpectNoMsg();
         }
 
         [TestMethod()]
@@ -87,19 +99,16 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             Assert.AreEqual(0, handlerInfos.Length);
         }
 
-        public class PositiveActiveState : IActiveState
+        public class TestActiveState : IActiveState
         {
-            public bool IsActive()
-            {
-                return true;
-            }
-        }
+            private bool state = false;
 
-        public class NegativeActiveState : IActiveState
-        {
+            public void SetActive(bool state) {
+                this.state = state;
+            }
             public bool IsActive()
             {
-                return false;
+                return state;
             }
         }
     }

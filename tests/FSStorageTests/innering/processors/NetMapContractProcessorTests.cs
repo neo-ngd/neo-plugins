@@ -37,7 +37,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             processor = new NetMapContractProcessor()
             {
                 Client = morphclient,
-                ActiveState = new PositiveActiveState(),
+                ActiveState = new TestActiveState(),
                 EpochState = new EpochState(),
                 EpochTimerReseter = new EpochTimerReseter(),
                 WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor())),

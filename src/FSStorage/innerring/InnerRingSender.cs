@@ -4,6 +4,9 @@ using System.Linq;
 using Neo.Network.RPC;
 using Neo.IO;
 using Neo.VM;
+using System;
+using Neo.IO.Json;
+using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage.innerring
 {
@@ -11,11 +14,11 @@ namespace Neo.Plugins.FSStorage.innerring
     {
         public class MainContractEvent { public NotifyEventArgs notify; };
 
-        private RpcClient client;
+        private RpcClient[] clients;
 
         public InnerRingSender()
         {
-            this.client = new RpcClient(Settings.Default.Url);
+            this.clients = Settings.Default.Urls.Select(p=>new RpcClient(p)).ToArray();
         }
 
         protected override void OnReceive(object message)
@@ -35,8 +38,21 @@ namespace Neo.Plugins.FSStorage.innerring
             var container = notify.ScriptContainer.ToArray().ToHexString();
             var scriptHash = notify.ScriptHash.ToArray().ToHexString();
             var eventName = notify.EventName;
-            var state = notify.State.ToJson();
-            var result = client.RpcSendAsync("receiveMainNetEvent", container, scriptHash, eventName, state).Result;
+            var enumerator = notify.State.GetEnumerator();
+            var state = new JArray();
+            while (enumerator.MoveNext()) {
+                state.Add(enumerator.Current.ToJson());
+            }
+            foreach(var client in clients) {
+                try
+                {
+                    var result = client.RpcSendAsync("receivemainnetevent", container, scriptHash, eventName, state).Result;
+                }
+                catch
+                {
+                    Utility.Log("NeoFS rpc", LogLevel.Warning, "invoke rpc fail");
+                }
+            }
         }
 
         public static Props Props()

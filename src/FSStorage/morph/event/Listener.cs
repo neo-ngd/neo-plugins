@@ -4,7 +4,6 @@ using Neo.Plugins.util;
 using Neo.SmartContract;
 using System;
 using System.Collections.Generic;
-using static Neo.Plugins.FSStorage.Utils;
 
 namespace Neo.Plugins.FSStorage
 {
@@ -18,6 +17,7 @@ namespace Neo.Plugins.FSStorage
     {
         private Dictionary<ScriptHashWithType, Func<VM.Types.Array, IContractEvent>> parsers;
         private Dictionary<ScriptHashWithType, List<Action<IContractEvent>>> handlers;
+        private string name;
         private bool started;
 
         public class BindProcessorEvent { public IProcessor processor; };
@@ -25,8 +25,9 @@ namespace Neo.Plugins.FSStorage
         public class Start { };
         public class Stop { };
 
-        public Listener()
+        public Listener(string name)
         {
+            this.name = name;
             parsers = new Dictionary<ScriptHashWithType, Func<VM.Types.Array, IContractEvent>>();
             handlers = new Dictionary<ScriptHashWithType, List<Action<IContractEvent>>>();
         }
@@ -35,16 +36,16 @@ namespace Neo.Plugins.FSStorage
         {
             if (started)
             {
-                Utility.Log("script hash LE", LogLevel.Info, notify.ScriptHash.ToString());
+                Utility.Log(name, LogLevel.Info, string.Format("script hash LE:{0}", notify.ScriptHash.ToString()));
                 if (notify.State is null)
                 {
-                    Utility.Log("stack item is not an array type", LogLevel.Warning, null);
+                    Utility.Log(name, LogLevel.Warning, string.Format("stack item is not an array type:{0}", notify.ParseToJson().ToString()));
                 }
-                Utility.Log("event type", LogLevel.Info, notify.EventName);
+                Utility.Log(name, LogLevel.Info, string.Format("event type:{0}",notify.EventName));
                 var keyEvent = new ScriptHashWithType() { Type = notify.EventName, ScriptHashValue = notify.ScriptHash };
                 if (!parsers.TryGetValue(keyEvent, out var parser))
                 {
-                    Utility.Log("event parser not set", LogLevel.Warning, null);
+                    Utility.Log(name, LogLevel.Warning, string.Format("event parser not set:{0}", notify.ScriptHash.ToString()));
                     return;
                 }
                 IContractEvent contractEvent = null;
@@ -54,12 +55,12 @@ namespace Neo.Plugins.FSStorage
                 }
                 catch (Exception e)
                 {
-                    Utility.Log("could not parse notification event", LogLevel.Warning, e.Message);
+                    Utility.Log(name, LogLevel.Warning,string.Format("could not parse notification event:{0}", e.Message));
                     return;
                 }
                 if (!handlers.TryGetValue(keyEvent, out var handlersArray) || handlersArray.Count == 0)
                 {
-                    Utility.Log("handlers for parsed notification event were not registered", LogLevel.Warning, contractEvent);
+                    Utility.Log(name, LogLevel.Warning, string.Format("handlers for parsed notification event were not registered:{0}",contractEvent.ToString()));
                     return;
                 }
                 foreach (var handler in handlersArray)
@@ -74,17 +75,22 @@ namespace Neo.Plugins.FSStorage
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("script hash LE", p.ScriptHashWithType.ScriptHashValue.ToString());
             pairs.Add("event type", p.ScriptHashWithType.Type);
-            Utility.Log("", LogLevel.Info, pairs.ParseToString());
+            Utility.Log(name, LogLevel.Info, pairs.ParseToString());
 
             var handler = p.Handler;
             if (handler is null)
             {
-                Utility.Log("ignore nil event handler", LogLevel.Warning, null);
+                Utility.Log(name, LogLevel.Warning, string.Format("ignore nil event handler:{0}",pairs.ParseToString()));
+                return;
+            }
+            if (started)
+            {
+                Utility.Log(name, LogLevel.Warning, string.Format("listener has been already started, ignore handler:{0}",pairs.ParseToString()));
                 return;
             }
             if (!parsers.TryGetValue(p.ScriptHashWithType, out _))
             {
-                Utility.Log("ignore handler of event w/o parser", LogLevel.Warning, null);
+                Utility.Log(name, LogLevel.Warning, string.Format("ignore handler of event w/o parser:{0}",pairs.ParseToString()));
                 return;
             }
             if (handlers.TryGetValue(p.ScriptHashWithType, out var value))
@@ -95,7 +101,7 @@ namespace Neo.Plugins.FSStorage
             {
                 handlers.Add(p.ScriptHashWithType, new List<Action<IContractEvent>>() { p.Handler });
             }
-            Utility.Log("registered new event handler", LogLevel.Info, null);
+            Utility.Log(name, LogLevel.Info, string.Format("registered new event handler:{0}",pairs.ParseToString()));
         }
 
         public void SetParser(ParserInfo p)
@@ -103,31 +109,31 @@ namespace Neo.Plugins.FSStorage
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs.Add("script hash LE", p.ScriptHashWithType.ScriptHashValue.ToString());
             pairs.Add("event type", p.ScriptHashWithType.Type);
-            Utility.Log("", LogLevel.Info, pairs.ParseToString());
+            Utility.Log(name, LogLevel.Info, pairs.ParseToString());
 
             if (p.Parser is null)
             {
-                Utility.Log("ignore nil event parser", LogLevel.Warning, null);
+                Utility.Log(name, LogLevel.Warning, string.Format("ignore nil event parser:{0}",pairs.ParseToString()));
                 return;
             }
             if (started)
             {
-                Utility.Log("listener has been already started, ignore parser", LogLevel.Warning, null);
+                Utility.Log(name, LogLevel.Warning, string.Format("listener has been already started, ignore parser:{0}",pairs.ParseToString()));
                 return;
             }
             if (!parsers.TryGetValue(p.ScriptHashWithType, out _))
-                parsers[p.ScriptHashWithType] = p.Parser;
-            Utility.Log("registered new event parser", LogLevel.Info, null);
+                parsers.Add(p.ScriptHashWithType,p.Parser);
+            Utility.Log(name, LogLevel.Info, string.Format("registered new event parser:{0}",pairs.ParseToString()));
         }
 
         protected override void OnReceive(object message)
         {
             switch (message)
             {
-                case Start start:
+                case Start _:
                     OnStart();
                     break;
-                case Stop stop:
+                case Stop _:
                     OnStop();
                     break;
                 case NewContractEvent contractEvent:
@@ -171,9 +177,9 @@ namespace Neo.Plugins.FSStorage
             }
         }
 
-        public static Props Props()
+        public static Props Props(string name)
         {
-            return Akka.Actor.Props.Create(() => new Listener());
+            return Akka.Actor.Props.Create(() => new Listener(name));
         }
     }
 }

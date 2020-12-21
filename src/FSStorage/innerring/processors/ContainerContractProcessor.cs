@@ -9,17 +9,18 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
-using static Neo.Plugins.FSStorage.Utils;
 using static Neo.Plugins.util.WorkerPool;
 
 namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public class ContainerContractProcessor : IProcessor
     {
+        private string name = "ContainerContractProcessor";
         private UInt160 ContainerContractHash = Settings.Default.ContainerContractHash;
-
         private string PutNotification = "containerPut";
         private string DeleteNotification = "containerDelete";
+
+        public string Name { get => name; set => name = value; }
 
         public Client Client;
         public IActiveState ActiveState;
@@ -59,29 +60,31 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             ContainerPutEvent putEvent = (ContainerPutEvent)morphEvent;
             var id = putEvent.RawContainer.Sha256();
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "container put");
             pairs.Add("id", Base58.Encode(id));
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
             //send event to workpool
-            WorkPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerPut(putEvent)) });
+            WorkPool.Tell(new NewTask() { process = name, task = new Task(() => ProcessContainerPut(putEvent)) });
         }
 
         public void HandleDelete(IContractEvent morphEvent)
         {
             ContainerDeleteEvent deleteEvent = (ContainerDeleteEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "container delete");
             pairs.Add("id", Base58.Encode(deleteEvent.ContainerID));
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
             //send event to workpool
-            WorkPool.Tell(new NewTask() { process = "container", task = new Task(() => ProcessContainerDelete(deleteEvent)) });
+            WorkPool.Tell(new NewTask() { process = name, task = new Task(() => ProcessContainerDelete(deleteEvent)) });
         }
 
         public void ProcessContainerPut(ContainerPutEvent putEvent)
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore container put", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore container put");
                 return;
             }
             var cnrData = putEvent.RawContainer;
@@ -92,7 +95,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("could not unmarshal container structure", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("could not unmarshal container structure:{0}",e.Message));
             }
             try
             {
@@ -100,7 +103,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("container with incorrect format detected", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("container with incorrect format detected:{0}",e.Message));
             }
             //invoke
             try
@@ -114,7 +117,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't invoke new container", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't invoke new container:{0}",e.Message));
             }
         }
 
@@ -122,7 +125,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore container put", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore container put");
                 return;
             }
             //invoke
@@ -136,7 +139,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't invoke delete container", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't invoke delete container:{0}",e.Message));
             }
         }
 

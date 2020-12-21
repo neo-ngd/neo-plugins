@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Neo.Plugins.FSStorage
 {
@@ -8,7 +9,6 @@ namespace Neo.Plugins.FSStorage
         public static Settings Default { get; private set; }
         public string WalletPath;
         public string Password;
-        public string Path;
         public UInt160 NetmapContractHash;
         public UInt160 FsContractHash;
         public UInt160 BalanceContractHash;
@@ -21,7 +21,7 @@ namespace Neo.Plugins.FSStorage
         public int ContainerContractWorkersSize;
         public int AlphabetContractWorkersSize;
 
-        public string Url;
+        public string[] Urls;
         public long EpochDuration;
         public long AlphabetDuration;
         public int MintEmitCacheSize;
@@ -36,8 +36,7 @@ namespace Neo.Plugins.FSStorage
 
         private Settings(IConfigurationSection section)
         {
-            this.Path = string.Format(section.GetSection("Path").Value, ProtocolSettings.Default.Magic.ToString("X8"));
-            this.Url = section.GetSection("URL").Value;
+            this.Urls = section.GetSection("URLs").GetChildren().Select(p => p.Get<string>()).ToArray();
             this.WalletPath = section.GetSection("WalletPath").Value;
             this.Password = section.GetSection("Password").Value;
 
@@ -47,13 +46,7 @@ namespace Neo.Plugins.FSStorage
             this.FsIdContractHash = UInt160.Parse(contracts.GetSection("neofsId").Value);
             this.BalanceContractHash = UInt160.Parse(contracts.GetSection("balance").Value);
             this.ContainerContractHash = UInt160.Parse(contracts.GetSection("container").Value);
-            int alphabetContractCount = int.Parse(contracts.GetSection("alphabet").Value);
-            UInt160[] hashes = new UInt160[alphabetContractCount];
-            for (int i = 0; i < alphabetContractCount; i++)
-            {
-                hashes[i] = UInt160.Parse(contracts.GetSection("alphabet" + i).Value);
-            }
-            this.AlphabetContractHash = hashes;
+            this.AlphabetContractHash = contracts.GetSection("alphabet").GetChildren().Select(p => UInt160.Parse(p.Get<string>())).ToArray();
             Contracts.Add(NetmapContractHash);
             Contracts.Add(FsContractHash);
             Contracts.Add(FsIdContractHash);

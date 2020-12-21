@@ -7,21 +7,22 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
-using static Neo.Plugins.FSStorage.Utils;
 using static Neo.Plugins.util.WorkerPool;
 
 namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public class BalanceContractProcessor : IProcessor
     {
+        private string name = "BalanceContractProcessor";
         private UInt160 BalanceContractHash => Settings.Default.BalanceContractHash;
-
-        private string LockNotification = "Lock";
+        private const string LockNotification = "Lock";
 
         public Client Client;
         public IActiveState ActiveState;
         public IActorRef WorkPool;
         public Fixed8ConverterUtil Convert;
+
+        public string Name { get => name; set => name = value; }
 
         public HandlerInfo[] ListenerHandlers()
         {
@@ -62,17 +63,18 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             LockEvent lockEvent = (LockEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "lock");
             pairs.Add("value", lockEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            WorkPool.Tell(new NewTask() { process = "balance", task = new Task(() => ProcessLock(lockEvent)) });
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
+            WorkPool.Tell(new NewTask() { process = name, task = new Task(() => ProcessLock(lockEvent)) });
         }
 
         public void ProcessLock(LockEvent lockEvent)
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore balance lock", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore balance lock");
                 return;
             }
             //invoke
@@ -88,7 +90,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't send lock asset tx", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't send lock asset tx:{0}" + e.Message));
             }
         }
 

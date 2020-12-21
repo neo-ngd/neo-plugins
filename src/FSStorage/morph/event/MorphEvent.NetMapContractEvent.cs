@@ -48,8 +48,8 @@ namespace Neo.Plugins.FSStorage
         {
             var updatePeerEvent = new UpdatePeerEvent();
             if (eventParams.Count != 2) throw new Exception();
-            updatePeerEvent.PublicKey = eventParams[0].GetSpan().ToArray().AsSerializable<ECPoint>(1);
-            updatePeerEvent.Status = (uint)eventParams[1].GetInteger();
+            updatePeerEvent.Status = (uint)eventParams[0].GetInteger();
+            updatePeerEvent.PublicKey = eventParams[1].GetSpan().ToArray().AsSerializable<ECPoint>();
             return updatePeerEvent;
         }
     }

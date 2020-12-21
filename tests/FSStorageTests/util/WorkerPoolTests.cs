@@ -4,6 +4,7 @@ using Akka.Actor;
 using Akka.TestKit.Xunit2;
 using static Neo.Plugins.util.WorkerPool;
 using System.Threading.Tasks;
+using System;
 
 namespace Neo.Plugins.FSStorage.morph.client.Tests
 {
@@ -17,14 +18,15 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
-            workerpool = system.ActorSystem.ActorOf(WorkerPool.Props(1));
+            workerpool = system.ActorSystem.ActorOf(WorkerPool.Props("test",2));
         }
 
         [TestMethod()]
         public void NewTaskAndCompleteTaskTest()
         {
-            workerpool.Tell(new NewTask() { process = "aaaa", task = new Task(() => { }) });
-            workerpool.Tell(new NewTask() { process = "bbb", task = new Task(() => { }) });
+            workerpool.Tell(new NewTask() { process = "aaa", task = new Task(() => { Console.WriteLine("aaa"); }) });
+            workerpool.Tell(new NewTask() { process = "bbb", task = new Task(() => { Console.WriteLine("bbb"); }) });
+            workerpool.Tell(new Timer());
             workerpool.Tell(new CompleteTask());
         }
     }

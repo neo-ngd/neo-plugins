@@ -28,40 +28,76 @@
     <None Update="MainContractTestCases.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\balance\balance_contract.nef">
+    <None Update="Contracts\Balance\balance_contract.nef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\balance\balance_contract_config.json">
+    <None Update="Contracts\Balance\balance_contract_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\netmap\netmap_contract.nef">
+    <None Update="Contracts\Netmap\netmap_contract.nef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\netmap\netmap_contract_config.json">
+    <None Update="Contracts\Netmap\netmap_contract_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\container\container_contract.nef">
+    <None Update="Contracts\Container\container_contract.nef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\container\container_contract_config.json">
+    <None Update="Contracts\Container\container_contract_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\neofs\neofs_contract.nef">
+    <None Update="Contracts\Neofs\neofs_contract.nef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\neofs\neofs_contract_config.json">
+    <None Update="Contracts\Neofs\neofs_contract_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\neofsid\neofsid_contract.nef">
+    <None Update="Contracts\Neofsid\neofsid_contract.nef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\neofsid\neofsid_contract_config.json">
+    <None Update="Contracts\Neofsid\neofsid_contract_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\alphabet\az\az_contract.nef">
+    <None Update="Contracts\Alphabet\Az\az_contract.nef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="contracts\alphabet\az\az_contract_config.json">
+    <None Update="Contracts\Alphabet\Az\az_contract_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Buky\buky_contract.nef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Buky\buky_contract_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Dobro\dobro_contract.nef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Dobro\dobro_contract_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Glagoli\glagoli_contract.nef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Glagoli\glagoli_contract_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Jest\jest_contract.nef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Jest\jest_contract_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Vedi\vedi_contract.nef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Vedi\vedi_contract_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Zhivete\zhivete_contract.nef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Contracts\Alphabet\Zhivete\zhivete_contract_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

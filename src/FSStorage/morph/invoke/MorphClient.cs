@@ -19,7 +19,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
         public Wallet Wallet;
         public IActorRef Blockchain;
 
-        public class Signers : IVerifiable
+        public class FakeSigners : IVerifiable
         {
             private readonly UInt160[] _hashForVerify;
             Witness[] IVerifiable.Witnesses { get; set; }
@@ -36,7 +36,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke
                 throw new NotImplementedException();
             }
 
-            public Signers(params UInt160[] hashForVerify)
+            public FakeSigners(params UInt160[] hashForVerify)
             {
                 _hashForVerify = hashForVerify ?? new UInt160[0];
             }
@@ -59,9 +59,11 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 
         public bool InvokeFunction(UInt160 contractHash, string method, long fee, params object[] args)
         {
+            var str = "";
+            args.ToList().ForEach(p => str += p.ToString());
             InvokeResult result = InvokeLocalFunction(contractHash, method, args);
+            Console.WriteLine("构建" + contractHash.ToArray().ToHexString() + "," + method+","+ str + ","+result.State);
             if (result.State != VMState.HALT) return false;
-
             StoreView snapshot = Ledger.Blockchain.Singleton.GetSnapshot().Clone();
             Random rand = new Random();
             Transaction tx = new Transaction
@@ -74,12 +76,13 @@ namespace Neo.Plugins.FSStorage.morph.invoke
                 Attributes = System.Array.Empty<TransactionAttribute>(),
             };
             tx.SystemFee = result.GasConsumed + fee;
-            //todo
+            //todo version
             tx.NetworkFee = Wallet.CalculateNetworkFee(snapshot, tx);
             var data = new ContractParametersContext(tx);
             Wallet.Sign(data);
             tx.Witnesses = data.GetWitnesses();
             Blockchain.Tell(tx);
+            Console.WriteLine("发送:" + tx.Hash.ToString());
             return true;
         }
 
@@ -87,11 +90,11 @@ namespace Neo.Plugins.FSStorage.morph.invoke
         {
             byte[] script = contractHash.MakeScript(method, args);
             IEnumerable<WalletAccount> accounts = Wallet.GetAccounts();
-            Signers signers = new Signers(accounts.ToArray()[0].ScriptHash);
+            FakeSigners signers = new FakeSigners(accounts.ToArray()[0].ScriptHash);
             return GetInvokeResult(script, signers);
         }
 
-        private InvokeResult GetInvokeResult(byte[] script, Signers signers = null, bool testMode = true)
+        private InvokeResult GetInvokeResult(byte[] script, FakeSigners signers = null, bool testMode = true)
         {
             StoreView snapshot = Ledger.Blockchain.Singleton.GetSnapshot().Clone();
             ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 20000000000);

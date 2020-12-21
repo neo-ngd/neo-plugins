@@ -22,6 +22,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         private FsContractProcessor processor;
         private MorphClient morphclient;
         private Wallet wallet;
+        private TestActiveState activeState;
 
         [TestInitialize]
         public void TestSetup()
@@ -33,11 +34,13 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
                 Wallet = wallet,
                 Blockchain = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
+            activeState = new TestActiveState();
+            activeState.SetActive(true);
             processor = new FsContractProcessor()
             {
                 Client = morphclient,
                 Convert = new Fixed8ConverterUtil(),
-                ActiveState = new PositiveActiveState(),
+                ActiveState = activeState,
                 EpochState = new EpochState(),
                 WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };

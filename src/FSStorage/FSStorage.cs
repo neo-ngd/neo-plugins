@@ -5,10 +5,12 @@ using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.Plugins.FSStorage.innerring;
+using Neo.Plugins.util;
 using Neo.SmartContract;
 using Neo.VM;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Neo.Plugins.FSStorage.innerring.InnerRingService;
 
 namespace Neo.Plugins.FSStorage
@@ -21,7 +23,7 @@ namespace Neo.Plugins.FSStorage
 
         public FSStorage()
         {
-            if (Settings.Default.IsSender)
+            if (!Settings.Default.IsSender)
             {
                 innering = System.ActorSystem.ActorOf(InnerRingService.Props(Plugin.System));
                 RpcServerPlugin.RegisterMethods(this);
@@ -53,7 +55,7 @@ namespace Neo.Plugins.FSStorage
                     if (Settings.Default.IsSender)
                     {
                         if (contract != Settings.Default.FsContractHash) continue;
-                        innering.Tell(new MainContractEvent() { notify = notify });
+                        innering.Tell(new InnerRingSender.MainContractEvent() { notify = notify });
                     }
                     else
                     {
@@ -65,9 +67,14 @@ namespace Neo.Plugins.FSStorage
         }
 
         [RpcMethod]
-        public bool ReceiveMainNetEvent(JArray _params)
+        public JObject ReceiveMainNetEvent(JArray _params)
         {
             var notify = GetNotifyEventArgsFromJson(_params);
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("contracthash", notify.ScriptHash.ToString());
+            pairs.Add("eventname", notify.EventName);
+            pairs.Add("state", notify.State.ToJson().ToString());
+            Utility.Log("NeoFS rpc", LogLevel.Info, pairs.ParseToString());
             innering.Tell(new MainContractEvent() { notify = notify });
             return true;
         }
@@ -75,7 +82,7 @@ namespace Neo.Plugins.FSStorage
         public static NotifyEventArgs GetNotifyEventArgsFromJson(JArray _params)
         {
             IVerifiable container = _params[0].AsString().HexToBytes().AsSerializable<Transaction>();
-            UInt160 contractHash = UInt160.Parse(_params[1].AsString());
+            UInt160 contractHash = UInt160.Parse(_params[1].AsString().HexToBytes().ToHexString(true));
             string eventName = _params[2].AsString();
             IEnumerator<JObject> array = ((JArray)_params[3]).GetEnumerator();
             VM.Types.Array state = new VM.Types.Array();

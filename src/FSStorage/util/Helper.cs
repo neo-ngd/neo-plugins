@@ -1,3 +1,7 @@
+using Neo.IO;
+using Neo.IO.Json;
+using Neo.SmartContract;
+using Neo.VM;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,6 +25,19 @@ namespace Neo.Plugins.util
             }
             string content = query.ToString().Substring(0, query.Length - 1);
             return content;
+        }
+
+        public static JObject ParseToJson(this NotifyEventArgs notify) {
+            var container = notify.ScriptContainer.ToArray().ToHexString();
+            var scriptHash = notify.ScriptHash.ToArray().ToHexString();
+            var eventName = notify.EventName;
+            var enumerator = notify.State.GetEnumerator();
+            var state = new JArray();
+            while (enumerator.MoveNext())
+            {
+                state.Add(enumerator.Current.ToJson());
+            }
+            return new JArray() { container, scriptHash, eventName, state };
         }
     }
 }

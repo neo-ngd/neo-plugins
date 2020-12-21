@@ -1,8 +1,13 @@
 using Neo.Cryptography.ECC;
 using Neo.IO;
+using Neo.Network.P2P.Payloads;
 using Neo.Plugins.FSStorage.morph.invoke;
+using Neo.SmartContract;
 using Neo.VM.Types;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Array = Neo.VM.Types.Array;
 
 namespace Neo.Plugins.FSStorage.innerring.invoke
 {

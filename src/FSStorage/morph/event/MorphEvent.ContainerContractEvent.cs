@@ -37,7 +37,7 @@ namespace Neo.Plugins.FSStorage
             if (eventParams.Count != 3) throw new Exception();
             containerPutEvent.RawContainer = eventParams[0].GetSpan().ToArray();
             containerPutEvent.Signature = eventParams[1].GetSpan().ToArray();
-            containerPutEvent.PublicKey = eventParams[2].GetSpan().ToArray().AsSerializable<ECPoint>(1);
+            containerPutEvent.PublicKey = eventParams[2].GetSpan().ToArray().AsSerializable<ECPoint>();
             return containerPutEvent;
         }
     }

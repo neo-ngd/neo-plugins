@@ -3,8 +3,6 @@ using Akka.TestKit.Xunit2;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Plugins.FSStorage.innerring.processors;
 using Neo.Plugins.FSStorage.innerring.timers;
-using System;
-using static Neo.Plugins.FSStorage.Utils;
 
 namespace Neo.Plugins.FSStorage.morph.client.Tests
 {
@@ -12,6 +10,8 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
     public class TimersTests : TestKit, IProcessor
     {
         private IActorRef timers;
+        private string name = "TimersTests";
+        public string Name { get => name; set => name=value; }
 
         [TestInitialize]
         public void TestSetup()
@@ -54,6 +54,11 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
                 Handler = F
             };
             return new HandlerInfo[] { handlerInfo };
+        }
+
+        public string GetName()
+        {
+            return "Timer test"; ;
         }
     }
 }

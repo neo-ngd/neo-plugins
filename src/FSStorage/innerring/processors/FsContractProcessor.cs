@@ -9,13 +9,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using static Neo.Plugins.FSStorage.innerring.invoke.ContractInvoker;
 using static Neo.Plugins.FSStorage.MorphEvent;
-using static Neo.Plugins.FSStorage.Utils;
 using static Neo.Plugins.util.WorkerPool;
 
 namespace Neo.Plugins.FSStorage.innerring.processors
 {
     public class FsContractProcessor : IProcessor
     {
+        private string name = "FsContractProcessor";
         private UInt160 FsContractHash = Settings.Default.FsContractHash;
         private string DepositNotification = "Deposit";
         private string WithdrawNotification = "Withdraw";
@@ -37,6 +37,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         public IActorRef WorkPool;
 
         private static readonly object lockObj = new object();
+
+        public string Name { get => name; set => name = value; }
 
         public FsContractProcessor()
         {
@@ -107,57 +109,62 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             DepositEvent depositeEvent = (DepositEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "deposit");
             pairs.Add("value", depositeEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessDeposit(depositeEvent)) });
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
+            WorkPool.Tell(new NewTask() { process = Name, task = new Task(() => ProcessDeposit(depositeEvent)) });
         }
 
         public void HandleWithdraw(IContractEvent morphEvent)
         {
             WithdrawEvent withdrawEvent = (WithdrawEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "withdraw");
             pairs.Add("value", withdrawEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessWithdraw(withdrawEvent)) });
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
+            WorkPool.Tell(new NewTask() { process = Name, task = new Task(() => ProcessWithdraw(withdrawEvent)) });
         }
 
         public void HandleCheque(IContractEvent morphEvent)
         {
             ChequeEvent chequeEvent = (ChequeEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "cheque");
             pairs.Add("value", chequeEvent.Id.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessCheque(chequeEvent)) });
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
+            WorkPool.Tell(new NewTask() { process = Name, task = new Task(() => ProcessCheque(chequeEvent)) });
         }
 
         public void HandleConfig(IContractEvent morphEvent)
         {
             ConfigEvent configEvent = (ConfigEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "setConfig");
             pairs.Add("key", configEvent.Key.ToHexString());
             pairs.Add("value", configEvent.Value.ToHexString());
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessConfig(configEvent)) });
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
+            WorkPool.Tell(new NewTask() { process = Name, task = new Task(() => ProcessConfig(configEvent)) });
         }
 
         public void HandleUpdateInnerRing(IContractEvent morphEvent)
         {
             UpdateInnerRingEvent updateInnerRingEvent = (UpdateInnerRingEvent)morphEvent;
             Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("notification", ":");
             pairs.Add("type", "update inner ring");
-            Utility.Log("notification", LogLevel.Info, pairs.ParseToString());
-            WorkPool.Tell(new NewTask() { process = "fs", task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
+            Utility.Log(Name, LogLevel.Info, pairs.ParseToString());
+            WorkPool.Tell(new NewTask() { process = Name, task = new Task(() => ProcessUpdateInnerRing(updateInnerRingEvent)) });
         }
 
         public void ProcessDeposit(DepositEvent depositeEvent)
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore deposit");
                 return;
             }
             //invoke
@@ -175,7 +182,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't transfer assets to balance contract", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't transfer assets to balance contract,{0}", e.Message));
             }
 
             var curEpoch = EpochState.EpochCounter();
@@ -189,7 +196,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                     pairs.Add("receiver", receiver.ToString());
                     pairs.Add("last_emission", value.ToString());
                     pairs.Add("current_epoch", curEpoch.ToString());
-                    Utility.Log("double mint emission declined", LogLevel.Warning, pairs.ParseToString());
+                    Utility.Log(Name, LogLevel.Warning, string.Format("double mint emission declined,{0}", pairs.ParseToString()));
                 }
                 //transferGas
                 try
@@ -198,7 +205,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
                 }
                 catch (Exception e)
                 {
-                    Utility.Log("can't transfer native gas to receiver", LogLevel.Error, e.Message);
+                    Utility.Log(Name, LogLevel.Error, string.Format("can't transfer native gas to receiver,{0}", e.Message));
                 }
                 mintEmitCache.Add(receiver.ToString(), curEpoch);
             }
@@ -208,12 +215,12 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore withdraw", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore withdraw");
                 return;
             }
             if (withdrawEvent.Id.Length < UInt160.Length)
             {
-                Utility.Log("tx id size is less than script hash size", LogLevel.Error, null);
+                Utility.Log(Name, LogLevel.Error, "tx id size is less than script hash size");
                 return;
             }
             UInt160 lockeAccount = null;
@@ -223,7 +230,8 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't create lock account", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't create lock account,{0}", e.Message));
+                return;
             }
             try
             {
@@ -240,7 +248,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't lock assets for withdraw", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't lock assets for withdraw,{0}", e.Message));
             }
         }
 
@@ -248,7 +256,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore cheque", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore cheque");
                 return;
             }
             //invoke
@@ -267,7 +275,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't transfer assets to fed contract", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't transfer assets to fed contract,{0}", e.Message));
             }
         }
 
@@ -275,7 +283,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore deposit");
                 return;
             }
             //invoke
@@ -290,7 +298,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't relay set config event", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't relay set config event,{0}", e.Message));
             }
         }
 
@@ -298,7 +306,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
         {
             if (!IsActive())
             {
-                Utility.Log("passive mode, ignore deposit", LogLevel.Info, null);
+                Utility.Log(Name, LogLevel.Info, "passive mode, ignore deposit");
                 return;
             }
             //invoke
@@ -308,7 +316,7 @@ namespace Neo.Plugins.FSStorage.innerring.processors
             }
             catch (Exception e)
             {
-                Utility.Log("can't relay update inner ring event", LogLevel.Error, e.Message);
+                Utility.Log(Name, LogLevel.Error, string.Format("can't relay update inner ring event,{0}", e.Message));
             }
         }
 

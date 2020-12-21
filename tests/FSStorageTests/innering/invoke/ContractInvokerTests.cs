@@ -158,7 +158,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             var script = containerContractHash.MakeScript("put", container.ToByteArray(), sig, key.PublicKey.EncodePoint(true));
             UInt160 account = accounts.ToArray()[0].ScriptHash;
             UInt160 from = Blockchain.GetConsensusAddress(Blockchain.StandbyValidators);
-            Signers signers = new Signers(account);
+            FakeSigners signers = new FakeSigners(account);
             var engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
             snapshot.Commit();
 
@@ -178,7 +178,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void InvokeGetEpochTest()
         {
             long result = ContractInvoker.GetEpoch(morphclient);
-            Assert.AreEqual(result, 0);
+            Assert.AreEqual(result, 2);
         }
 
         [TestMethod()]
@@ -244,7 +244,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         public void InvokeNetmapSnapshotTest()
         {
             NodeInfo[] result = ContractInvoker.NetmapSnapshot(morphclient);
-            Assert.AreEqual(result.Length, 0);
+            Assert.AreEqual(result.Length, 1);
         }
 
         [TestMethod()]
@@ -281,7 +281,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             bool result = ContractInvoker.CashOutCheque(morphclient, new ChequeParams()
             {
                 Id = new byte[] { 0x01 },
-                Amount = 0,
+                Amount = 1,
                 LockAccount = accounts.ToArray()[0].ScriptHash,
                 UserAccount = accounts.ToArray()[0].ScriptHash
             });

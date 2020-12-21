@@ -15,12 +15,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         private AlphabetContractProcessor processor;
         private MorphClient morphclient;
         private Wallet wallet;
+        private Indexer indexer;
 
         [TestInitialize]
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
             wallet = TestBlockchain.wallet;
+            indexer = new Indexer();
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
@@ -29,8 +31,9 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             processor = new AlphabetContractProcessor()
             {
                 Client = morphclient,
-                Indexer = new Indexer(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
+                Indexer = indexer,
+                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor())),
+                StorageEmission = 2
             };
         }
 
@@ -48,6 +51,9 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             processor.ProcessEmit();
             var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
+            indexer.SetIndexer(1);
+            processor.ProcessEmit();
+            ExpectNoMsg();
         }
 
         [TestMethod()]
@@ -73,14 +79,15 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 
         public class Indexer : IIndexer
         {
+            private int index = 0;
             public int Index()
             {
-                return 0;
+                return index;
             }
 
             public void SetIndexer(int index)
             {
-                throw new System.NotImplementedException();
+                this.index = index;
             }
         }
     }

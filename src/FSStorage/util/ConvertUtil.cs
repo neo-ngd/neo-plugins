@@ -9,7 +9,7 @@ namespace Neo.Plugins.util
         public uint TargetPrecision;
         public BigInteger Factor;
 
-        public BigInteger Convert(BigInteger n, BigInteger factor, bool decreasePrecision)
+        private BigInteger Convert(BigInteger n, BigInteger factor, bool decreasePrecision)
         {
             if (decreasePrecision)
                 return BigInteger.Divide(n, factor);
@@ -26,7 +26,6 @@ namespace Neo.Plugins.util
             return Convert(n, Factor, BasePrecision > TargetPrecision);
         }
 
-
         public BigInteger Convert(uint fromPrecision, uint toPrecision, BigInteger n)
         {
             bool decreasePrecision = false;
@@ -39,33 +38,29 @@ namespace Neo.Plugins.util
             Factor = new BigInteger(Math.Pow(10, exp));
             return Convert(n, Factor, decreasePrecision);
         }
-
     }
 
-    public class Fixed8ConverterUtil
+    public class Fixed8ConverterUtil: ConvertUtil
     {
         private const uint Fixed8Precision = 8;
-        private ConvertUtil converter;
 
         public Fixed8ConverterUtil()
         {
-            converter = new ConvertUtil();
         }
 
         public Fixed8ConverterUtil(uint precision)
         {
-            converter = new ConvertUtil();
             SetBalancePrecision(precision);
         }
 
         public long ToFixed8(long n)
         {
-            return (long)converter.ToBasePrecision(new BigInteger(n));
+            return (long)ToBasePrecision(new BigInteger(n));
         }
 
         public long ToBalancePrecision(long n)
         {
-            return (long)converter.ToTargetPrecision(new BigInteger(n));
+            return (long)ToTargetPrecision(new BigInteger(n));
         }
 
         public void SetBalancePrecision(uint precision)
@@ -73,9 +68,9 @@ namespace Neo.Plugins.util
             var exp = (int)precision - Fixed8Precision;
             if (exp < 0)
                 exp = -exp;
-            converter.BasePrecision = Fixed8Precision;
-            converter.TargetPrecision = precision;
-            converter.Factor = new BigInteger(Math.Pow(10, exp));
+            BasePrecision = Fixed8Precision;
+            TargetPrecision = precision;
+            Factor = new BigInteger(Math.Pow(10, exp));
         }
     }
 }

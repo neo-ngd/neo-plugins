@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using Moq;
 using Neo.Network.RPC.Models;
 using Neo.IO.Json;
+using Neo.IO;
+using Neo.VM;
+using System.Linq;
 
 namespace Neo.Plugins.FSStorage.morph.client.Tests
 {
@@ -27,22 +30,6 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
             wallet.CreateAccount("2931fe84623e29817503fd9529bb10472cbb02b4e2de404a8edbfdc669262e16".HexToBytes());
         }
 
-        [TestMethod()]
-        public void InvokeLocalFunctionTest()
-        {
-            MainClient client = new MainClient("http://seed1t.neo.org:20332", wallet);
-            var mockRpc = new Mock<RpcClient>(MockBehavior.Strict, "http://seed1t.neo.org:20332", null, null);
-            var test = TestUtils.RpcTestCases.Find(p => p.Name == "InvokeLocalScriptAsync");
-            var request = test.Request;
-            var response = test.Response;
-            MockInvokeScript(mockRpc, request, RpcInvokeResult.FromJson(response.Result));
-            client.Client = mockRpc.Object;
-            InvokeResult result = client.InvokeLocalFunction(NativeContract.GAS.Hash, "balanceOf", UInt160.Zero);
-            Assert.AreEqual(result.State, VM.VMState.HALT);
-            Assert.AreEqual(result.GasConsumed > 0, true);
-            Assert.AreEqual(result.ResultStack[0].GetInteger(), 0);
-        }
-
         public static void MockInvokeScript(Mock<RpcClient> mockClient, RpcRequest request, RpcInvokeResult result)
         {
             mockClient.Setup(p => p.RpcSendAsync("invokescript", It.Is<JObject[]>(j => j.ToString() == request.Params.ToString())))
@@ -53,7 +40,7 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
         [TestMethod()]
         public void InvokeFunctionTest()
         {
-            MainClient client = new MainClient("http://seed1t.neo.org:20332", wallet);
+            MainClient client = new MainClient(new string[] { "http://seed1t.neo.org:20332" }, wallet);
             var mockRpc = new Mock<RpcClient>(MockBehavior.Strict, "http://seed1t.neo.org:20332", null, null);
             // MockInvokeScript
             var test = TestUtils.RpcTestCases.Find(p => p.Name == "InvokeLocalScriptAsync");
@@ -72,9 +59,18 @@ namespace Neo.Plugins.FSStorage.morph.client.Tests
             mockRpc.Setup(p => p.RpcSendAsync("sendrawtransaction", It.Is<JObject[]>(u => true)))
                 .ReturnsAsync(true)
                 .Verifiable();
-            client.Client = mockRpc.Object;
+            client.Clients = new RpcClient[] { mockRpc.Object };
             bool result = client.InvokeFunction(NativeContract.GAS.Hash, "balanceOf", (long)100, UInt160.Zero);
             Assert.AreEqual(result, true);
+        }
+
+        [TestMethod()]
+        public void InvokeRemoteFunctionTest()
+        {
+            RpcClient client = new RpcClient("http://localhost:10337");
+            var testtext = "ANF9xQSMzxIKAAAAAJ6FEwAAAAAADD8AAAHPR3Nsc4MO/Ze+ii+PMy5LqcDoa4AAeAwUYx7B1Zp7+C0w1hNG7V0KfHh2GoMCAOH1BQwUz0dzbHODDv2XvoovjzMuS6nA6GsMIGMewdWae/gtMNYTRu1dCnx4dhqDmNAd03FDHGwLGN3tFMAMBmNoZXF1ZQwUnI97r3kkCh6SBjJEApFapjVO8rtBYn1bUgFCDEAOaeKfVR9eit0aZMLQfnvgVCdpXrst6ffMjOOyG1lbEWI0Rba6NBxXaDx0Dk7Il4Iw68FxP9TE7C64rHXU0bpUKQwhA0jLu8VeeXrNRmhXCpVevk4Of7afSFqV05Kkw3h0DSDxC0GVRA14";
+            var r = client.RpcSendAsync("sendrawtransaction", testtext).Result;
+            Console.WriteLine(r.ToString());
         }
     }
 }

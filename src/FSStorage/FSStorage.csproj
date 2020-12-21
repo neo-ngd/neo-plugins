@@ -16,19 +16,13 @@
   <ItemGroup>
     <PackageReference Include="Neo.ConsoleService" Version="1.0.0" />
     <PackageReference Include="NeoFS.API" Version="0.0.4" />
-    <PackageReference Include="Neo" Version="3.0.0-CI01066" />
+    <PackageReference Include="coverlet.msbuild" Version="2.5.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\3.0版本\neo\src\neo\neo.csproj" />
     <ProjectReference Include="..\LevelDBStore\LevelDBStore.csproj" />
     <ProjectReference Include="..\RpcClient\RpcClient.csproj" />
     <ProjectReference Include="..\RpcServer\RpcServer.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="api">
-      <HintPath>..\..\..\neofs-api-csharp\src\api\bin\Debug\netstandard2.1\api.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

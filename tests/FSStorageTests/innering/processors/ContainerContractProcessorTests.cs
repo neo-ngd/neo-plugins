@@ -17,6 +17,7 @@ using static Neo.Plugins.FSStorage.morph.invoke.MorphClient;
 using static Neo.Plugins.FSStorage.morph.invoke.Tests.BalanceContractProcessorTests;
 using static Neo.Plugins.FSStorage.MorphEvent;
 using FSStorageTests.innering.processors;
+using System;
 
 namespace Neo.Plugins.FSStorage.morph.invoke.Tests
 {
@@ -27,12 +28,15 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         private ContainerContractProcessor processor;
         private MorphClient morphclient;
         private Wallet wallet;
+        private TestActiveState activeState;
 
         [TestInitialize]
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
             wallet = TestBlockchain.wallet;
+            activeState = new TestActiveState();
+            activeState.SetActive(true);
             morphclient = new MorphClient()
             {
                 Wallet = wallet,
@@ -41,7 +45,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             processor = new ContainerContractProcessor()
             {
                 Client = morphclient,
-                ActiveState = new PositiveActiveState(),
+                ActiveState = activeState,
                 WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()))
             };
         }
@@ -87,6 +91,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         [TestMethod()]
         public void ProcessContainerPutTest()
         {
+            activeState.SetActive(true);
             IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
             KeyPair key = accounts.ToArray()[0].GetKey();
             OwnerID ownerId = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToOwnerID(key.PublicKey.ToArray());
@@ -107,11 +112,21 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             });
             var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
+
+            activeState.SetActive(false);
+            processor.ProcessContainerPut(new ContainerPutEvent()
+            {
+                PublicKey = key.PublicKey,
+                Signature = sig,
+                RawContainer = container.ToByteArray()
+            });
+            ExpectNoMsg();
         }
 
         [TestMethod()]
         public void ProcessContainerDeleteTest()
         {
+            activeState.SetActive(true);
             IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
             KeyPair key = accounts.ToArray()[0].GetKey();
             OwnerID ownerId = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToOwnerID(key.PublicKey.ToArray());
@@ -134,7 +149,7 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             var script = containerContractHash.MakeScript("put", container.ToByteArray(), sig, key.PublicKey.EncodePoint(true));
             UInt160 account = accounts.ToArray()[0].ScriptHash;
             UInt160 from = Blockchain.GetConsensusAddress(Blockchain.StandbyValidators);
-            Signers signers = new Signers(account);
+            FakeSigners signers = new FakeSigners(account);
             var engine = ApplicationEngine.Run(script, snapshot, container: signers, null, 0, 2000000000);
             snapshot.Commit();
 
@@ -147,6 +162,14 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
             });
             var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
+
+            activeState.SetActive(false);
+            processor.ProcessContainerDelete(new ContainerDeleteEvent()
+            {
+                ContainerID = containerId,
+                Signature = sig
+            });
+            ExpectNoMsg();
         }
 
         [TestMethod()]
@@ -168,6 +191,33 @@ namespace Neo.Plugins.FSStorage.morph.invoke.Tests
         {
             var handlerInfos = processor.TimersHandlers();
             Assert.AreEqual(0, handlerInfos.Length);
+        }
+
+        [TestMethod()]
+        public void CheckFormatTest()
+        {
+            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
+            KeyPair key = accounts.ToArray()[0].GetKey();
+            OwnerID ownerId = NeoFS.API.v2.Cryptography.KeyExtension.PublicKeyToOwnerID(key.PublicKey.ToArray());
+            Container container = new Container()
+            {
+                Version = new NeoFS.API.v2.Refs.Version()
+                {
+                    Major = 1,
+                    Minor = 1,
+                },
+                BasicAcl = 0,
+                Nonce = Google.Protobuf.ByteString.CopyFrom(new byte[16], 0, 16),
+                OwnerId = ownerId,
+                PlacementPolicy = new NeoFS.API.v2.Netmap.PlacementPolicy()
+            };
+            Action action = () => processor.CheckFormat(container);
+            //wrong nonce
+            container.Nonce = Google.Protobuf.ByteString.CopyFrom(new byte[15], 0, 15);
+            Assert.ThrowsException<Exception>(action);
+            //no placementpolicy
+            container.PlacementPolicy = null;
+            Assert.ThrowsException<Exception>(action);
         }
     }
 }

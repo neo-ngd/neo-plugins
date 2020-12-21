@@ -2,6 +2,7 @@ using Neo.SmartContract;
 using Neo.VM.Types;
 using System;
 using System.Collections.Generic;
+using Array = Neo.VM.Types.Array;
 
 namespace Neo.Plugins.FSStorage.morph.invoke
 {
@@ -16,29 +17,54 @@ namespace Neo.Plugins.FSStorage.morph.invoke
 
         private static UInt160 ContainerContractHash => Settings.Default.ContainerContractHash;
 
-        public static bool InvokePut(Client client, byte[] ownerID, byte[] cnr, byte[] signature)
-        {
-            List<ContractParameter> contractParameters = new List<ContractParameter>();
-            contractParameters.Add(new ContractParameter() { Type = ContractParameterType.ByteArray, Value = ownerID });
-            contractParameters.Add(new ContractParameter() { Type = ContractParameterType.ByteArray, Value = cnr });
-            contractParameters.Add(new ContractParameter() { Type = ContractParameterType.ByteArray, Value = signature });
-            return client.InvokeFunction(ContainerContractHash, PutMethod, ExtraFee, contractParameters.ToArray());
+        public class PutArgs {
+            public byte[] cnr;
+            public byte[] sig;
+            public byte[] publicKey;
         }
 
-        public static bool InvokeSetEACL(Client client, byte[] containerID, byte[] eacl, byte[] signature)
-        {
-            return client.InvokeFunction(ContainerContractHash, SetEACLMethod, ExtraFee, containerID, eacl, signature);
+        public class SetEACLArgs {
+            public byte[] eacl;
+            public byte[] sig;
         }
 
-        public static bool InvokeDelete(Client client, byte[] containerID, byte[] ownerID, byte[] signature)
-        {
-            return client.InvokeFunction(ContainerContractHash, DeleteMethod, ExtraFee, containerID, ownerID, signature);
+        public class DeleteArgs {
+            public byte[] cid;
+            public byte[] sig;
         }
-        public static byte[] InvokeGetEACL(Client client, byte[] containerID)
+
+        public class EACLValues {
+            public byte[] eacl;
+            public byte[] sig;
+        }
+
+        public static bool InvokePut(Client client, PutArgs args)
+        {
+            return client.InvokeFunction(ContainerContractHash, PutMethod, ExtraFee, args.cnr,args.sig,args.publicKey);
+        }
+
+        public static bool InvokeSetEACL(Client client, SetEACLArgs args)
+        {
+            return client.InvokeFunction(ContainerContractHash, SetEACLMethod, ExtraFee,args.eacl,args.sig);
+        }
+
+        public static bool InvokeDelete(Client client, DeleteArgs args)
+        {
+            return client.InvokeFunction(ContainerContractHash, DeleteMethod, ExtraFee, args.cid,args.sig);
+        }
+        public static EACLValues InvokeGetEACL(Client client, byte[] containerID)
         {
             InvokeResult result = client.InvokeLocalFunction(ContainerContractHash, EACLMethod, containerID);
             if (result.State != VM.VMState.HALT) throw new Exception("could not invoke method (EACL)");
-            return result.ResultStack[0].GetSpan().ToArray();
+            Array array = (Array)result.ResultStack[0];
+            var eacl = array[0].GetSpan().ToArray();
+            var sig = array[1].GetSpan().ToArray();
+            EACLValues eACLValues = new EACLValues()
+            {
+                eacl = eacl,
+                sig = sig
+            };
+            return eACLValues;
         }
 
         public static byte[] InvokeGetContainer(Client client, byte[] containerID)

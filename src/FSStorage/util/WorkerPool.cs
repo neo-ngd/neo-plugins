@@ -14,19 +14,21 @@ namespace Neo.Plugins.util
     /// </summary>
     public class WorkerPool : UntypedActor
     {
+        private string name;
         private int capacity;
         private int running;
 
         public class Timer { }
-        public class NewTask { public string process; public Task task; };
+        public class NewTask { public string process; public Task task;};
         public class CompleteTask { };
 
-        private long duration = 100;
+        private long duration = 20000;
         private ICancelable timer_token;
         private List<Task> taskArray;
 
-        public WorkerPool(int capacity)
+        public WorkerPool(string name,int capacity)
         {
+            this.name = name;
             this.capacity = capacity;
             taskArray = new List<Task>();
         }
@@ -51,12 +53,13 @@ namespace Neo.Plugins.util
 
         private void OnTimer()
         {
+            var actor = Self;
             timer_token.CancelIfNotNull();
             timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromMilliseconds(duration), Self, new Timer { }, ActorRefs.NoSender);
-            for (int i = 0; i < taskArray.Count; i++)
+
+            foreach (Task task in taskArray)
             {
-                Task task = taskArray[i];
-                task.ContinueWith(t => { Self.Tell(new CompleteTask()); });
+                task.ContinueWith(t => { actor.Tell(new CompleteTask()); });
                 task.Start();
             }
             taskArray.Clear();
@@ -67,10 +70,7 @@ namespace Neo.Plugins.util
             int free = capacity - running;
             if (free == 0)
             {
-                Dictionary<string, string> pairs = new Dictionary<string, string>();
-                pairs.Add("capacity", capacity.ToString());
-                Utility.Log(string.Format("{0} processor worker pool drained", newTask.process), LogLevel.Warning, pairs.ParseToString());
-                Console.WriteLine(free);
+                Utility.Log(newTask.process, LogLevel.Warning, string.Format("worker pool drained,capacity:{0}", capacity.ToString()));
             }
             else
             {
@@ -84,9 +84,9 @@ namespace Neo.Plugins.util
             running--;
         }
 
-        public static Props Props(int capacity)
+        public static Props Props(string name,int capacity)
         {
-            return Akka.Actor.Props.Create(() => new WorkerPool(capacity));
+            return Akka.Actor.Props.Create(() => new WorkerPool(name,capacity));
         }
     }
 }

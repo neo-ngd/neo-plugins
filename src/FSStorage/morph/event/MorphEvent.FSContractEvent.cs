@@ -68,7 +68,6 @@ namespace Neo.Plugins.FSStorage
             public void ContractEvent() { }
         }
 
-
         public static BindEvent ParseBindEvent(VM.Types.Array eventParams)
         {
             var bindEvent = new BindEvent();
@@ -136,9 +135,10 @@ namespace Neo.Plugins.FSStorage
         public static ConfigEvent ParseConfigEvent(VM.Types.Array eventParams)
         {
             var configEvent = new ConfigEvent();
-            if (eventParams.Count != 2) throw new Exception();
-            configEvent.Key = eventParams[0].GetSpan().ToArray();
-            configEvent.Value = eventParams[1].GetSpan().ToArray();
+            if (eventParams.Count != 3) throw new Exception();
+            configEvent.Id = eventParams[0].GetSpan().ToArray();
+            configEvent.Key = eventParams[1].GetSpan().ToArray();
+            configEvent.Value = eventParams[2].GetSpan().ToArray();
             return configEvent;
         }
 

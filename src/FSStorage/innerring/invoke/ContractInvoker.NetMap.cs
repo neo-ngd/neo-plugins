@@ -2,6 +2,7 @@ using Neo.Cryptography.ECC;
 using Neo.IO;
 using Neo.Plugins.FSStorage.morph.invoke;
 using NeoFS.API.v2.Netmap;
+using System;
 using System.Collections.Generic;
 
 namespace Neo.Plugins.FSStorage.innerring.invoke

@@ -1,16 +1,25 @@
 {
   "PluginConfiguration": {
-    "Path": "./FSStorage/",
     "WalletPath": "./FSStorage/wallet.json",
+    "URLs": [
+      "http://localhost:10337"
+    ],
     "Password": "123456",
     "contracts": {
       "netmap": "0x3fafa517cd771afcbd744e9194065657804ef683",
       "neofs": "0xbbf24e35a65a9102443206921e0a2479af7b8f9c",
       "neofsId": "0xd376487192d0ff8f03b5878be657337e8308709b",
-      "balance": "0x79246b19e980225044b8dcef52328ec637d6b887",
+      "balance": "0x08953affe65148d7ec4c8db5a0a6977c32ddf54c",
       "container": "0x4a445a72c5dba72c0c4e4634cff86c48dfe2c396",
-      "alphabet": "1",
-      "alphabet0": "0x496d839a9ccdd364066323dd7bde210dfa7267e2"
+      "alphabet": [
+        "0x496d839a9ccdd364066323dd7bde210dfa7267e2",
+        "0x61ac6de0f7b86e56be2d2b88f6374d86f12256ab",
+        "0x4d20dc10a575d85832b84b733b2e87ff931873bd",
+        "0xf9a641099beb483d36dba4e4fc1edbd1e897f9c6",
+        "0x014de38bd1f336a1bba0921089037f491660b81e",
+        "0x49b2c438d5a0d9441e2d4306ee9bd3daae9720cc",
+        "0x58fdffd7393881ddb4fcae176c8c3e53174fe7fa"
+      ]
     },
     "workers": {
       "netmap": "10",
