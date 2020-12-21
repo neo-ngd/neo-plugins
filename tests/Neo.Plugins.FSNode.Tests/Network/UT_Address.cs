@@ -1,8 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Multiformats.Address;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Neo.Fs.Network;
 
 namespace Neo.Fs.Tests
