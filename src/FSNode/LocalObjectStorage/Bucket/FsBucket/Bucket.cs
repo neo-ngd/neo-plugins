@@ -9,11 +9,6 @@ namespace Neo.Fs.LocalObjectStorage.Bucket
         public string Dir { get; set; }
         public uint Perm { get; set; } // FileMode
 
-        //public Bucket(string prefix, )
-        //{
-
-        //}
-
         public byte[] Get(byte[] key)
         {
             var p = Path.Join(this.Dir, Helper.StringifyKey(key));

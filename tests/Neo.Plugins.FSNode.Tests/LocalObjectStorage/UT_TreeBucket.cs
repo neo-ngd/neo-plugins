@@ -1,9 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NeoCrypto = Neo.Cryptography.Crypto;
 using Neo.Fs.LocalObjectStorage.Bucket;
 using System;
 using System.IO;
 using System.Text;
+using NeoCrypto = Neo.Cryptography.Crypto;
 
 namespace Neo.Fs.LocalObjectStorage.Tests
 {

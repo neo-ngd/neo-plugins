@@ -2,14 +2,14 @@ using Google.Protobuf;
 using NeoFS.API.v2.Refs;
 using System;
 using System.Linq;
-using FsObject = NeoFS.API.v2.Object.Object;
+using V2Object = NeoFS.API.v2.Object.Object;
 
 namespace Neo.Fs.LocalObjectStorage.LocalStore
 {
     public class ObjectMeta
     {
 
-        private FsObject head; // type to be replaced
+        private V2Object head; // type to be replaced
         private ulong savedAtEpoch;
 
 
@@ -20,7 +20,7 @@ namespace Neo.Fs.LocalObjectStorage.LocalStore
             return 0;
         }
 
-        public FsObject Head()
+        public V2Object Head()
         {
             if (!(this is null))
                 return this.head;
@@ -34,7 +34,7 @@ namespace Neo.Fs.LocalObjectStorage.LocalStore
             return null;
         }
 
-        public static ObjectMeta MetaFromObject(FsObject o)
+        public static ObjectMeta MetaFromObject(V2Object o)
         {
             return new ObjectMeta()
             {
@@ -61,7 +61,7 @@ namespace Neo.Fs.LocalObjectStorage.LocalStore
             var a = data.Take(8).ToArray();
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(a);
-            var o = FsObject.Parser.ParseFrom(data.Skip(8).ToArray());
+            var o = V2Object.Parser.ParseFrom(data.Skip(8).ToArray());
 
             var r = new ObjectMeta()
             {

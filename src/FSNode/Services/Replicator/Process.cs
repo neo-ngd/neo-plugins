@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NeoFsStorageNode.Services.Replicator
+namespace Neo.Fs.Services.Replicator
 {
     class Process
     {

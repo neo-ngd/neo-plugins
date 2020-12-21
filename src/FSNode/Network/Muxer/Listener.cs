@@ -8,8 +8,6 @@ namespace Neo.Fs.Network.Muxer
     {
         private TcpListener listener; // TBD
 
-
-
         public Socket Accept()
         {
             if (this.listener is null)
