@@ -1,7 +1,7 @@
 using Neo.Fs.Network;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.Range
+namespace Neo.Fs.Services.Object
 {
     public interface IPlacementTraverser
     {

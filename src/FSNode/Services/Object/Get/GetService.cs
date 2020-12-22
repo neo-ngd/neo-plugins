@@ -6,7 +6,7 @@ namespace Neo.Fs.Services.Object.Get
 {
     public class GetService
     {
-        private RangeService rngeService;
+        private RangeService rangeService;
 
         public V2Object Get(GetPrm prm)
         {
@@ -16,7 +16,10 @@ namespace Neo.Fs.Services.Object.Get
                 Address = prm.Address,
                 Full = true,
             };
-            return new V2Object();
+            var result = rangeService.Range(range_prm);
+            obj.Header = result.Header.Header;
+            obj.Payload = result.Chunk;
+            return obj;
         }
     }
 }
