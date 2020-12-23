@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Neo.Fs.Services.Object.Util
+namespace Neo.FSNode.Services.Object.Util
 {
     public class LocalPlacement
     {

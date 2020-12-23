@@ -8,12 +8,12 @@ using static NeoFS.API.v2.Session.SessionToken.Types.Body;
 using V2Cotainer = NeoFS.API.v2.Container;
 using V2Acl = NeoFS.API.v2.Acl;
 using V2Object = NeoFS.API.v2.Object;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Core.Netmap;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Core.Netmap;
 using System;
 using System.Linq;
 
-namespace Neo.Fs.Services.Object.Acl
+namespace Neo.FSNode.Services.Object.Acl
 {
     public class RequestInfo
     {

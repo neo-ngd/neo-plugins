@@ -1,4 +1,4 @@
-using Neo.Fs.Services.Policer;
+using Neo.FSNode.Services.Policer;
 using Google.Protobuf;
 using Neo.IO.Data.LevelDB;
 using NeoFS.API.v2.Object;
@@ -10,7 +10,7 @@ using System.Text;
 using V2Object = NeoFS.API.v2.Object.Object;
 using static NeoFS.API.v2.Object.SearchRequest.Types.Body.Types;
 
-namespace Neo.Fs.LocalObjectStorage.MetaBase
+namespace Neo.FSNode.LocalObjectStorage.MetaBase
 {
     public class Db
     {
@@ -82,7 +82,7 @@ namespace Neo.Fs.LocalObjectStorage.MetaBase
             var par = obj.Header.Split.Parent is null ? false : true;
 
             // put into primary bucket, key = priPrefix + addr, value = obj
-            if (!par) 
+            if (!par)
                 this.db.Put(WriteOptions.Default, priKey, data);
 
             var indices = ObjectIndices(obj, par);
@@ -289,7 +289,7 @@ namespace Neo.Fs.LocalObjectStorage.MetaBase
     {
         private DB db;
         //public DB DB { get; set; }
-        
+
     }
 
     public delegate void Option(Cfg cfg);

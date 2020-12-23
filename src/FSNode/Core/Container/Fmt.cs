@@ -2,7 +2,7 @@ using System;
 using V2Container = NeoFS.API.v2.Container.Container;
 using V2Version = NeoFS.API.v2.Refs.Version;
 
-namespace Neo.Fs.Core.Container
+namespace Neo.FSNode.Core.Container
 {
     public static class Helper
     {

@@ -1,11 +1,11 @@
 using NeoFS.API.v2.Refs;
 using V2Object = NeoFS.API.v2.Object;
-using Neo.Fs.Core.Object;
-using Neo.Fs.Services.Object.Head;
-using Neo.Fs.Services.Object.Put;
+using Neo.FSNode.Core.Object;
+using Neo.FSNode.Services.Object.Head;
+using Neo.FSNode.Services.Object.Put;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.Delete
+namespace Neo.FSNode.Services.Object.Delete
 {
     public class DeleteService
     {

@@ -1,6 +1,6 @@
 //using System;
 
-//namespace Neo.Fs.Netmap
+//namespace Neo.FSNode.Netmap
 //{
 //    public class Filter : IEquatable<Filter>
 //    {

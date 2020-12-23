@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Session;
 
-namespace Neo.Fs.Network.Transport.Session.grpc
+namespace Neo.FSNode.Network.Transport.Session.grpc
 {
     public class Service
     {

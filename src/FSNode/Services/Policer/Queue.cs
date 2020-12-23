@@ -1,9 +1,9 @@
-using Neo.Fs.LocalObjectStorage.LocalStore;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
 using NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
 using System.Linq;
 
-namespace Neo.Fs.Services.Policer
+namespace Neo.FSNode.Services.Policer
 {
     public class JobQueue
     {

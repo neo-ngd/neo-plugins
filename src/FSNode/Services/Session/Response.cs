@@ -1,8 +1,8 @@
 using Grpc.Core;
-using Neo.Fs.Services.Util.Response;
+using Neo.FSNode.Services.Util.Response;
 using NeoFS.API.v2.Session;
 
-namespace Neo.Fs.Services.Session
+namespace Neo.FSNode.Services.Session
 {
     public class ResponseService
     {

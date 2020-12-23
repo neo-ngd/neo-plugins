@@ -2,7 +2,7 @@ using NeoFS.API.v2.Netmap;
 using System;
 using V2Version = NeoFS.API.v2.Refs.Version;
 
-namespace Neo.Fs.Services.Netmap
+namespace Neo.FSNode.Services.Netmap
 {
     public class ExecutorSvc
     {

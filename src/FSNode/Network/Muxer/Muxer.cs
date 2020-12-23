@@ -3,7 +3,7 @@ using Multiformats.Address;
 using System;
 using System.Net.Sockets;
 
-namespace Neo.Fs.Network.Muxer
+namespace Neo.FSNode.Network.Muxer
 {
     public class Params
     {

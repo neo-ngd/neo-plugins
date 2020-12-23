@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Accounting;
 
-namespace Neo.Fs.Network.Transport.Accounting
+namespace Neo.FSNode.Network.Transport.Accounting
 {
     public class Service
     {
@@ -14,7 +14,7 @@ namespace Neo.Fs.Network.Transport.Accounting
 
         public BalanceResponse Balance(ServerCallContext ctx, BalanceRequest req)
         {
-            return srv.Balance(req,ctx).Result;
+            return srv.Balance(req, ctx).Result;
         }
     }
 }

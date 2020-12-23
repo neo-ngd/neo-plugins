@@ -1,8 +1,8 @@
 using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object.Object;
-using Neo.Fs.Services.Object.Range;
+using Neo.FSNode.Services.Object.Range;
 
-namespace Neo.Fs.Services.Object.Get
+namespace Neo.FSNode.Services.Object.Get
 {
     public class GetService
     {

@@ -2,7 +2,7 @@ using Multiformats.Address;
 using System;
 using System.Net.Sockets;
 
-namespace Neo.Fs.Network
+namespace Neo.FSNode.Network
 {
     public static class Helper
     {

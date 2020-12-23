@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Neo.Fs.Core.Object
+namespace Neo.FSNode.Core.Object
 {
     public class Tombstone
     {

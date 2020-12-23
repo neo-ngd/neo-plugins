@@ -2,7 +2,7 @@ using NeoFS.API.v2.Acl;
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.Acl
+namespace Neo.FSNode.Services.Object.Acl
 {
     public static class BasicHelper
     {

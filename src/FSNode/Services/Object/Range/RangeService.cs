@@ -2,16 +2,16 @@ using Google.Protobuf;
 using V2Range = NeoFS.API.v2.Object.Range;
 using NeoFS.API.v2.Refs;
 using V2Address = NeoFS.API.v2.Refs.Address;
-using Neo.Fs.Core.Netmap;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Network;
-using Neo.Fs.Services.Object.Head;
-using Neo.Fs.Services.Object.Range.RangeSource;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Core.Netmap;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Network;
+using Neo.FSNode.Services.Object.Head;
+using Neo.FSNode.Services.Object.Range.RangeSource;
+using Neo.FSNode.Services.Object.Util;
 using System;
 using System.Linq;
 
-namespace Neo.Fs.Services.Object.Range
+namespace Neo.FSNode.Services.Object.Range
 {
     public class RangeService
     {

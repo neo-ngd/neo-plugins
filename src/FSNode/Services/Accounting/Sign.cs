@@ -1,9 +1,9 @@
 using Grpc.Core;
 using NeoFS.API.v2.Accounting;
 using NeoFS.API.v2.Session;
-using UtilSignService = Neo.Fs.Services.Util.SignService;
+using UtilSignService = Neo.FSNode.Services.Util.SignService;
 
-namespace Neo.Fs.Services.Accounting
+namespace Neo.FSNode.Services.Accounting
 {
     public class SignService
     {

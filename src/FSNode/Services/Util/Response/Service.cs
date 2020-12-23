@@ -1,8 +1,8 @@
-using Neo.Fs.Core.Netmap;
+using Neo.FSNode.Core.Netmap;
 using NeoFS.API.v2.Session;
 using V2Version = NeoFS.API.v2.Refs.Version;
 
-namespace Neo.Fs.Services.Util.Response
+namespace Neo.FSNode.Services.Util.Response
 {
     public class Service
     {

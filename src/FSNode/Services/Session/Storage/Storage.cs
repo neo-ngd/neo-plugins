@@ -8,7 +8,7 @@ using NeoFS.API.v2.Session;
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Session.Storage
+namespace Neo.FSNode.Services.Session.Storage
 {
     public class Key
     {

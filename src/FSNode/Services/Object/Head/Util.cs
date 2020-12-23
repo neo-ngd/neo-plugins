@@ -1,7 +1,7 @@
 using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object;
 
-namespace Neo.Fs.Services.Object.Head
+namespace Neo.FSNode.Services.Object.Head
 {
     public static class Util
     {

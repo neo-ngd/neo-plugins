@@ -1,13 +1,13 @@
 using NeoFS.API.v2.Refs;
 using V2Range = NeoFS.API.v2.Object.Range;
-using Neo.Fs.Services.Object.Head;
-using Neo.Fs.Services.Object.Range;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Services.Object.Head;
+using Neo.FSNode.Services.Object.Range;
+using Neo.FSNode.Services.Object.Util;
 using Neo.Cryptography;
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.RangeHash
+namespace Neo.FSNode.Services.Object.RangeHash
 {
     public class RangeHashService
     {

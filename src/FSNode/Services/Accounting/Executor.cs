@@ -1,6 +1,6 @@
 using NeoFS.API.v2.Accounting;
 
-namespace Neo.Fs.Services.Accounting
+namespace Neo.FSNode.Services.Accounting
 {
     public interface IServiceExecutor
     {

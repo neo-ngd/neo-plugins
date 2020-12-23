@@ -3,8 +3,8 @@ using System;
 using V2Object = NeoFS.API.v2.Object.Object;
 using V2Range = NeoFS.API.v2.Object.Range;
 
-namespace Neo.Fs.Services.Object.Util
-{ 
+namespace Neo.FSNode.Services.Object.Util
+{
     public class RangeTraverser
     {
         private RangeChain chain;

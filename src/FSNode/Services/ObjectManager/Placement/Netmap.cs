@@ -1,13 +1,13 @@
-using Neo.Fs.Core.Netmap;
+using Neo.FSNode.Core.Netmap;
 using NeoFS.API.v2.Netmap;
 
-namespace Neo.Fs.Services.ObjectManager.Placement
+namespace Neo.FSNode.Services.ObjectManager.Placement
 {
     public class NetMapBuilder
     {
-        private ISource nmSrc;
+        private INetmapSource nmSrc;
 
-        public NetMapBuilder(ISource source)
+        public NetMapBuilder(INetmapSource source)
         {
             this.nmSrc = source;
         }
@@ -18,7 +18,7 @@ namespace Neo.Fs.Services.ObjectManager.Placement
         }
     }
 
-    public class NetMapSrc : ISource
+    public class NetMapSrc : INetmapSource
     {
         private NetMap nm;
 

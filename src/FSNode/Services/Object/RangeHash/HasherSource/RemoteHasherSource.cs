@@ -1,11 +1,11 @@
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Network;
-using Neo.Fs.Network.Cache;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Network;
+using Neo.FSNode.Network.Cache;
+using Neo.FSNode.Services.Object.Util;
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.RangeHash.HasherSource
+namespace Neo.FSNode.Services.Object.RangeHash.HasherSource
 {
     public class RemoteHasherSource : IHasherSource
     {

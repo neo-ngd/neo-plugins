@@ -1,5 +1,5 @@
 
-namespace Neo.Fs.Utils
+namespace Neo.FSNode.Utils
 {
     public static partial class Utils
     {

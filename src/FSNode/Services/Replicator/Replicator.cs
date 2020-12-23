@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Neo.Fs.Services.Replicator
+namespace Neo.FSNode.Services.Replicator
 {
     public class Replicator
     {

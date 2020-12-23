@@ -1,6 +1,6 @@
 using NeoFS.API.v2.Refs;
 
-namespace Neo.Fs.Services.Object.Util
+namespace Neo.FSNode.Services.Object.Util
 {
     public class RangeChain
     {

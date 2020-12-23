@@ -1,13 +1,13 @@
-using Neo.Fs.Core.Container;
-using Neo.Fs.Core.Netmap;
-using Neo.Fs.Network;
-using Neo.Fs.Services.Object.RangeHash.HasherSource;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Core.Netmap;
+using Neo.FSNode.Network;
+using Neo.FSNode.Services.Object.RangeHash.HasherSource;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Neo.Fs.Services.Object.RangeHash
+namespace Neo.FSNode.Services.Object.RangeHash
 {
     public class DistributedHasher
     {

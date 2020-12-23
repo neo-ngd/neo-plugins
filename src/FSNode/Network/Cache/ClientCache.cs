@@ -4,7 +4,7 @@ using Neo.Cryptography;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 
-namespace Neo.Fs.Network.Cache
+namespace Neo.FSNode.Network.Cache
 {
     public class ClientCache
     {

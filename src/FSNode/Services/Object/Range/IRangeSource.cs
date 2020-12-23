@@ -1,7 +1,7 @@
 using V2Range = NeoFS.API.v2.Object.Range;
 using NeoFS.API.v2.Refs;
 
-namespace Neo.Fs.Services.Object.Range
+namespace Neo.FSNode.Services.Object.Range
 {
     public interface IRangeSource
     {

@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Object;
 
-namespace Neo.Fs.Network.Transport.Object
+namespace Neo.FSNode.Network.Transport.Object
 {
     public class Service
     {
@@ -16,7 +16,7 @@ namespace Neo.Fs.Network.Transport.Object
         {
             // TODO
             var t = this.srv.Get(req, gStream, ctx);
-            t.Wait(); 
+            t.Wait();
         }
 
         public void Put(IAsyncStreamReader<PutRequest> gStream, ServerCallContext ctx)

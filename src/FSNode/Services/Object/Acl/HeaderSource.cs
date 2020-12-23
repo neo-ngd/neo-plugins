@@ -4,13 +4,13 @@ using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
 using NeoFS.API.v2.Session;
-using Neo.Fs.LocalObjectStorage.LocalStore;
-using Neo.Fs.Services.Object.Acl.EAcl;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
+using Neo.FSNode.Services.Object.Acl.EAcl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Neo.Fs.Services.Object.Acl
+namespace Neo.FSNode.Services.Object.Acl
 {
     public class HeaderSource : ITypedHeaderSource
     {

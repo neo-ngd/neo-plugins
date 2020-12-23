@@ -1,15 +1,15 @@
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Core.Netmap;
-using Neo.Fs.Network;
-using Neo.Fs.Services.Object.Search.Searcher;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Core.Netmap;
+using Neo.FSNode.Network;
+using Neo.FSNode.Services.Object.Search.Searcher;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Neo.Fs.Services.Object.Search
+namespace Neo.FSNode.Services.Object.Search
 {
     public class SearchService
     {

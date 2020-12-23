@@ -1,6 +1,6 @@
 using NeoFS.API.v2.Netmap;
 
-namespace Neo.Fs.Core.Netmap
+namespace Neo.FSNode.Core.Netmap
 {
     // Source is an interface that wraps
     // basic network map receiving method.

@@ -1,4 +1,4 @@
-namespace Neo.Fs.LocalObjectStorage.Bucket
+namespace Neo.FSNode.LocalObjectStorage.Bucket
 {
     public delegate bool FilterHandler(byte[] key, byte[] val);
     public interface IBucket

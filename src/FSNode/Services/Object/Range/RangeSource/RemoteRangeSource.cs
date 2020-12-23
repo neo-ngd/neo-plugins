@@ -2,13 +2,13 @@ using NeoFS.API.v2.Acl;
 using V2Range = NeoFS.API.v2.Object.Range;
 using V2Address = NeoFS.API.v2.Refs.Address;
 using NeoFS.API.v2.Session;
-using Neo.Fs.LocalObjectStorage.LocalStore;
-using Neo.Fs.Network;
-using Neo.Fs.Network.Cache;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
+using Neo.FSNode.Network;
+using Neo.FSNode.Network.Cache;
+using Neo.FSNode.Services.Object.Util;
 using System;
 
-namespace Neo.Fs.Services.Object.Range.RangeSource
+namespace Neo.FSNode.Services.Object.Range.RangeSource
 {
     public class RemoteRangeSource : IRangeSource
     {

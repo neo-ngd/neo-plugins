@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Neo.Fs.LocalObjectStorage.Bucket
+namespace Neo.FSNode.LocalObjectStorage.Bucket
 {
     public class Bucket : IBucket
     {

@@ -1,8 +1,8 @@
 using V2Object = NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Services.Object.Util;
 
-namespace Neo.Fs.Services.Object.Delete
+namespace Neo.FSNode.Services.Object.Delete
 {
     public interface IRelationHeader
     {

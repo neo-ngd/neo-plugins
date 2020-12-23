@@ -1,5 +1,5 @@
 
-namespace Neo.Fs.Services.Object.Util
+namespace Neo.FSNode.Services.Object.Util
 {
     public class RangeBounds
     {

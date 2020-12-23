@@ -2,7 +2,7 @@ using Multiformats.Address;
 using Multiformats.Address.Net;
 using System.Net.Sockets;
 
-namespace Neo.Fs.Network
+namespace Neo.FSNode.Network
 {
     public class Address
     {

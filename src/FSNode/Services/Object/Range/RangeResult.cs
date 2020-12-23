@@ -1,7 +1,7 @@
 using Google.Protobuf;
 using V2Object = NeoFS.API.v2.Object.Object;
 
-namespace Neo.Fs.Services.Object.Range
+namespace Neo.FSNode.Services.Object.Range
 {
     public class RangeResult
     {

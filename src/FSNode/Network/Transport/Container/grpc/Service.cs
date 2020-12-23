@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Container;
 
-namespace Neo.Fs.Network.Transport.Container
+namespace Neo.FSNode.Network.Transport.Container
 {
     public class Service
     {

@@ -1,11 +1,11 @@
 using NeoFS.API.v2.Object;
 using V2Range = NeoFS.API.v2.Object.Range;
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Services.Object.Util;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Neo.Fs.Services.Object.RangeHash
+namespace Neo.FSNode.Services.Object.RangeHash
 {
     public class RangeHashPrm : CommonPrm
     {

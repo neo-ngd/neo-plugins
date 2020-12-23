@@ -2,7 +2,7 @@ using V2Container = NeoFS.API.v2.Container;
 using NeoFS.API.v2.Refs;
 using System;
 
-namespace Neo.Fs.Core.Container
+namespace Neo.FSNode.Core.Container
 {
     public static class Extension
     {

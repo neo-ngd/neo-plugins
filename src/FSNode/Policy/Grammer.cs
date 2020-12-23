@@ -1,7 +1,7 @@
 using Sprache;
 using System;
 
-namespace Neo.Fs.Policy
+namespace Neo.FSNode.Policy
 {
     public class Query
     {

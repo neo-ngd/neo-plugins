@@ -1,11 +1,11 @@
 using Google.Protobuf;
-using Neo.Fs.LocalObjectStorage.Bucket;
-using Neo.Fs.LocalObjectStorage.MetaBase;
+using Neo.FSNode.LocalObjectStorage.Bucket;
+using Neo.FSNode.LocalObjectStorage.MetaBase;
 using NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
 using V2Object = NeoFS.API.v2.Object.Object;
 
-namespace Neo.Fs.LocalObjectStorage.LocalStore
+namespace Neo.FSNode.LocalObjectStorage.LocalStore
 {
     public class Storage
     {

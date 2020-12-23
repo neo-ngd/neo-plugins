@@ -1,6 +1,6 @@
 using NeoFS.API.v2.Refs;
 
-namespace Neo.Fs.Services.Object.Put
+namespace Neo.FSNode.Services.Object.Put
 {
     public class PutResult
     {

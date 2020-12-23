@@ -1,9 +1,9 @@
 using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object.Object;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Services.Object.Util;
 using System;
 
-namespace Neo.Fs.Services.Object.Put
+namespace Neo.FSNode.Services.Object.Put
 {
     public class PutInitPrm : CommonPrm
     {

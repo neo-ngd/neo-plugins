@@ -1,8 +1,8 @@
-using Neo.Fs.Services.Session.Storage;
+using Neo.FSNode.Services.Session.Storage;
 using NeoFS.API.v2.Session;
 using System;
 
-namespace Neo.Fs.Services.Object.Util
+namespace Neo.FSNode.Services.Object.Util
 {
     public class KeyStorage
     {

@@ -1,10 +1,10 @@
 using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Services.Object.Search;
+using Neo.FSNode.Services.Object.Search;
 using System;
 
-namespace Neo.Fs.Services.Object.Head
+namespace Neo.FSNode.Services.Object.Head
 {
     public class HeadService
     {

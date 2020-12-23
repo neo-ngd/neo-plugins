@@ -7,7 +7,7 @@ using NeoFS.API.v2.Refs;
 using System;
 using V2Object = NeoFS.API.v2.Object.Object;
 
-namespace Neo.Fs.Core.Object
+namespace Neo.FSNode.Core.Object
 {
     public interface IDeleteHandler
     {

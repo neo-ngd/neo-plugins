@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Container;
 
-namespace Neo.Fs.Services.Container
+namespace Neo.FSNode.Services.Container
 {
     public interface IServiceExecutor
     {

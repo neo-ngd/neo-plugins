@@ -1,4 +1,4 @@
-namespace Neo.Fs.Services.Session.Storage
+namespace Neo.FSNode.Services.Session.Storage
 {
     public class PrivateToken
     {

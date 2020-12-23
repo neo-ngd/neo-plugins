@@ -1,10 +1,10 @@
-using Neo.Fs.Core.Netmap;
+using Neo.FSNode.Core.Netmap;
 using NeoFS.API.v2.Refs;
 using NeoFS.API.v2.Session;
 using System.Security.Cryptography;
 using V2Object = NeoFS.API.v2.Object.Object;
 
-namespace Neo.Fs.Services.ObjectManager.Transformer
+namespace Neo.FSNode.Services.ObjectManager.Transformer
 {
     public class Formatter : IObjectTarget
     {

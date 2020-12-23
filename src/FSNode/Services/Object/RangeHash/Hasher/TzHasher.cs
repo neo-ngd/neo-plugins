@@ -1,6 +1,6 @@
 using System;
 
-namespace Neo.Fs.Services.Object.RangeHash.Hasher
+namespace Neo.FSNode.Services.Object.RangeHash.Hasher
 {
     public class TzHasher : IHasher
     {

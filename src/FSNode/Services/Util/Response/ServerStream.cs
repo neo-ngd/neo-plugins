@@ -1,6 +1,6 @@
 using NeoFS.API.v2.Session;
 
-namespace Neo.Fs.Services.Util.Response
+namespace Neo.FSNode.Services.Util.Response
 {
     public class ServerMessageStreamer
     {

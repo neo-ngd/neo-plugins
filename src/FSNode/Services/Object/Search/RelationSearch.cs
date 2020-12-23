@@ -1,7 +1,7 @@
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Services.Object.Util;
 
-namespace Neo.Fs.Services.Object.Search
+namespace Neo.FSNode.Services.Object.Search
 {
     public class RelationSearcher
     {

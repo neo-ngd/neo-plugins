@@ -1,7 +1,7 @@
 using NeoFS.API.v2.Acl;
 using NeoFS.API.v2.Refs;
 
-namespace Neo.Fs.Services.Object.Acl.EAcl
+namespace Neo.FSNode.Services.Object.Acl.EAcl
 {
     public class ValidateUnit
     {

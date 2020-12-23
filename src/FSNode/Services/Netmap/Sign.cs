@@ -1,9 +1,9 @@
 using Grpc.Core;
 using NeoFS.API.v2.Netmap;
 using NeoFS.API.v2.Session;
-using UtilSignService = Neo.Fs.Services.Util.SignService;
+using UtilSignService = Neo.FSNode.Services.Util.SignService;
 
-namespace Neo.Fs.Services.Netmap
+namespace Neo.FSNode.Services.Netmap
 {
     public class SignService
     {

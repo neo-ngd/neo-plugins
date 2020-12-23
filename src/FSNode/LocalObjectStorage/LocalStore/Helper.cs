@@ -1,7 +1,7 @@
 using NeoFS.API.v2.Refs;
 using V2Object = NeoFS.API.v2.Object.Object;
 
-namespace Neo.Fs.LocalObjectStorage.LocalStore
+namespace Neo.FSNode.LocalObjectStorage.LocalStore
 {
     public static class Helper
     {

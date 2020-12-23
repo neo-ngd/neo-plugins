@@ -1,12 +1,12 @@
 using V2Object = NeoFS.API.v2.Object.Object;
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Core.Netmap;
-using Neo.Fs.Core.Object;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Core.Netmap;
+using Neo.FSNode.Core.Object;
+using Neo.FSNode.Services.Object.Util;
 using System;
 
-namespace Neo.Fs.Services.Object.Put
+namespace Neo.FSNode.Services.Object.Put
 {
     public class PutService
     {

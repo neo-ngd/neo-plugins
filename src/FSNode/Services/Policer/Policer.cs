@@ -1,10 +1,10 @@
-using Neo.Fs.Core.Container;
-using Neo.Fs.Network;
-using Neo.Fs.Services.ObjectManager.Placement;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Network;
+using Neo.FSNode.Services.ObjectManager.Placement;
 using System;
 using System.Threading.Tasks;
 
-namespace Neo.Fs.Services.Policer
+namespace Neo.FSNode.Services.Policer
 {
     public class Policer
     {

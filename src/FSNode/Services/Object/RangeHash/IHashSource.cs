@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.RangeHash
+namespace Neo.FSNode.Services.Object.RangeHash
 {
     public interface IHasherSource
     {

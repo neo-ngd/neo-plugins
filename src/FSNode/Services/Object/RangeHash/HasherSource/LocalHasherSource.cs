@@ -1,12 +1,12 @@
 using NeoFS.API.v2.Refs;
-using Neo.Fs.LocalObjectStorage.LocalStore;
-using Neo.Fs.Services.Object.RangeHash.Hasher;
-using Neo.Fs.Utils;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
+using Neo.FSNode.Services.Object.RangeHash.Hasher;
+using Neo.FSNode.Utils;
 using Neo.Cryptography;
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.RangeHash.HasherSource
+namespace Neo.FSNode.Services.Object.RangeHash.HasherSource
 {
     public class LocalHasherSource : IHasherSource
     {

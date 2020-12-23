@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Neo.Fs.Policy
+namespace Neo.FSNode.Policy
 {
     public static class Helper
     {

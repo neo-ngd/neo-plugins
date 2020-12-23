@@ -4,11 +4,11 @@ using System;
 using System.Linq;
 using V2 = NeoFS.API.v2.Container;
 
-namespace Neo.Fs.Services.ObjectManager.Placement
+namespace Neo.FSNode.Services.ObjectManager.Placement
 {
     public interface IBuilder
     {
-        Node[][] BuildPlacement(Address address, PlacementPolicy pp); 
+        Node[][] BuildPlacement(Address address, PlacementPolicy pp);
     }
 
     public delegate void Option(Cfg cfg);

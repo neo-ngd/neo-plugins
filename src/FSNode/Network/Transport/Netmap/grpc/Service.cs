@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Netmap;
 
-namespace Neo.Fs.Network.Transport.Netmap
+namespace Neo.FSNode.Network.Transport.Netmap
 {
     public class Service
     {

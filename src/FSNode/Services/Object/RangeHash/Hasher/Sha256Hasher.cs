@@ -2,7 +2,7 @@ using System;
 using Neo.Cryptography;
 using static Neo.Helper;
 
-namespace Neo.Fs.Services.Object.RangeHash.Hasher
+namespace Neo.FSNode.Services.Object.RangeHash.Hasher
 {
     public class Sha256Hasher : IHasher
     {

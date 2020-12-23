@@ -1,11 +1,11 @@
 using NeoFS.API.v2.Object;
 using NeoFS.API.v2.Refs;
-using Neo.Fs.Network.Cache;
-using Neo.Fs.Services.Object.Util;
+using Neo.FSNode.Network.Cache;
+using Neo.FSNode.Services.Object.Util;
 using System;
 using System.Collections.Generic;
 
-namespace Neo.Fs.Services.Object.Search.Searcher
+namespace Neo.FSNode.Services.Object.Search.Searcher
 {
     public class RemoteSearcher : ISearcher
     {

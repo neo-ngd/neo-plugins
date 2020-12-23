@@ -1,9 +1,9 @@
 using NeoFS.API.v2.Acl;
-using Neo.Fs.Core.Container;
+using Neo.FSNode.Core.Container;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Neo.Fs.Services.Object.Acl.EAcl
+namespace Neo.FSNode.Services.Object.Acl.EAcl
 {
     public class EAclValidator
     {

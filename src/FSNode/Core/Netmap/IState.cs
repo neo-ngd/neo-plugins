@@ -1,4 +1,4 @@
-namespace Neo.Fs.Core.Netmap
+namespace Neo.FSNode.Core.Netmap
 {
     public interface IState
     {

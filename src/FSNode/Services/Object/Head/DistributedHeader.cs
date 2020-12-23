@@ -1,9 +1,9 @@
 using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Core.Netmap;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Core.Netmap;
 
-namespace Neo.Fs.Services.Object.Head
+namespace Neo.FSNode.Services.Object.Head
 {
     public class DistributedHeader
     {

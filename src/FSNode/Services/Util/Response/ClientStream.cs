@@ -1,6 +1,6 @@
 using NeoFS.API.v2.Session;
 
-namespace Neo.Fs.Services.Util.Response
+namespace Neo.FSNode.Services.Util.Response
 {
     // ClientMessageStreamer represents client-side message streamer
     // that sets meta values to the response.

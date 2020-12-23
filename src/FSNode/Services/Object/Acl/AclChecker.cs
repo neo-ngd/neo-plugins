@@ -2,11 +2,11 @@ using NeoFS.API.v2.Acl;
 using NeoFS.API.v2.Cryptography;
 using NeoFS.API.v2.Refs;
 using NeoFS.API.v2.Session;
-using Neo.Fs.LocalObjectStorage.LocalStore;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Services.Object.Acl.EAcl;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Services.Object.Acl.EAcl;
 
-namespace Neo.Fs.Services.Object.Acl
+namespace Neo.FSNode.Services.Object.Acl
 {
     public class AclChecker
     {

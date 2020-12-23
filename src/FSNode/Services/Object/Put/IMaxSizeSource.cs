@@ -1,5 +1,5 @@
 
-namespace Neo.Fs.Services.Object.Put
+namespace Neo.FSNode.Services.Object.Put
 {
     public interface IMaxSizeSource
     {

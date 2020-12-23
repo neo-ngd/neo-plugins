@@ -9,7 +9,7 @@ using V2Attribute = NeoFS.API.v2.Object.Header.Types.Attribute;
 using V2Object = NeoFS.API.v2.Object.Object;
 
 
-namespace Neo.Fs.Services.ObjectManager.Transformer
+namespace Neo.FSNode.Services.ObjectManager.Transformer
 {
     public class PayloadSizeLimiter : IObjectTarget
     {

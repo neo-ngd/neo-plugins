@@ -1,7 +1,7 @@
 using NeoFS.API.v2.Refs;
 using V2Object = NeoFS.API.v2.Object.Object;
 
-namespace Neo.Fs.Services.ObjectManager.Transformer
+namespace Neo.FSNode.Services.ObjectManager.Transformer
 {
     public class AccessIdentifiers
     {
@@ -18,7 +18,7 @@ namespace Neo.Fs.Services.ObjectManager.Transformer
         }
     }
 
-    public interface IObjectTarget 
+    public interface IObjectTarget
     {
         void WriteHeader(V2Object obj);
         AccessIdentifiers Close();

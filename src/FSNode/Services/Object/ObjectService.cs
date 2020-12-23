@@ -5,23 +5,23 @@ using NeoFS.API.v2.Cryptography;
 using NeoFS.API.v2.Object;
 using NeoFS.API.v2.Session;
 using V2Object = NeoFS.API.v2.Object.Object;
-using Neo.Fs.LocalObjectStorage.LocalStore;
-using Neo.Fs.Core.Container;
-using Neo.Fs.Services.Object.Acl;
-using Neo.Fs.Services.Object.Delete;
-using Neo.Fs.Services.Object.Get;
-using Neo.Fs.Services.Object.Head;
-using Neo.Fs.Services.Object.Put;
-using Neo.Fs.Services.Object.Range;
-using Neo.Fs.Services.Object.RangeHash;
-using Neo.Fs.Services.Object.Search;
-using Neo.Fs.Services.Object.Sign;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
+using Neo.FSNode.Core.Container;
+using Neo.FSNode.Services.Object.Acl;
+using Neo.FSNode.Services.Object.Delete;
+using Neo.FSNode.Services.Object.Get;
+using Neo.FSNode.Services.Object.Head;
+using Neo.FSNode.Services.Object.Put;
+using Neo.FSNode.Services.Object.Range;
+using Neo.FSNode.Services.Object.RangeHash;
+using Neo.FSNode.Services.Object.Search;
+using Neo.FSNode.Services.Object.Sign;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace Neo.Fs.Services.Object
+namespace Neo.FSNode.Services.Object
 {
     public partial class ObjectServiceImpl : ObjectService.ObjectServiceBase
     {

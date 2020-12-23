@@ -1,7 +1,7 @@
 using Grpc.Core;
 using NeoFS.API.v2.Session;
 
-namespace Neo.Fs.Services.Session
+namespace Neo.FSNode.Services.Session
 {
     public interface IServiceExecutor
     {

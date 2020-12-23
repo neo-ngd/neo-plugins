@@ -1,7 +1,7 @@
 using NeoFS.API.v2.Acl;
 using NeoFS.API.v2.Refs;
 
-namespace Neo.Fs.Core.Container
+namespace Neo.FSNode.Core.Container
 {
     public interface IEAclStorage
     {

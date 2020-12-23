@@ -1,6 +1,6 @@
 using Neo.Cryptography;
 
-namespace Neo.Fs.LocalObjectStorage.Bucket
+namespace Neo.FSNode.LocalObjectStorage.Bucket
 {
     public static class Helper
     {

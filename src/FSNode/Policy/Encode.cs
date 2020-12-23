@@ -2,7 +2,7 @@ using NeoFS.API.v2.Netmap;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Neo.Fs.Policy
+namespace Neo.FSNode.Policy
 {
     public static class Encode
     {
