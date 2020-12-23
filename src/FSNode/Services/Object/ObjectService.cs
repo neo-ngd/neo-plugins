@@ -4,16 +4,18 @@ using NeoFS.API.v2.Acl;
 using NeoFS.API.v2.Cryptography;
 using NeoFS.API.v2.Object;
 using NeoFS.API.v2.Session;
-using V2Object = NeoFS.API.v2.Object;
+using V2Object = NeoFS.API.v2.Object.Object;
 using Neo.Fs.LocalObjectStorage.LocalStore;
 using Neo.Fs.Core.Container;
 using Neo.Fs.Services.Object.Acl;
+using Neo.Fs.Services.Object.Delete;
+using Neo.Fs.Services.Object.Get;
 using Neo.Fs.Services.Object.Head;
 using Neo.Fs.Services.Object.Put;
 using Neo.Fs.Services.Object.Range;
+using Neo.Fs.Services.Object.RangeHash;
 using Neo.Fs.Services.Object.Search;
 using Neo.Fs.Services.Object.Sign;
-using Neo.Fs.Services.Object.Util;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
@@ -28,9 +30,13 @@ namespace Neo.Fs.Services.Object
         private readonly IContainerSource contnainerSource;
         private readonly IEAclStorage eAclStorage;
         private readonly Signer signer;
+        private readonly DeleteService deleteService;
+        private readonly GetService getService;
         private readonly HeadService headService;
         private readonly PutService putService;
         private readonly RangeService rangeService;
+        private readonly RangeHashService rangeHashService;
+        private readonly SearchService searchService;
 
         public ObjectServiceImpl(IContainerSource container_source, Storage local_storage, IEAclStorage eacl_storage)
         {
@@ -38,15 +44,18 @@ namespace Neo.Fs.Services.Object
             eAclStorage = eacl_storage;
             contnainerSource = container_source;
             signer = new Signer();
+            deleteService = new DeleteService();
+            getService = new GetService();
             headService = new HeadService(new RelationSearcher());
             putService = new PutService();
             rangeService = new RangeService();
+            rangeHashService = new RangeHashService();
+            searchService = new SearchService();
         }
 
         public override Task Get(GetRequest request, IServerStreamWriter<GetResponse> responseStream, ServerCallContext context)
         {
             var acl = new AclChecker(contnainerSource, localStorage, eAclStorage);
-
             try
             {
                 acl.LoadRequest(request, Operation.Get);
@@ -58,7 +67,42 @@ namespace Neo.Fs.Services.Object
                 throw new RpcException(new Status(StatusCode.PermissionDenied, e.Message));
             }
             if (!request.VerifyRequest()) throw new RpcException(new Status(StatusCode.Unauthenticated, "verify header failed"));
-            throw new RpcException(new Status(StatusCode.Unimplemented, ""));
+            return Task.Run(() =>
+            {
+                var prm = GetPrm.FromRequest(request);
+                var obj = getService.Get(prm);
+                var resp = new GetResponse
+                {
+                    Body = new GetResponse.Types.Body
+                    {
+                        Init = new GetResponse.Types.Body.Types.Init
+                        {
+                            Header = obj.Header,
+                            ObjectId = obj.ObjectId,
+                            Signature = obj.Signature,
+                        }
+                    }
+                };
+                resp.SignResponse(key);
+                responseStream.WriteAsync(resp);
+                var payload = obj.Payload.ToByteArray();
+                int offset = 0;
+                while (offset < obj.Payload.Length)
+                {
+                    var end = offset + V2Object.ChunkSize;
+                    if (payload.Length < end) end = payload.Length;
+                    resp = new GetResponse
+                    {
+                        Body = new GetResponse.Types.Body
+                        {
+                            Chunk = ByteString.CopyFrom(payload[offset..end]),
+                        }
+                    };
+                    offset = end;
+                    resp.SignResponse(key);
+                    responseStream.WriteAsync(resp);
+                }
+            });
         }
 
         public override async Task<PutResponse> Put(IAsyncStreamReader<PutRequest> requestStream, ServerCallContext context)
@@ -126,7 +170,17 @@ namespace Neo.Fs.Services.Object
             {
                 throw new RpcException(new Status(StatusCode.PermissionDenied, e.Message));
             }
-            throw new RpcException(new Status(StatusCode.Unimplemented, ""));
+            return Task.Run(() =>
+            {
+                var prm = DeletePrm.FromRequest(request);
+                var result = deleteService.Delete(prm);
+                var resp = new DeleteResponse
+                {
+                    Body = new DeleteResponse.Types.Body { }
+                };
+                resp.SignResponse(key);
+                return resp;
+            });
         }
 
         public override Task<HeadResponse> Head(HeadRequest request, ServerCallContext context)
@@ -144,7 +198,6 @@ namespace Neo.Fs.Services.Object
             }
             if (!request.VerifyRequest()) throw new RpcException(new Status(StatusCode.Unauthenticated, " verify failed"));
             var head_prm = HeadPrm.FromRequest(request);
-            head_prm.WithCommonPrm(CommonPrm.FromRequest(request));
             var obj = headService.Head(head_prm);
             var resp = obj.Header.ToHeadResponse(head_prm.Short);
             resp.SignResponse(key);
@@ -192,7 +245,17 @@ namespace Neo.Fs.Services.Object
             {
                 throw new RpcException(new Status(StatusCode.PermissionDenied, e.Message));
             }
-            throw new RpcException(new Status(StatusCode.Unimplemented, ""));
+            return Task.Run(() =>
+            {
+                var prm = RangeHashPrm.FromRequest(request);
+                var result = rangeHashService.RangeHash(prm);
+                var resp = new GetRangeHashResponse
+                {
+                    Body = new GetRangeHashResponse.Types.Body { }
+                };
+                resp.SignResponse(key);
+                return resp;
+            });
         }
 
         public override Task Search(SearchRequest request, IServerStreamWriter<SearchResponse> responseStream, ServerCallContext context)
@@ -208,7 +271,18 @@ namespace Neo.Fs.Services.Object
             {
                 throw new RpcException(new Status(StatusCode.PermissionDenied, e.Message));
             }
-            throw new RpcException(new Status(StatusCode.Unimplemented, ""));
+            return Task.Run(() =>
+            {
+                var prm = SearchPrm.FromRequest(request);
+                var oids = searchService.Search(prm);
+                var resp = new SearchResponse
+                {
+                    Body = new SearchResponse.Types.Body { }
+                };
+                resp.Body.IdList.AddRange(oids);
+                resp.SignResponse(key);
+                responseStream.WriteAsync(resp);
+            });
         }
     }
 }

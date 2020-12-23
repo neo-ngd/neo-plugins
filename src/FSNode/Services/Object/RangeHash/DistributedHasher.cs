@@ -52,6 +52,7 @@ namespace Neo.Fs.Services.Object.RangeHash
                 var list = new List<Task>();
                 foreach (var addr in addrs)
                 {
+                    //TODO: use workpool
                     list.Add(Task.Factory.StartNew(() =>
                     {
                         IHasherSource hasher;
