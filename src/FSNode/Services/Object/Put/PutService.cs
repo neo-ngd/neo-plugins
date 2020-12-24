@@ -4,6 +4,8 @@ using Neo.FSNode.Core.Container;
 using Neo.FSNode.Core.Netmap;
 using Neo.FSNode.Core.Object;
 using Neo.FSNode.Services.Object.Util;
+using Neo.FSNode.Services.ObjectManager.Placement;
+using Neo.FSNode.Services.ObjectManager.Transformer;
 using System;
 
 namespace Neo.FSNode.Services.Object.Put
@@ -21,20 +23,24 @@ namespace Neo.FSNode.Services.Object.Put
             return new ObjectID();
         }
 
-        public IPutTarget Init(PutInitPrm prm)
+        public IObjectTarget Init(PutInitPrm prm)
         {
             var target = InitTarget(prm);
-            target.PutInit(prm.Init);
+            target.WriteHeader(prm.Init);
             return target;
         }
 
-        private IPutTarget InitTarget(PutInitPrm prm)
+        private IObjectTarget InitTarget(PutInitPrm prm)
         {
             PreparePrm(prm);
             var session_token = prm.SessionToken;
             if (session_token is null)
             {
-                return new DistributeTarget(objectValidator);
+                return new DistributeTarget
+                {
+                    ObjectValidator = objectValidator,
+                    Prm = prm,
+                };
             }
             var session_key = keyStorage.GetKey(session_token);
             if (session_key is null)
@@ -42,7 +48,7 @@ namespace Neo.FSNode.Services.Object.Put
             var max_size = maxSizeSource.MaxObjectSize();
             if (max_size == 0)
                 throw new InvalidOperationException(nameof(InitTarget) + " could not obtain max object size parameter");
-            return new DistributeTarget(objectValidator);
+            return new PayloadSizeLimiterTarget(max_size);
         }
 
         private void PreparePrm(PutInitPrm prm)
@@ -53,7 +59,8 @@ namespace Neo.FSNode.Services.Object.Put
             var container = containerSource.Get(prm.Init.Header.ContainerId);
             if (container is null)
                 throw new InvalidOperationException(nameof(PreparePrm) + " could not get container by cid");
-            //TODO: prepare travers option
+            prm.Container = container;
+            prm.Builder = new NetMapBuilder(new NetMapSrc(nm));
         }
     }
 }

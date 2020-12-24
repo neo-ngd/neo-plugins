@@ -1,6 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.FSNode.Policy;
+using static Neo.FSNode.Policy.Helper;
 
-namespace Neo.Fs.Policy.Tests
+namespace Neo.Plugins.FSNode.Policy.Tests
 {
     [TestClass]
     public class UT_Encode
@@ -24,7 +26,7 @@ FILTER City EQ SPB AND SSD EQ true OR City EQ SPB AND Rating GE 5 AS SPBSSD"
 
             foreach (var tc in testCases)
             {
-                var pp = Helper.ParsePlacementPolicy(tc);
+                var pp = ParsePlacementPolicy(tc);
                 var got = Encode.EncodePlacementPolicy(pp);
                 var res = string.Join("\r\n", got);
                 Assert.AreEqual(tc, res);

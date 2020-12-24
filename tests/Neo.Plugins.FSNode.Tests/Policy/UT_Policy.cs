@@ -1,8 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeoFS.API.v2.Netmap;
+using static Neo.FSNode.Policy.Helper;
 using Sprache;
 
-namespace Neo.Fs.Policy.Tests
+namespace Neo.Plugins.FSNode.Policy.Tests
 {
     [TestClass]
     public class UT_Policy
@@ -13,7 +14,7 @@ namespace Neo.Fs.Policy.Tests
             string q = "REP 3";
 
             var expected = new PlacementPolicy(0, new Replica[] { new Replica(3, "") }, new Selector[0], new Filter[0]);
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -24,7 +25,7 @@ namespace Neo.Fs.Policy.Tests
             string q = "REP 3 CBF 4";
 
             var expected = new PlacementPolicy(4, new Replica[] { new Replica(3, "") }, new Selector[0], new Filter[0]);
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -40,7 +41,7 @@ SELECT 1 IN City FROM * AS SPB";
                 new Replica[] { new Replica(1, "SPB") },
                 new Selector[] { new Selector("SPB", "City", Clause.Unspecified, 1, "*") },
                 new Filter[0]);
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -55,7 +56,7 @@ SELECT 1 IN DISTINCT City FROM * AS SPB";
                 new Replica[] { new Replica(1, "SPB") },
                 new Selector[] { new Selector("SPB", "City", Clause.Distinct, 1, "*") },
                 new Filter[0]);
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -77,7 +78,7 @@ SELECT 1 IN DISTINCT Continent FROM *";
                     new Selector("", "Continent", Clause.Distinct, 1, "*")
                 },
                 new Filter[0]);
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
 
@@ -101,7 +102,7 @@ FILTER Rating GT 7 AS Good";
                 new Replica[] { new Replica(1, "") },
                 new Selector[] { new Selector("", "City", Clause.Unspecified, 1, "Good") },
                 new Filter[] { new Filter("Good", "Rating", "7", Operation.Gt) });
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
 
@@ -130,7 +131,7 @@ FILTER @FromRU AND Rating GT 7 AS Good";
                         new Filter("", "Rating", "7", Operation.Gt)
                     )
                 });
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -157,7 +158,7 @@ FILTER A GT 1 AND B GE 2 AND C LT 3 AND D LE 4
                         new Filter("", "F", "6", Operation.Ne)
                     )
                 });
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -185,7 +186,7 @@ FILTER City EQ SPB AND SSD EQ true OR City EQ SPB AND Rating GE 5 AS SPBSSD";
                         )
                     )
                });
-            var actual = Helper.ParsePlacementPolicy(q);
+            var actual = ParsePlacementPolicy(q);
 
             Assert.IsTrue(expected.Equals(actual));
         }
@@ -196,14 +197,14 @@ FILTER City EQ SPB AND SSD EQ true OR City EQ SPB AND Rating GE 5 AS SPBSSD";
             string q = @"REP 3 IN RU";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
 
             q = @"REP 3
 SELECT 1 IN City FROM MissingFilter";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
 
             q = @"REP 3
@@ -211,13 +212,13 @@ SELECT 1 IN City FROM F
 FILTER Country KEK RU AS F";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
 
             q = @"REK 3";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
 
             q = @"REP 3
@@ -226,20 +227,20 @@ FILTER Good AND Country EQ RU AS F
 FILTER Rating EQ 5 AS Good";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
 
             q = @"REP 0";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
 
             q = @"REP 1 IN Good
 SELECT 0 IN City FROM *";
             Assert.ThrowsException<ParseException>(() =>
             {
-                var p = Helper.ParsePlacementPolicy(q);
+                var p = ParsePlacementPolicy(q);
             });
         }
     }

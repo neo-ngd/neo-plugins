@@ -1,11 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.Fs.LocalObjectStorage.Bucket;
+using Neo.FSNode.LocalObjectStorage.Bucket;
 using System;
 using System.IO;
 using System.Text;
 using NeoCrypto = Neo.Cryptography.Crypto;
 
-namespace Neo.Fs.LocalObjectStorage.Tests
+namespace Neo.Plugins.FSNode.LocalObjectStorage.Tests
 {
     [TestClass]
     public class UT_TreeBucket
@@ -86,7 +86,7 @@ namespace Neo.Fs.LocalObjectStorage.Tests
                 results = b.List();
                 Assert.AreEqual(0, results.Length);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -217,7 +217,7 @@ namespace Neo.Fs.LocalObjectStorage.Tests
                     Sz = 0
                 };
                 var key = Encoding.ASCII.GetBytes("Set this key");
-                b.Set(key,value);
+                b.Set(key, value);
                 Assert.AreEqual((long)size, b.Size());
             }
             catch (Exception ex)

@@ -65,7 +65,7 @@ namespace Neo.FSNode.Core.Object
             return id.ToByteString() == id2.ToByteString();
         }
 
-        public bool ValidateContent(ObjectType t, ByteString payload)
+        public bool ValidateContent(ObjectType t, byte[] payload)
         {
             switch (t)
             {
@@ -74,7 +74,7 @@ namespace Neo.FSNode.Core.Object
                 case ObjectType.Tombstone:
                     if (payload.Length == 0)
                         return false;
-                    var tombstone = Tombstone.FromByteString(payload);
+                    var tombstone = Tombstone.FromByteArray(payload);
                     foreach (var address in tombstone.Addresses)
                     {
                         if (address.ObjectId is null || address.ContainerId is null)

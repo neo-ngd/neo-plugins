@@ -1,6 +1,8 @@
 using NeoFS.API.v2.Object;
 using V2Object = NeoFS.API.v2.Object.Object;
+using V2Container = NeoFS.API.v2.Container.Container;
 using Neo.FSNode.Services.Object.Util;
+using Neo.FSNode.Services.ObjectManager.Placement;
 using System;
 
 namespace Neo.FSNode.Services.Object.Put
@@ -8,7 +10,8 @@ namespace Neo.FSNode.Services.Object.Put
     public class PutInitPrm : CommonPrm
     {
         public V2Object Init;
-        //public Placement.Option TraversOption;
+        public V2Container Container;
+        public IBuilder Builder;
 
         public static PutInitPrm FromRequest(PutRequest request)
         {

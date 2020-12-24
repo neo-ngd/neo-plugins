@@ -1,13 +1,13 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeoFS.API.v2.Netmap;
 using System;
-using H = Neo.Fs.Core.Container.Helper;
+using H = Neo.FSNode.Core.Container.Helper;
 using V2Container = NeoFS.API.v2.Container.Container;
 using V2Version = NeoFS.API.v2.Refs.Version;
 using V2OwnerID = NeoFS.API.v2.Refs.OwnerID;
 using Google.Protobuf;
 
-namespace Neo.Fs.Tests
+namespace Neo.Plugins.FSNode.Tests
 {
     [TestClass]
     public class UT_Fmt

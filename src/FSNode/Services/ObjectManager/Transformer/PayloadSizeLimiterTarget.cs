@@ -11,11 +11,10 @@ using V2Object = NeoFS.API.v2.Object.Object;
 
 namespace Neo.FSNode.Services.ObjectManager.Transformer
 {
-    public class PayloadSizeLimiter : IObjectTarget
+    public class PayloadSizeLimiterTarget : IObjectTarget
     {
         private ulong maxSize;
         private ulong written;
-        private TargetInitializer targetInit;
         private IObjectTarget target;
         private V2Object current;
         private V2Object parent;
@@ -28,10 +27,9 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
         private Guid splitID;
         private V2Attribute[] parAttrs;
 
-        public PayloadSizeLimiter(ulong maxSz, TargetInitializer targetInitializer)
+        public PayloadSizeLimiterTarget(ulong maxSz)
         {
             this.maxSize = maxSz;
-            this.targetInit = targetInitializer;
             this.splitID = Guid.NewGuid();
         }
 
@@ -88,7 +86,7 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
         private void InitializeCurrent()
         {
             // initialize current object target
-            this.target = this.targetInit();
+            this.target = new FormatterTarget();
             // create payload hashers
             this.currentHashers = PayloadHashersForObject(this.current);
 
@@ -146,7 +144,7 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
             this.current.Header.Split.SplitId = ByteString.CopyFrom(this.splitID.ToByteArray());
         }
 
-        private void WriteChunk(byte[] chunk)
+        public void WriteChunk(byte[] chunk)
         {
             // statement is true if the previous write of bytes reached exactly the boundary.
             if (this.written > 0 && this.written % this.maxSize == 0)

@@ -1,8 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Multiformats.Address;
-using Neo.Fs.Network;
+using Neo.FSNode.Network;
 
-namespace Neo.Fs.Tests
+namespace Neo.FSNode.Tests
 {
     [TestClass]
     public class UT_Address

@@ -1,36 +1,42 @@
 using Google.Protobuf;
 using V2Object = NeoFS.API.v2.Object.Object;
 using NeoFS.API.v2.Refs;
+using static Neo.Helper;
 using Neo.FSNode.Core.Object;
+using Neo.FSNode.Services.ObjectManager.Transformer;
 using System;
 
 namespace Neo.FSNode.Services.Object.Put
 {
-    public abstract class ValidatingTarget : IPutTarget
+    public abstract class ValidatingTarget : IObjectTarget
     {
-        protected FormatValidator objectValidator;
+        public FormatValidator ObjectValidator;
         protected Checksum checksum;
         protected bool initReceived;
+        protected byte[] payload = Array.Empty<byte>();
+        protected PutResult putResult;
 
-        public ValidatingTarget(FormatValidator validator)
-        {
-            objectValidator = validator;
-        }
+        public PutResult Result => putResult;
 
-        public virtual void PutInit(V2Object init)
+        public virtual void WriteHeader(V2Object init)
         {
             checksum = init.Header.PayloadHash;
             if (!(checksum.Type == ChecksumType.Sha256 || checksum.Type == ChecksumType.Tz))
-                throw new InvalidOperationException(nameof(PutInit) + " unsupported paylaod checksum type " + checksum.Type);
-            if (!objectValidator.Validate(init))
-                throw new FormatException(nameof(PutInit) + " invalid object");
+                throw new InvalidOperationException(nameof(ValidatingTarget) + " unsupported paylaod checksum type " + checksum.Type);
+            if (!ObjectValidator.Validate(init))
+                throw new FormatException(nameof(ValidatingTarget) + " invalid object");
             initReceived = true;
         }
 
-        public virtual PutResult PutPayload(ByteString payload)
+        public virtual void WriteChunk(byte[] chunk)
         {
-            if (!initReceived) throw new InvalidOperationException(nameof(PutPayload) + " missing init");
-            if (!checksum.Verify(payload)) throw new InvalidOperationException(nameof(PutPayload) + " invalid checksum");
+            payload = Concat(payload, chunk);
+        }
+
+        public virtual AccessIdentifiers Close()
+        {
+            if (!initReceived) throw new InvalidOperationException(nameof(ValidatingTarget) + " missing init");
+            if (!checksum.Verify(ByteString.CopyFrom(payload))) throw new InvalidOperationException(nameof(ValidatingTarget) + " invalid checksum");
             return null;
         }
     }

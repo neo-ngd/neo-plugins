@@ -3,7 +3,6 @@ using Grpc.Core;
 using NeoFS.API.v2.Acl;
 using NeoFS.API.v2.Cryptography;
 using NeoFS.API.v2.Object;
-using NeoFS.API.v2.Session;
 using V2Object = NeoFS.API.v2.Object.Object;
 using Neo.FSNode.LocalObjectStorage.LocalStore;
 using Neo.FSNode.Core.Container;
@@ -16,6 +15,7 @@ using Neo.FSNode.Services.Object.Range;
 using Neo.FSNode.Services.Object.RangeHash;
 using Neo.FSNode.Services.Object.Search;
 using Neo.FSNode.Services.Object.Sign;
+using Neo.FSNode.Services.ObjectManager.Transformer;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
@@ -109,14 +109,14 @@ namespace Neo.FSNode.Services.Object
         {
             var init_received = false;
             var payload = new byte[0];
-            IPutTarget target = null;
+            IObjectTarget target = null;
             while (await requestStream.MoveNext())
             {
                 var request = requestStream.Current;
                 if (!init_received)
                 {
                     if (request.Body.ObjectPartCase != PutRequest.Types.Body.ObjectPartOneofCase.Init)
-                        new RpcException(new Status(StatusCode.DataLoss, " missing init"));
+                        throw new RpcException(new Status(StatusCode.DataLoss, " missing init"));
                     var init = request.Body.Init;
                     if (!init.VerifyRequest()) throw new RpcException(new Status(StatusCode.Unauthenticated, " verify header failed"));
                     var put_init_prm = PutInitPrm.FromRequest(request);
@@ -133,20 +133,19 @@ namespace Neo.FSNode.Services.Object
                 else
                 {
                     if (request.Body.ObjectPartCase != PutRequest.Types.Body.ObjectPartOneofCase.Chunk)
-                        new RpcException(new Status(StatusCode.DataLoss, " missing chunk"));
-                    var chunk = request.Body.Chunk;
-                    payload = payload.Concat(chunk).ToArray();
+                        throw new RpcException(new Status(StatusCode.DataLoss, " missing chunk"));
+                    if (target is null) throw new RpcException(new Status(StatusCode.DataLoss, "init missing"));
+                    target.WriteChunk(request.Body.Chunk.ToByteArray());
                 }
             }
             try
             {
-                if (target is null) throw new RpcException(new Status(StatusCode.DataLoss, "init missing"));
-                var result = target.PutPayload(ByteString.CopyFrom(payload));
+                var result = target.Close();
                 var resp = new PutResponse
                 {
                     Body = new PutResponse.Types.Body
                     {
-                        ObjectId = result.Current,
+                        ObjectId = result.Self,
                     }
                 };
                 return resp;

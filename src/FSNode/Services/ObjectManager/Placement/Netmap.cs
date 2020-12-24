@@ -1,9 +1,11 @@
 using Neo.FSNode.Core.Netmap;
 using NeoFS.API.v2.Netmap;
+using NeoFS.API.v2.Refs;
+using System.Collections.Generic;
 
 namespace Neo.FSNode.Services.ObjectManager.Placement
 {
-    public class NetMapBuilder
+    public class NetMapBuilder : IBuilder
     {
         private INetmapSource nmSrc;
 
@@ -15,6 +17,11 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
         public NetMapBuilder(NetMap netMap)
         {
             this.nmSrc = new NetMapSrc(netMap);
+        }
+
+        public List<Node[]> BuildPlacement(Address address, PlacementPolicy pp)
+        {
+            return new List<Node[]>();
         }
     }
 

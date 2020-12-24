@@ -1,94 +1,36 @@
 using NeoFS.API.v2.Netmap;
 using NeoFS.API.v2.Refs;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using V2 = NeoFS.API.v2.Container;
 
 namespace Neo.FSNode.Services.ObjectManager.Placement
 {
-    public interface IBuilder
-    {
-        Node[][] BuildPlacement(Address address, PlacementPolicy pp);
-    }
-
-    public delegate void Option(Cfg cfg);
-
-    public class Cfg
-    {
-        public static Cfg DefaultCfg = new Cfg() { Addr = new Address() };
-
-        public int Rem { get; set; }
-        public Address Addr { get; set; }
-        public PlacementPolicy Policy { get; set; }
-        public IBuilder Builder { get; set; }
-
-        public static Option UseBuilder(IBuilder b)
-        {
-            return (cfg) => { cfg.Builder = b; };
-        }
-
-        public static Option ForContainer(V2.Container ctn)
-        {
-            return (cfg) =>
-            {
-                cfg.Policy = ctn.PlacementPolicy;
-                cfg.Addr.ContainerId = ctn.CalCulateAndGetID;
-            };
-        }
-
-        public static Option ForObject(ObjectID id)
-        {
-            return (cfg) =>
-            {
-                cfg.Addr.ObjectId = id;
-            };
-        }
-
-        public static Option SuccessAfter(int v)
-        {
-            return (cfg) =>
-            {
-                if (v > 0)
-                    cfg.Rem = v;
-            };
-        }
-
-        public static Option WithoutSuccessTracking()
-        {
-            return (cfg) =>
-            {
-                cfg.Rem = -1;
-            };
-        }
-    }
-
     public class Traverser
     {
-        private Node[][] vectors;
+        public bool TrackCopies;
+        public int FlatSuccess;
+        public int Rem;
+        public Address Address;
+        public PlacementPolicy Policy;
+        public IBuilder Builder;
+        private List<Node[]> vectors;
         private int[] rem;
 
-        public Traverser(Option[] opts)
+        public Traverser()
         {
-            var cfg = Cfg.DefaultCfg;
-
-            foreach (var opt in opts)
-            {
-                if (opt != null)
-                    opt(cfg);
-            }
-
-            if (cfg.Builder == null)
+            if (Builder == null)
                 throw new InvalidOperationException("placement builder is null");
-            else if (cfg.Policy == null)
+            else if (Policy == null)
                 throw new InvalidOperationException("placement policy is null");
 
-            var ns = cfg.Builder.BuildPlacement(cfg.Addr, cfg.Policy);
-            var rs = cfg.Policy.Replicas;
-            var rem = new int[0];
+            var ns = Builder.BuildPlacement(Address, Policy);
+            var rs = Policy.Replicas;
+            var rem = Array.Empty<int>();
 
             foreach (var r in rs)
             {
-                var cnt = cfg.Rem;
+                var cnt = Rem;
                 if (cnt == 0)
                     cnt = (int)r.Count;
                 rem = rem.Append(cnt).ToArray();
@@ -101,7 +43,7 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
         public Network.Address[] Next()
         {
             this.SkipEmptyVectors();
-            if (this.vectors.Length == 0)
+            if (this.vectors.Count == 0)
                 return null;
             else if (this.vectors[0].Length < this.rem[0])
                 return null;
@@ -110,7 +52,7 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
             if (count < 0)
                 count = this.vectors[0].Length;
 
-            var addrs = new Network.Address[0];
+            var addrs = Array.Empty<Network.Address>();
 
             for (int i = 0; i < count; i++)
             {
@@ -124,12 +66,12 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
 
         private void SkipEmptyVectors()
         {
-            for (int i = 0; i < this.vectors.Length; i++)
+            for (int i = 0; i < vectors.Count; i++)
             {
-                if (this.vectors[i].Length == 0 && this.rem[i] <= 0 || this.rem[0] == 0)
+                if (vectors[i].Length == 0 && rem[i] <= 0 || rem[0] == 0)
                 {
-                    this.vectors = this.vectors[..i].Concat(this.vectors[(i + 1)..]).ToArray();
-                    this.rem = this.rem[..i].Concat(this.rem[(i + 1)..]).ToArray();
+                    vectors.Remove(vectors[i]);
+                    rem = rem[..i].Concat(rem[(i + 1)..]).ToArray();
                     i--;
                 }
                 else
@@ -139,15 +81,15 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
 
         public void SubmitSuccess()
         {
-            if (this.rem.Length > 0)
-                this.rem[0]--;
+            if (rem.Length > 0)
+                rem[0]--;
         }
 
         public bool Success()
         {
-            for (int i = 0; i < this.rem.Length; i++)
+            for (int i = 0; i < rem.Length; i++)
             {
-                if (this.rem[i] > 0)
+                if (rem[i] > 0)
                     return false;
             }
             return true;

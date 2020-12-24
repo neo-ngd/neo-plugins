@@ -1,23 +1,24 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.Fs.Services.ObjectManager.Placement;
+using Neo.FSNode.Services.ObjectManager.Placement;
 using NeoFS.API.v2.Container;
 using NeoFS.API.v2.Netmap;
 using NeoFS.API.v2.Refs;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace Neo.Fs.Tests
+namespace Neo.Plugins.FSNode.Tests
 {
     public class TestBuilder : IBuilder
     {
-        private Node[][] vectors;
+        private List<Node[]> vectors;
 
-        public TestBuilder(Node[][] vs)
+        public TestBuilder(List<Node[]> vs)
         {
             this.vectors = vs;
         }
 
-        public Node[][] BuildPlacement(Address addr, PlacementPolicy pp)
+        public List<Node[]> BuildPlacement(Address addr, PlacementPolicy pp)
         {
             return this.vectors;
         }
@@ -26,9 +27,9 @@ namespace Neo.Fs.Tests
     [TestClass]
     public class UT_Traverser
     {
-        private (Node[][], Container) PreparePlacement(int[] ss, int[] rs)
+        private (List<Node[]>, Container) PreparePlacement(int[] ss, int[] rs)
         {
-            var nodes = new Node[0][];
+            var nodes = new List<Node[]>();
             var replicas = new Replica[0];
             uint num = 0;
 
@@ -40,7 +41,7 @@ namespace Neo.Fs.Tests
                     ns = ns.Append(PrepareNode(num)).ToArray();
                     num++;
                 }
-                nodes = nodes.Append(NodesFromInfo(ns)).ToArray();
+                nodes.Add(NodesFromInfo(ns));
 
                 var r = new Replica() { Count = (uint)rs[i] };
                 replicas = replicas.Append(r).ToArray();
@@ -66,14 +67,14 @@ namespace Neo.Fs.Tests
             return nodes;
         }
 
-        private Node[][] CopyVectors(Node[][] v)
+        private List<Node[]> CopyVectors(List<Node[]> v)
         {
-            var vc = new Node[0][];
-            for (int i = 0; i < v.Length; i++)
+            var vc = new List<Node[]>();
+            for (int i = 0; i < v.Count; i++)
             {
                 var ns = new Node[v[i].Length];
                 Array.Copy(v[i], ns, v[i].Length);
-                vc = vc.Append(ns).ToArray();
+                vc.Add(ns);
             }
             return vc;
         }
@@ -84,18 +85,22 @@ namespace Neo.Fs.Tests
             var selectors = new int[] { 2, 3 };
             var replicas = new int[] { 1, 2 };
 
-            Node[][] nodes;
+            List<Node[]> nodes;
             Container ctn;
             (nodes, ctn) = PreparePlacement(selectors, replicas);
 
             var nodesCopy = CopyVectors(nodes);
 
-            var tr = new Traverser(new Option[]
+            var tr = new Traverser
             {
-                Cfg.ForContainer(ctn),
-                Cfg.UseBuilder(new TestBuilder(nodesCopy)),
-                Cfg.WithoutSuccessTracking()
-            });
+                Address = new Address
+                {
+                    ContainerId = ctn.CalCulateAndGetID,
+                },
+                Policy = ctn.PlacementPolicy,
+                Builder = new TestBuilder(nodesCopy),
+                TrackCopies = true,
+            };
 
             for (int i = 0; i < selectors.Length; i++)
             {
@@ -119,18 +124,21 @@ namespace Neo.Fs.Tests
             var selectors = new int[] { 5, 3 };
             var replicas = new int[] { 2, 2 };
 
-            Node[][] nodes;
+            List<Node[]> nodes;
             Container ctn;
             (nodes, ctn) = PreparePlacement(selectors, replicas);
 
             var nodesCopy = CopyVectors(nodes);
 
-            var tr = new Traverser(new Option[]
+            var tr = new Traverser
             {
-                Cfg.ForContainer(ctn),
-                Cfg.UseBuilder(new TestBuilder(nodesCopy)),
-                Cfg.SuccessAfter(1)
-            });
+                Address = new Address
+                {
+                    ContainerId = ctn.CalCulateAndGetID,
+                },
+                Builder = new TestBuilder(nodesCopy),
+                FlatSuccess = 1,
+            };
 
             Fn fn = (cv) =>
             {
@@ -162,17 +170,20 @@ namespace Neo.Fs.Tests
             var selectors = new int[] { 5, 3 };
             var replicas = new int[] { 2, 2 };
 
-            Node[][] nodes;
+            List<Node[]> nodes;
             Container ctn;
             (nodes, ctn) = PreparePlacement(selectors, replicas);
 
             var nodesCopy = CopyVectors(nodes);
 
-            var tr = new Traverser(new Option[]
+            var tr = new Traverser
             {
-                Cfg.ForContainer(ctn),
-                Cfg.UseBuilder(new TestBuilder(nodesCopy))
-            });
+                Address = new Address
+                {
+                    ContainerId = ctn.CalCulateAndGetID,
+                },
+                Builder = new TestBuilder(nodesCopy),
+            };
 
             Fn fn = (cv) =>
             {
