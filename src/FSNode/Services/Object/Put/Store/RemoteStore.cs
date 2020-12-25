@@ -9,26 +9,26 @@ namespace Neo.FSNode.Services.Object.Put.Store
 {
     public class RemoteStore : IStore
     {
-        private readonly KeyStorage keyStorage;
-        private readonly ClientCache clientCache;
-        private readonly Network.Address node;
-        private readonly SessionToken sessionToken;
-        private readonly BearerToken bearerToken;
+        public KeyStorage KeyStorage;
+        public ClientCache ClientCache;
+        public Network.Address Node;
+        public SessionToken SessionToken;
+        public BearerToken BearerToken;
 
         public void Put(V2Object obj)
         {
-            var key = keyStorage.GetKey(sessionToken);
+            var key = KeyStorage.GetKey(SessionToken);
             if (key is null)
                 throw new InvalidOperationException(nameof(Range) + " could not receive private key");
-            var addr = node.IPAddressString();
-            var client = clientCache.GetClient(key, addr);
+            var addr = Node.IPAddressString();
+            var client = ClientCache.GetClient(key, addr);
             if (client is null)
                 throw new InvalidOperationException(nameof(Range) + $" could not create SDK client {addr}");
             var oid = client.PutObject(obj, new NeoFS.API.v2.Client.CallOptions
             {
                 Ttl = 1,
-                Session = sessionToken,
-                Bearer = bearerToken,
+                Session = SessionToken,
+                Bearer = BearerToken,
             }).Result;
             if (oid is null)
                 throw new InvalidOperationException(nameof(Range) + $" could not read object payload range from {addr}");
