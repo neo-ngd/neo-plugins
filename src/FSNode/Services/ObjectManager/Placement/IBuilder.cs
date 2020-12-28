@@ -6,6 +6,6 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
 {
     public interface IBuilder
     {
-        List<Node[]> BuildPlacement(Address address, PlacementPolicy pp);
+        List<Node[]> BuildPlacement(Address address, PlacementPolicy policy);
     }
 }

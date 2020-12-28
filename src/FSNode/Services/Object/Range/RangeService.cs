@@ -8,6 +8,7 @@ using Neo.FSNode.Network;
 using Neo.FSNode.Services.Object.Head;
 using Neo.FSNode.Services.Object.Range.RangeSource;
 using Neo.FSNode.Services.Object.Util;
+using Neo.FSNode.Services.ObjectManager.Placement;
 using System;
 using System.Linq;
 
@@ -16,7 +17,7 @@ namespace Neo.FSNode.Services.Object.Range
     public class RangeService
     {
         private readonly HeadService headService;
-        private IPlacementTraverser placementTraverser;
+        private Traverser placementTraverser;
         private ILocalAddressSource localAddressSource;
         private INetmapSource netmapSource;
         private IContainerSource containerSource;
@@ -92,7 +93,7 @@ namespace Neo.FSNode.Services.Object.Range
                 while (true)
                 {
                     var addrs = placementTraverser.Next();
-                    if (addrs.Count == 0) break;
+                    if (addrs.Length == 0) break;
                     foreach (var addr in addrs)
                     {
                         IRangeSource rangeSource;
@@ -126,7 +127,16 @@ namespace Neo.FSNode.Services.Object.Range
         {
             var nm = netmapSource.GetLatestNetworkMap();
             var container = containerSource.Get(prm.Address.ContainerId);
-            //New Placment and PlacementTraverser
+            var builder = new PlacementBuilder(new NetMapSrc(nm));
+            if (prm.Local)
+                builder = new LocalPlacementBuilder(new NetMapSrc(nm), localAddressSource);
+            placementTraverser = new Traverser
+            {
+                Builder = builder,
+                Policy = container.PlacementPolicy,
+                Address = prm.Address,
+                FlatSuccess = 1,
+            };
         }
     }
 }

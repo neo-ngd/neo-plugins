@@ -5,21 +5,21 @@ using System.Collections.Generic;
 
 namespace Neo.FSNode.Services.ObjectManager.Placement
 {
-    public class NetMapBuilder : IBuilder
+    public class PlacementBuilder : IBuilder
     {
         private INetmapSource nmSrc;
 
-        public NetMapBuilder(INetmapSource source)
+        public PlacementBuilder(INetmapSource source)
         {
-            this.nmSrc = source;
+            nmSrc = source;
         }
 
-        public NetMapBuilder(NetMap netMap)
+        public PlacementBuilder(NetMap netMap)
         {
-            this.nmSrc = new NetMapSrc(netMap);
+            nmSrc = new NetMapSrc(netMap);
         }
 
-        public List<Node[]> BuildPlacement(Address address, PlacementPolicy pp)
+        public virtual List<Node[]> BuildPlacement(Address address, PlacementPolicy pp)
         {
             return new List<Node[]>();
         }
@@ -31,12 +31,12 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
 
         public NetMapSrc(NetMap netMap)
         {
-            this.nm = netMap;
+            nm = netMap;
         }
 
         public NetMap GetNetMap(ulong diff)
         {
-            return this.nm;
+            return nm;
         }
     }
 }

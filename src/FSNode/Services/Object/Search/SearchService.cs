@@ -1,8 +1,11 @@
 using NeoFS.API.v2.Refs;
+using V2Address = NeoFS.API.v2.Refs.Address;
 using Neo.FSNode.Core.Container;
 using Neo.FSNode.Core.Netmap;
 using Neo.FSNode.Network;
 using Neo.FSNode.Services.Object.Search.Searcher;
+using Neo.FSNode.Services.Object.Util;
+using Neo.FSNode.Services.ObjectManager.Placement;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,7 +28,7 @@ namespace Neo.FSNode.Services.Object.Search
             return Finish(prm, traverser);
         }
 
-        private IPlacementTraverser PreparePlacementTraverser(SearchPrm prm)
+        private Traverser PreparePlacementTraverser(SearchPrm prm)
         {
             var nm = netmapSource.GetLatestNetworkMap();
             if (nm is null)
@@ -33,19 +36,30 @@ namespace Neo.FSNode.Services.Object.Search
             var container = containerSource.Get(prm.CID);
             if (container is null)
                 throw new InvalidOperationException(nameof(SearchService) + " could not get container");
-            //Traverser Options
-            //New traverser
-            return null;
+            var builder = new PlacementBuilder(new NetMapSrc(nm));
+            if (prm.Local)
+                builder = new LocalPlacementBuilder(new NetMapSrc(nm), localAddressSource);
+            var traverser = new Traverser
+            {
+                Builder = builder,
+                Policy = container.PlacementPolicy,
+                Address = new V2Address
+                {
+                    ContainerId = container.CalCulateAndGetID,
+                },
+                FlatSuccess = 1,
+            };
+            return traverser;
         }
 
         //TODO: optimize
-        private List<ObjectID> Finish(SearchPrm prm, IPlacementTraverser traverser)
+        private List<ObjectID> Finish(SearchPrm prm, Traverser traverser)
         {
             var oids = new ConcurrentBag<ObjectID>();
             while (true)
             {
                 var addrs = traverser.Next();
-                if (addrs.Count == 0) break;
+                if (addrs.Length == 0) break;
                 var tasks = new List<Task>();
                 foreach (var addr in addrs)
                 {

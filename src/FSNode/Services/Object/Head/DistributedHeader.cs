@@ -1,14 +1,26 @@
-using NeoFS.API.v2.Object;
-using V2Object = NeoFS.API.v2.Object;
+using Neo.FSNode.Network;
 using Neo.FSNode.Core.Container;
 using Neo.FSNode.Core.Netmap;
+using Neo.FSNode.LocalObjectStorage.LocalStore;
+using Neo.FSNode.Network.Cache;
+using Neo.FSNode.Services.Object.Head.HeaderSource;
+using Neo.FSNode.Services.Object.Util;
+using Neo.FSNode.Services.ObjectManager.Placement;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Neo.FSNode.Services.Object.Head
 {
     public class DistributedHeader
     {
+        private Storage localStorage;
         private INetmapSource netmapSource;
         private IContainerSource containerSource;
+        private ILocalAddressSource localAddressSource;
+        public ClientCache ClientCache;
+        private Traverser traverser;
+        public KeyStorage KeyStorage;
 
         public HeadResult Head(HeadPrm prm)
         {
@@ -20,13 +32,64 @@ namespace Neo.FSNode.Services.Object.Head
         {
             var netmap = netmapSource.GetLatestNetworkMap();
             var container = containerSource.Get(prm.Address.ContainerId);
-            //TODO
+            var builder = new PlacementBuilder(new NetMapSrc(netmap));
+            if (prm.Local)
+                builder = new LocalPlacementBuilder(new NetMapSrc(netmap), localAddressSource);
+            traverser = new Traverser
+            {
+                Builder = builder,
+                Policy = container.PlacementPolicy,
+                Address = prm.Address,
+                FlatSuccess = 1,
+            };
         }
 
         private HeadResult Finish(HeadPrm prm)
         {
-            //TODO
-            return new HeadResult();
+            var resp = new HeadResult();
+            CancellationTokenSource source = default;
+            CancellationToken token = source.Token;
+            var writer = new OnceHeaderWriter
+            {
+                Traverser = traverser,
+                Result = resp,
+                TokenSource = source,
+            };
+            while (true)
+            {
+                var addrs = traverser.Next();
+                if (addrs.Length == 0) break;
+                var tasks = new Task[addrs.Length];
+                for (int i = 0; i < addrs.Length; i++)
+                {
+                    tasks[i] = Task.Run(() =>
+                    {
+                        IHeaderSource header_source = null;
+                        if (addrs[i].IsLocalAddress(localAddressSource))
+                        {
+                            header_source = new LocalHeaderSource
+                            {
+                                LocalStorage = localStorage
+                            };
+                        }
+                        else
+                        {
+                            header_source = new RemoteHeaderSource
+                            {
+                                KeyStorage = KeyStorage,
+                                ClientCache = ClientCache,
+                                Node = addrs[i],
+                                SessionToken = prm.SessionToken,
+                                BearerToken = prm.BearerToken,
+                            };
+                        }
+                        writer.Write(header_source.Head(prm.Address));
+                    });
+                }
+                Task.WaitAll(tasks);
+            }
+            if (!traverser.Success()) throw new InvalidOperationException(nameof(DistributedHeader) + " incomplete object header operation");
+            return resp;
         }
     }
 }

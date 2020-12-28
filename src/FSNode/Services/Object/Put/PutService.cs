@@ -60,7 +60,7 @@ namespace Neo.FSNode.Services.Object.Put
             if (container is null)
                 throw new InvalidOperationException(nameof(PreparePrm) + " could not get container by cid");
             prm.Container = container;
-            prm.Builder = new NetMapBuilder(new NetMapSrc(nm));
+            prm.Builder = new PlacementBuilder(new NetMapSrc(nm));
         }
     }
 }
