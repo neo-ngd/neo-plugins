@@ -42,25 +42,25 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
 
         public Network.Address[] Next()
         {
-            this.SkipEmptyVectors();
-            if (this.vectors.Count == 0)
+            SkipEmptyVectors();
+            if (vectors.Count == 0)
                 return null;
-            else if (this.vectors[0].Length < this.rem[0])
+            else if (vectors[0].Length < this.rem[0])
                 return null;
 
-            var count = this.rem[0];
+            var count = rem[0];
             if (count < 0)
-                count = this.vectors[0].Length;
+                count = vectors[0].Length;
 
             var addrs = Array.Empty<Network.Address>();
 
             for (int i = 0; i < count; i++)
             {
-                var addr = Network.Address.AddressFromString(this.vectors[0][i].NetworkAddress);
+                var addr = Network.Address.AddressFromString(vectors[0][i].NetworkAddress);
                 addrs = addrs.Append(addr).ToArray();
             }
 
-            this.vectors[0] = this.vectors[0][count..];
+            vectors[0] = vectors[0][count..];
             return addrs;
         }
 
