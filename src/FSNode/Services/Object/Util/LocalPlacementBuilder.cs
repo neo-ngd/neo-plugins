@@ -7,11 +7,11 @@ using System.Collections.Generic;
 
 namespace Neo.FSNode.Services.Object.Util
 {
-    public class LocalPlacementBuilder : PlacementBuilder
+    public class LocalPlacementBuilder : NetmapBuilder
     {
         private readonly ILocalAddressSource localAddressSource;
 
-        public LocalPlacementBuilder(NetMapSrc netmap_source, ILocalAddressSource address_source)
+        public LocalPlacementBuilder(NetmapSource netmap_source, ILocalAddressSource address_source)
         : base(netmap_source)
         {
             localAddressSource = address_source;

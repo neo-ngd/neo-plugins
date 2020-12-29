@@ -32,9 +32,9 @@ namespace Neo.FSNode.Services.Object.RangeHash
             var container = containerSource.Get(prm.Address.ContainerId);
             if (container is null)
                 throw new InvalidOperationException(nameof(Prepare) + " could not get container");
-            var builder = new PlacementBuilder(new NetMapSrc(nm));
+            var builder = new NetmapBuilder(new NetmapSource(nm));
             if (prm.Local)
-                builder = new LocalPlacementBuilder(new NetMapSrc(nm), localAddressSource);
+                builder = new LocalPlacementBuilder(new NetmapSource(nm), localAddressSource);
             traverser = new Traverser
             {
                 Builder = builder,

@@ -29,44 +29,44 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
 
         public PayloadSizeLimiterTarget(ulong maxSz)
         {
-            this.maxSize = maxSz;
-            this.splitID = Guid.NewGuid();
+            maxSize = maxSz;
+            splitID = Guid.NewGuid();
         }
 
         public void WriteHeader(V2Object obj)
         {
-            this.current = FromObject(obj);
-            this.Initialize();
+            current = FromObject(obj);
+            Initialize();
         }
 
         public int Write(byte[] p)
         {
-            this.WriteChunk(p);
+            WriteChunk(p);
             return p.Length;
         }
 
         public AccessIdentifiers Close()
         {
-            return this.Release(true);
+            return Release(true);
         }
 
         private void Initialize()
         {
-            var len = this.previous.Length;
+            var len = previous.Length;
             if (len > 0)
             {
                 if (len == 1)
                 {
-                    this.parent = this.current;
-                    this.parent.Header.Split = null; // resetRelations
-                    this.parentHashers = this.currentHashers;
-                    this.current = this.parent;
+                    parent = current;
+                    parent.Header.Split = null; // resetRelations
+                    parentHashers = currentHashers;
+                    current = parent;
                 }
 
-                this.current.Header.Split.Previous = this.previous[len - 1];
+                current.Header.Split.Previous = previous[len - 1];
             }
 
-            this.InitializeCurrent();
+            InitializeCurrent();
         }
 
         private V2Object FromObject(V2Object obj)
@@ -86,9 +86,9 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
         private void InitializeCurrent()
         {
             // initialize current object target
-            this.target = new FormatterTarget();
+            target = new FormatterTarget();
             // create payload hashers
-            this.currentHashers = PayloadHashersForObject(this.current);
+            currentHashers = PayloadHashersForObject(current);
 
             // TBD, add writer
             // compose multi-writer from target and all payload hashers
@@ -104,27 +104,27 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
             // Arg close is true only from Close method.
             // We finalize parent and generate linking objects only if it is more
             // than 1 object in split-chain
-            var withParent = close && this.previous.Length > 0;
+            var withParent = close && previous.Length > 0;
 
             if (withParent)
             {
-                WriteHashes(this.parentHashers);
-                this.parent.Header.PayloadLength = this.written;
-                this.current.Header.Split.Parent = this.parent.ObjectId;
+                WriteHashes(parentHashers);
+                parent.Header.PayloadLength = written;
+                current.Header.Split.Parent = parent.ObjectId;
             }
             // release current object
-            WriteHashes(this.currentHashers);
+            WriteHashes(currentHashers);
             // release current
-            this.target.WriteHeader(this.current);
+            target.WriteHeader(current);
 
-            var ids = this.target.Close();
-            this.previous = this.previous.Append(ids.Self).ToArray();
+            var ids = target.Close();
+            previous = previous.Append(ids.Self).ToArray();
 
             if (withParent)
             {
-                this.InitializeLinking();
-                this.InitializeCurrent();
-                this.Release(false);
+                InitializeLinking();
+                InitializeCurrent();
+                Release(false);
             }
             return ids;
         }
@@ -138,63 +138,63 @@ namespace Neo.FSNode.Services.ObjectManager.Transformer
 
         private void InitializeLinking()
         {
-            this.current = FromObject(this.current);
-            this.current.Header.Split.Parent = this.parent.ObjectId;
-            this.current.Header.Split.Children.AddRange(this.previous);
-            this.current.Header.Split.SplitId = ByteString.CopyFrom(this.splitID.ToByteArray());
+            current = FromObject(current);
+            current.Header.Split.Parent = parent.ObjectId;
+            current.Header.Split.Children.AddRange(previous);
+            current.Header.Split.SplitId = ByteString.CopyFrom(splitID.ToByteArray());
         }
 
         public void WriteChunk(byte[] chunk)
         {
             // statement is true if the previous write of bytes reached exactly the boundary.
-            if (this.written > 0 && this.written % this.maxSize == 0)
+            if (written > 0 && written % maxSize == 0)
             {
-                if (this.written == this.maxSize)
-                    this.PrepareFirstChild();
+                if (written == maxSize)
+                    PrepareFirstChild();
 
                 // need to release current object
-                this.Release(false);
+                Release(false);
                 // initialize another object
-                this.Initialize();
+                Initialize();
             }
 
             ulong len = (ulong)chunk.Length;
             var cut = len;
-            var leftToEdge = this.maxSize - this.written % this.maxSize;
+            var leftToEdge = maxSize - written % maxSize;
 
             if (len > leftToEdge)
                 cut = leftToEdge;
 
-            this.chunkWriter.Write(chunk[..(int)cut]);
+            chunkWriter.Write(chunk[..(int)cut]);
             // increase written bytes counter
-            this.written += cut;
+            written += cut;
             // if there are more bytes in buffer we call method again to start filling another object
             if (len > leftToEdge)
-                this.WriteChunk(chunk[(int)cut..]);
+                WriteChunk(chunk[(int)cut..]);
         }
 
         private void PrepareFirstChild()
         {
             // initialize split header with split ID on first object in chain
-            this.current.Header.Split = new Split(); // InitRelations
-            this.current.Header.Split.SplitId = ByteString.CopyFrom(this.splitID.ToByteArray());
+            current.Header.Split = new Split(); // InitRelations
+            current.Header.Split.SplitId = ByteString.CopyFrom(splitID.ToByteArray());
 
             // cut source attributes
-            this.parAttrs = this.current.Header.Attributes.ToArray();
-            this.current.Header.Attributes.Clear();
+            parAttrs = current.Header.Attributes.ToArray();
+            current.Header.Attributes.Clear();
 
             // attributes will be added to parent in detachParent
         }
 
         private void DetachParent()
         {
-            this.parent = this.current;
-            this.current = FromObject(this.parent);
-            this.parent.Header.Split = null; // reset relations
-            this.parentHashers = this.currentHashers;
+            parent = current;
+            current = FromObject(parent);
+            parent.Header.Split = null; // reset relations
+            parentHashers = currentHashers;
 
-            this.parent.Header.Attributes.Clear();
-            this.parent.Header.Attributes.AddRange(this.parAttrs);
+            parent.Header.Attributes.Clear();
+            parent.Header.Attributes.AddRange(parAttrs);
         }
     }
 

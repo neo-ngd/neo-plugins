@@ -32,9 +32,9 @@ namespace Neo.FSNode.Services.Object.Head
         {
             var netmap = netmapSource.GetLatestNetworkMap();
             var container = containerSource.Get(prm.Address.ContainerId);
-            var builder = new PlacementBuilder(new NetMapSrc(netmap));
+            var builder = new NetmapBuilder(new NetmapSource(netmap));
             if (prm.Local)
-                builder = new LocalPlacementBuilder(new NetMapSrc(netmap), localAddressSource);
+                builder = new LocalPlacementBuilder(new NetmapSource(netmap), localAddressSource);
             traverser = new Traverser
             {
                 Builder = builder,
