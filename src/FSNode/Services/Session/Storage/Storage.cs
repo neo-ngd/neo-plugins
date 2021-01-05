@@ -28,7 +28,7 @@ namespace Neo.FSNode.Services.Session.Storage
 
         public TokenStore()
         {
-            this.tokens = new Dictionary<Key, PrivateToken>();
+            tokens = new Dictionary<Key, PrivateToken>();
         }
 
         // Get returns private token corresponding to the given identifiers.
@@ -36,7 +36,7 @@ namespace Neo.FSNode.Services.Session.Storage
         {
             var b = ownerID.ToByteArray();
             var k = new Key(Base58.Encode(tokenID), Base58.Encode(b));
-            return this.tokens[k];
+            return tokens[k];
         }
 
         public CreateResponse.Types.Body Create(ServerCallContext ctx, CreateRequest.Types.Body body)
@@ -50,7 +50,7 @@ namespace Neo.FSNode.Services.Session.Storage
             random.NextBytes(sk);
 
             var key = new Key(Base58.Encode(gb), Base58.Encode(b));
-            this.tokens[key] = new PrivateToken(sk, body.Expiration);
+            tokens[key] = new PrivateToken(sk, body.Expiration);
 
             var keyPair = new KeyPair(sk);
             return new CreateResponse.Types.Body() { Id = ByteString.CopyFrom(gb), SessionKey = ByteString.CopyFrom(keyPair.PublicKey.EncodePoint(true)) };

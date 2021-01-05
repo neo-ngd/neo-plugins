@@ -11,14 +11,14 @@ namespace Neo.Plugins.FSNode.Tests
 {
     public class TestBuilder : IBuilder
     {
-        private List<Node[]> vectors;
+        private List<List<Node>> vectors;
 
-        public TestBuilder(List<Node[]> vs)
+        public TestBuilder(List<List<Node>> vs)
         {
             this.vectors = vs;
         }
 
-        public List<Node[]> BuildPlacement(Address addr, PlacementPolicy pp)
+        public List<List<Node>> BuildPlacement(Address addr, PlacementPolicy pp)
         {
             return this.vectors;
         }
@@ -27,9 +27,9 @@ namespace Neo.Plugins.FSNode.Tests
     [TestClass]
     public class UT_Traverser
     {
-        private (List<Node[]>, Container) PreparePlacement(int[] ss, int[] rs)
+        private (List<List<Node>>, Container) PreparePlacement(int[] ss, int[] rs)
         {
-            var nodes = new List<Node[]>();
+            var nodes = new List<List<Node>>();
             var replicas = new Replica[0];
             uint num = 0;
 
@@ -57,9 +57,9 @@ namespace Neo.Plugins.FSNode.Tests
             return new NodeInfo() { Address = "/ip4/0.0.0.0/tcp/" + v.ToString() };
         }
 
-        private Node[] NodesFromInfo(NodeInfo[] infos)
+        private List<Node> NodesFromInfo(NodeInfo[] infos)
         {
-            var nodes = new Node[infos.Length];
+            var nodes = new List<Node>();
             for (int i = 0; i < infos.Length; i++)
             {
                 nodes[i] = new Node(i, infos[i]);
@@ -67,13 +67,13 @@ namespace Neo.Plugins.FSNode.Tests
             return nodes;
         }
 
-        private List<Node[]> CopyVectors(List<Node[]> v)
+        private List<List<Node>> CopyVectors(List<List<Node>> v)
         {
-            var vc = new List<Node[]>();
+            var vc = new List<List<Node>>();
             for (int i = 0; i < v.Count; i++)
             {
-                var ns = new Node[v[i].Length];
-                Array.Copy(v[i], ns, v[i].Length);
+                var ns = new List<Node>();
+                v[i].ForEach(n => ns.Add(n));
                 vc.Add(ns);
             }
             return vc;
@@ -85,7 +85,7 @@ namespace Neo.Plugins.FSNode.Tests
             var selectors = new int[] { 2, 3 };
             var replicas = new int[] { 1, 2 };
 
-            List<Node[]> nodes;
+            List<List<Node>> nodes;
             Container ctn;
             (nodes, ctn) = PreparePlacement(selectors, replicas);
 
@@ -105,9 +105,9 @@ namespace Neo.Plugins.FSNode.Tests
             for (int i = 0; i < selectors.Length; i++)
             {
                 var addrs = tr.Next();
-                Assert.AreEqual(nodes[i].Length, addrs.Length);
+                Assert.AreEqual(nodes[i].Count, addrs.Length);
 
-                for (int j = 0; j < nodes[i].Length; j++)
+                for (int j = 0; j < nodes[i].Count; j++)
                 {
                     Assert.AreEqual(addrs[j].String(), nodes[i][j].NetworkAddress);
                 }
@@ -124,7 +124,7 @@ namespace Neo.Plugins.FSNode.Tests
             var selectors = new int[] { 5, 3 };
             var replicas = new int[] { 2, 2 };
 
-            List<Node[]> nodes;
+            List<List<Node>> nodes;
             Container ctn;
             (nodes, ctn) = PreparePlacement(selectors, replicas);
 
@@ -170,7 +170,7 @@ namespace Neo.Plugins.FSNode.Tests
             var selectors = new int[] { 5, 3 };
             var replicas = new int[] { 2, 2 };
 
-            List<Node[]> nodes;
+            List<List<Node>> nodes;
             Container ctn;
             (nodes, ctn) = PreparePlacement(selectors, replicas);
 

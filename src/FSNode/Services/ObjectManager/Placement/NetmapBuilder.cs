@@ -20,14 +20,14 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
             netmapSource = new NetmapSource(netMap);
         }
 
-        public virtual List<Node[]> BuildPlacement(Address address, PlacementPolicy policy)
+        public virtual List<List<Node>> BuildPlacement(Address address, PlacementPolicy policy)
         {
             var netmap = netmapSource.GetLatestNetworkMap();
             var nodes = netmap.GetContainerNodes(policy, address.ContainerId.Value.ToByteArray());
             return BuildObjectPlacement(netmap, nodes, address.ObjectId);
         }
 
-        public static List<Node[]> BuildObjectPlacement(NetMap netmap, List<Node[]> container_nodes, ObjectID oid)
+        public static List<List<Node>> BuildObjectPlacement(NetMap netmap, List<List<Node>> container_nodes, ObjectID oid)
         {
             if (oid is null)
                 return container_nodes;

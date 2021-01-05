@@ -17,7 +17,7 @@ namespace Neo.FSNode.Services.Object.Util
             localAddressSource = address_source;
         }
 
-        public override List<Node[]> BuildPlacement(V2Address address, PlacementPolicy policy)
+        public override List<List<Node>> BuildPlacement(V2Address address, PlacementPolicy policy)
         {
             var node_list = base.BuildPlacement(address, policy);
             foreach (var ns in node_list)
@@ -26,7 +26,7 @@ namespace Neo.FSNode.Services.Object.Util
                 {
                     var addr = AddressFromString(n.NetworkAddress);
                     if (addr.IsLocalAddress(localAddressSource))
-                        return new List<Node[]> { new Node[] { n } };
+                        return new List<List<Node>> { new List<Node> { n } };
                 }
             }
             return null;

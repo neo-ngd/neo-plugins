@@ -78,7 +78,7 @@ namespace Neo.FSNode.Services.Policer
             return jobFilters;
         }
 
-        private void ProcessNode(V2Address address, Node[] nodes, uint shortage)
+        private void ProcessNode(V2Address address, List<Node> nodes, uint shortage)
         {
             var nlist = nodes.ToList();
             foreach (var n in nlist)

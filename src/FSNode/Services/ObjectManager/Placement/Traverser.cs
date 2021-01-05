@@ -14,7 +14,7 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
         public Address Address;
         public PlacementPolicy Policy;
         public IBuilder Builder;
-        private List<Node[]> vectors;
+        private List<List<Node>> vectors;
         private int[] rem;
 
         public Traverser()
@@ -45,12 +45,12 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
             SkipEmptyVectors();
             if (vectors.Count == 0)
                 return null;
-            else if (vectors[0].Length < this.rem[0])
+            else if (vectors[0].Count < rem[0])
                 return null;
 
             var count = rem[0];
             if (count < 0)
-                count = vectors[0].Length;
+                count = vectors[0].Count;
 
             var addrs = Array.Empty<Network.Address>();
 
@@ -60,7 +60,7 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
                 addrs = addrs.Append(addr).ToArray();
             }
 
-            vectors[0] = vectors[0][count..];
+            vectors[0] = vectors[0].Skip(count).ToList();
             return addrs;
         }
 
@@ -68,7 +68,7 @@ namespace Neo.FSNode.Services.ObjectManager.Placement
         {
             for (int i = 0; i < vectors.Count; i++)
             {
-                if (vectors[i].Length == 0 && rem[i] <= 0 || rem[0] == 0)
+                if (vectors[i].Count == 0 && rem[i] <= 0 || rem[0] == 0)
                 {
                     vectors.Remove(vectors[i]);
                     rem = rem[..i].Concat(rem[(i + 1)..]).ToArray();

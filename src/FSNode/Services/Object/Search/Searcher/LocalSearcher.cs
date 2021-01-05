@@ -13,7 +13,7 @@ namespace Neo.FSNode.Services.Object.Search.Searcher
 
         public List<ObjectID> Search(ContainerID cid, SearchFilters Filters)
         {
-            Filters.AddObjectContainerIDFilter(cid, MatchType.StringEqual);
+            Filters.AddObjectContainerIDFilter(MatchType.StringEqual, cid);
             var addrs = localStorage.Select(Filters);
             if (addrs is null)
                 throw new InvalidOperationException(nameof(LocalSearcher) + " could not select objects from local storage");

@@ -16,11 +16,12 @@
     <PackageReference Include="Akka" Version="1.4.13" />
     <PackageReference Include="Multiformats.Address" Version="1.1.1" />
     <PackageReference Include="Sprache" Version="2.3.1" />
-    <PackageReference Include="NeoFS.API" Version="0.0.11" />
+    <PackageReference Include="NeoFS.API" Version="0.0.12" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\LevelDBStore\LevelDBStore.csproj" />
+    <ProjectReference Include="..\..\..\neofs-api-csharp\src\api\api.csproj" />
   </ItemGroup>
 
 </Project>
