@@ -15,7 +15,7 @@ namespace Neo.FileStorage.InnerRing.Invoker
         private const string SetNewEpochMethod = "newEpoch";
         private const string ApprovePeerMethod = "addPeer";
         private const string UpdatePeerStateMethod = "updateState";
-        private const string SetConfigMethod = "setConfigMethod";
+        private const string SetConfigMethod = "setConfig";
         private const string SetInnerRingMethod = "updateInnerRing";
         private const string GetNetmapSnapshotMethod = "netmap";
 

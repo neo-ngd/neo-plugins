@@ -76,7 +76,7 @@ namespace Neo.FileStorage.Tests.Morph.Invoker
         public void InvokeEpochTest()
         {
             ulong result = MorphContractInvoker.InvokeEpoch(client);
-            Assert.AreEqual(result, 1);
+            Assert.AreEqual(result, 1ul);
         }
 
         [TestMethod]
@@ -241,7 +241,7 @@ namespace Neo.FileStorage.Tests.Morph.Invoker
             };
             List<ContainerID> result = MorphContractInvoker.InvokeGetContainerList(client, ownerId);
             Assert.AreEqual(result.Count, 1);
-            Assert.AreEqual(result.ElementAt(0).ToByteArray().ToHexString(), container.CalCulateAndGetId.Value.ToByteArray().ToHexString());
+            Assert.AreEqual(result.ElementAt(0).ToByteArray().TakeLast(32).ToArray().ToHexString(), container.CalCulateAndGetId.Value.ToByteArray().ToHexString());
         }
     }
 }
