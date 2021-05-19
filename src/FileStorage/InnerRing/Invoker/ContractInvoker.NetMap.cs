@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Neo.FileStorage.Morph.Invoker;
 using System;
 using Neo.VM;
+using Neo.SmartContract;
 
 namespace Neo.FileStorage.InnerRing.Invoker
 {
@@ -54,7 +55,14 @@ namespace Neo.FileStorage.InnerRing.Invoker
         public static bool SetInnerRing(this Client client, ECPoint[] publicKeys)
         {
             if (client is null) throw new Exception("client is nil");
-            return client.Invoke(out _, NetMapContractHash, SetInnerRingMethod, ExtraFee, publicKeys);
+            var array = new ContractParameter(ContractParameterType.Array);
+            var list = new List<ContractParameter>();
+            foreach (var publicKey in publicKeys)
+            {
+                list.Add(new ContractParameter(ContractParameterType.PublicKey) { Value = publicKey });
+            }
+            array.Value = list;
+            return client.Invoke(out _, NetMapContractHash, SetInnerRingMethod, ExtraFee, array);
         }
 
         public static NodeInfo[] NetmapSnapshot(this Client client)
