@@ -35,6 +35,8 @@ namespace Neo.FileStorage.Tests.Morph.Invoker
                 {
                     wallet = wallet,
                     system = system,
+                    actor = this.ActorOf(Props.Create(() => new ProcessorFakeActor()))
+
                 }
             };
         }
