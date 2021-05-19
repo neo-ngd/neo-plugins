@@ -24,7 +24,8 @@ namespace Neo.FileStorage.Tests.Morph.Invoker
             client = new MorphClient()
             {
                 wallet = wallet,
-                system = system
+                system = system,
+                actor = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor())),
             };
         }
 
@@ -33,7 +34,7 @@ namespace Neo.FileStorage.Tests.Morph.Invoker
         {
             InvokeResult result = client.TestInvoke(NativeContract.GAS.Hash, "balanceOf", UInt160.Zero);
             Assert.AreEqual(result.State, VM.VMState.HALT);
-            Assert.AreEqual(result.GasConsumed, 1999390);
+            Assert.AreEqual(result.GasConsumed, 2028330);
             Assert.AreEqual(result.ResultStack[0].GetInteger(), 0);
         }
 

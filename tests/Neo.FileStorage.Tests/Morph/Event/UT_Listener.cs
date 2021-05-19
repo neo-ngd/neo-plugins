@@ -28,6 +28,7 @@ namespace Neo.FileStorage.Tests.Morph.Event
         {
             wallet = TestBlockchain.wallet;
             listener = Sys.ActorOf(Listener.Props("Testlistener"));
+            system = TestBlockchain.TheNeoSystem;
         }
 
         [TestMethod]

@@ -58,12 +58,12 @@ namespace Neo.FileStorage.Tests
 
         private List<Node> NodesFromInfo(NodeInfo[] infos)
         {
-            var nodes = new List<Node>();
+            var nodes = new Node[infos.Length];
             for (int i = 0; i < infos.Length; i++)
             {
                 nodes[i] = new Node(i, infos[i]);
             }
-            return nodes;
+            return nodes.ToList();
         }
 
         private List<List<Node>> CopyVectors(List<List<Node>> v)
