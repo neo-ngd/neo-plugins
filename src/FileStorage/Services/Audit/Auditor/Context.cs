@@ -1,8 +1,9 @@
-using Neo.FileStorage.API.Cryptography.Tz;
-using FSObject = Neo.FileStorage.API.Object.Object;
-using Neo.FileStorage.API.Refs;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Akka.Actor;
+using Neo.FileStorage.API.Cryptography.Tz;
+using Neo.FileStorage.API.Refs;
+using FSObject = Neo.FileStorage.API.Object.Object;
 
 namespace Neo.FileStorage.Services.Audit.Auditor
 {
@@ -12,12 +13,14 @@ namespace Neo.FileStorage.Services.Audit.Auditor
         private readonly int minGamePayloadSize = hashRangeNumber * new TzHash().HashSize;
         public IContainerCommunicator ContainerCommunacator;
         public AuditTask AuditTask;
+        public IActorRef PorPool { get; init; }
+        public IActorRef PdpPool { get; init; }
         public ulong MaxPDPInterval;//MillisecondsTimeout
         private Report report;
         private readonly ConcurrentDictionary<string, ShortHeader> HeaderCache = default;
         private readonly List<GamePair> pairs = default;
         private readonly ConcurrentDictionary<ulong, PairMemberInfo> pairedNodes = default;
-        private bool Expired => AuditTask.Context.IsCancellationRequested;
+        private bool Expired => AuditTask.Cancellation.IsCancellationRequested;
 
         public void Execute()
         {
@@ -32,7 +35,7 @@ namespace Neo.FileStorage.Services.Audit.Auditor
         private void Initialize()
         {
             report = new Report();
-            report.SetContainerID(AuditTask.CID);
+            report.SetContainerID(AuditTask.ContainerID);
         }
 
         private void Complete()

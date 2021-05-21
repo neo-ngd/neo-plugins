@@ -1,28 +1,34 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Neo.FileStorage.Services.Audit.Auditor;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Neo.FileStorage.Utils;
 
 namespace Neo.FileStorage.Services.Audit
 {
     public class Manager : UntypedActor
     {
-        public class ResetMessage { }
-        private class Start { }
-
         public const int DefaultCapacity = 100;
+        public class ResetMessage { }
         private readonly int taskQueueCapacity = DefaultCapacity;
         private readonly IContainerCommunicator communicator;
-        private readonly ulong maxPDPInterval;//MillisecondsTimeout
+        private readonly ulong maxPDPIntervalMilliseconds;
         private readonly Queue<AuditTask> taskQueue;
-        private Task runningTask;
+        private readonly IActorRef workPool;
+        private readonly Func<IActorRef> porPoolGenerator;
+        private readonly Func<IActorRef> pdpPoolGenerator;
 
-        public Manager(int capacity, IContainerCommunicator container_communicator, ulong max_pdp_interval)
+        public Manager(int capacity, IActorRef wp, Func<IActorRef> por_pool_generator, Func<IActorRef> pdp_pool_generator, IContainerCommunicator container_communicator, ulong max_pdp_interval)
         {
             taskQueueCapacity = capacity;
             taskQueue = new Queue<AuditTask>(taskQueueCapacity);
             communicator = container_communicator;
-            maxPDPInterval = max_pdp_interval;
+            maxPDPIntervalMilliseconds = max_pdp_interval;
+            porPoolGenerator = por_pool_generator;
+            pdpPoolGenerator = pdp_pool_generator;
+            workPool = wp;
         }
 
         protected override void OnReceive(object message)
@@ -30,10 +36,7 @@ namespace Neo.FileStorage.Services.Audit
             switch (message)
             {
                 case AuditTask task:
-                    PushTask(task);
-                    break;
-                case Start _:
-                    HandleTask();
+                    NewTask(task);
                     break;
                 case ResetMessage _:
                     Sender.Tell(Reset());
@@ -41,32 +44,37 @@ namespace Neo.FileStorage.Services.Audit
             }
         }
 
-        private void PushTask(AuditTask task)
+        private void NewTask(AuditTask task)
         {
-            if (taskQueueCapacity <= taskQueue.Count)
-                return;
-            taskQueue.Enqueue(task);
-            if (runningTask is null || runningTask.Status != TaskStatus.Running)
-                Self.Tell(new Start());
+            if (taskQueue.Count < taskQueueCapacity)
+            {
+                taskQueue.Enqueue(task);
+            }
+            HandleTask();
         }
 
         private void HandleTask()
         {
-            if (runningTask != null && runningTask.Status == TaskStatus.Running)
-                return;
-            if (!taskQueue.TryDequeue(out AuditTask task))
-                return;
-            var context = new Context
+            if (taskQueue.TryPeek(out AuditTask task))
             {
-                ContainerCommunacator = communicator,
-                AuditTask = task,
-                MaxPDPInterval = maxPDPInterval,
-            };
-            runningTask = Task.Run(() =>
-            {
-                context.Execute();
-                Self.Tell(new Start());
-            });
+                task.Auditor = new Context
+                {
+                    ContainerCommunacator = communicator,
+                    AuditTask = task,
+                    MaxPDPInterval = maxPDPIntervalMilliseconds,
+                    PorPool = porPoolGenerator(),
+                    PdpPool = pdpPoolGenerator()
+                };
+                Task t = Task.Run(() =>
+                {
+                    task.Auditor.Execute();
+                    HandleTask();
+                });
+                if ((bool)workPool.Ask(new WorkerPool.NewTask() { Process = "AuditManager", Task = t }).Result)
+                {
+                    taskQueue.Dequeue();
+                }
+            }
         }
 
         private int Reset()
@@ -76,9 +84,9 @@ namespace Neo.FileStorage.Services.Audit
             return count;
         }
 
-        public static Props Props(int capacity, IContainerCommunicator container_communicator, ulong max_pdp_interval)
+        public static Props Props(int capacity, IActorRef wp, Func<IActorRef> por_pool_generator, Func<IActorRef> pdp_pool_generator, IContainerCommunicator container_communicator, ulong max_pdp_interval)
         {
-            return Akka.Actor.Props.Create(() => new Manager(capacity, container_communicator, max_pdp_interval));
+            return Akka.Actor.Props.Create(() => new Manager(capacity, wp, por_pool_generator, pdp_pool_generator, container_communicator, max_pdp_interval));
         }
     }
 }

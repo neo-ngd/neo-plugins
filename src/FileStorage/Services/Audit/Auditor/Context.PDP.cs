@@ -1,11 +1,13 @@
-using Neo.FileStorage.API.Cryptography.Tz;
-using Neo.FileStorage.API.Netmap;
-using Neo.FileStorage.API.Refs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Akka.Actor;
+using Neo.FileStorage.API.Cryptography.Tz;
+using Neo.FileStorage.API.Netmap;
+using Neo.FileStorage.API.Refs;
+using Neo.FileStorage.Utils;
 using static Neo.FileStorage.Services.Audit.Auditor.Util;
 using FSRange = Neo.FileStorage.API.Object.Range;
 
@@ -22,15 +24,19 @@ namespace Neo.FileStorage.Services.Audit.Auditor
 
         private void ProcessPairs()
         {
-            var tasks = new Task[pairs.Count];
+            List<Task> tasks = new();
             for (int i = 0; i < pairs.Count; i++)
             {
-                tasks[i] = Task.Run(() =>
+                Task t = new(() =>
                 {
                     ProcessPair(pairs[i]);
                 });
+                if ((bool)PorPool.Ask(new WorkerPool.NewTask { Process = "PDP", Task = tasks[i] }).Result)
+                {
+                    tasks.Add(t);
+                }
             }
-            Task.WaitAll(tasks);
+            Task.WaitAll(tasks.ToArray());
         }
 
         private void ProcessPair(GamePair pair)
@@ -59,20 +65,22 @@ namespace Neo.FileStorage.Services.Audit.Auditor
             pair.Range2 = new List<FSRange>(hashRangeNumber - 1);
             for (int i = 0; i < hashRangeNumber - 1; i++)
             {
-                pair.Range1[i] = new FSRange();
-                pair.Range2[i] = new FSRange();
+                pair.Range1.Add(new FSRange());
+                pair.Range2.Add(new FSRange());
             }
             var notches = SplitPayload(pair.Id);
 
+            pair.Range1[0].Offset = 0;
             pair.Range1[0].Length = notches[1];
             pair.Range1[1].Offset = notches[1];
             pair.Range1[1].Length = notches[2] - notches[1];
             pair.Range1[2].Offset = notches[2];
             pair.Range1[2].Length = notches[3] - notches[2];
 
+            pair.Range2[0].Offset = 0;
             pair.Range2[0].Length = notches[0];
             pair.Range2[1].Offset = notches[0];
-            pair.Range2[1].Length = notches[2] - notches[0];
+            pair.Range2[1].Length = notches[1] - notches[0];
             pair.Range2[2].Offset = notches[1];
             pair.Range2[2].Length = notches[3] - notches[1];
         }
@@ -83,15 +91,29 @@ namespace Neo.FileStorage.Services.Audit.Auditor
             foreach (var range in pair.Range1)
             {
                 Thread.Sleep((int)RandomUInt64(MaxPDPInterval));
-                var hash = ContainerCommunacator.GetRangeHash(AuditTask, pair.N1, pair.Id, range);
-                if (hash != null) pair.Hashes1.Add(hash);
+                try
+                {
+                    var hash = ContainerCommunacator.GetRangeHash(AuditTask, pair.N1, pair.Id, range);
+                    pair.Hashes1.Add(hash);
+                }
+                catch
+                {
+                    return;
+                }
             }
             pair.Hashes2 = new List<byte[]>(pair.Range2.Count);
             foreach (var range in pair.Range2)
             {
                 Thread.Sleep((int)RandomUInt64(MaxPDPInterval));
-                var hash = ContainerCommunacator.GetRangeHash(AuditTask, pair.N2, pair.Id, range);
-                if (hash != null) pair.Hashes2.Add(hash);
+                try
+                {
+                    var hash = ContainerCommunacator.GetRangeHash(AuditTask, pair.N2, pair.Id, range);
+                    pair.Hashes2.Add(hash);
+                }
+                catch
+                {
+                    return;
+                }
             }
         }
 
@@ -132,7 +154,7 @@ namespace Neo.FileStorage.Services.Audit.Auditor
             {
                 ulong next_len;
                 if (i < hashRangeNumber - 1)
-                    next_len = RandomUInt64(size - prev - (hashRangeNumber - 1)) + 1;
+                    next_len = RandomUInt64(size - prev - (hashRangeNumber - (ulong)i)) + 1;
                 else
                     next_len = size - prev;
                 notches.Add(prev + next_len);

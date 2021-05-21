@@ -1,14 +1,15 @@
-using Google.Protobuf;
-using Neo.FileStorage.API.Cryptography.Tz;
-using Neo.FileStorage.API.Netmap;
-using Neo.FileStorage.API.Refs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FSStorageGroup = Neo.FileStorage.API.StorageGroup.StorageGroup;
+using Akka.Actor;
+using Neo.FileStorage.API.Cryptography.Tz;
+using Neo.FileStorage.API.Netmap;
+using Neo.FileStorage.API.Refs;
+using Neo.FileStorage.Utils;
 using FSObject = Neo.FileStorage.API.Object.Object;
+using FSStorageGroup = Neo.FileStorage.API.StorageGroup.StorageGroup;
 
 namespace Neo.FileStorage.Services.Audit.Auditor
 {
@@ -20,15 +21,19 @@ namespace Neo.FileStorage.Services.Audit.Auditor
         private void ExecutePoR()
         {
             if (Expired) return;
-            var tasks = new Task[AuditTask.SGList.Count];
+            List<Task> tasks = new();
             for (int i = 0; i < AuditTask.SGList.Count; i++)
             {
-                tasks[i] = Task.Run(() =>
+                Task t = new(() =>
                 {
                     CheckStorageGroupPoR(i, AuditTask.SGList[i]);
                 });
+                if ((bool)PorPool.Ask(new WorkerPool.NewTask { Process = "POR", Task = tasks[i] }).Result)
+                {
+                    tasks.Add(t);
+                }
             }
-            Task.WaitAll(tasks);
+            Task.WaitAll(tasks.ToArray());
             report.SetPoRCounters((uint)porRequests, (uint)porRetries);
         }
 
@@ -95,7 +100,7 @@ namespace Neo.FileStorage.Services.Audit.Auditor
             Interlocked.Add(ref porRequests, acc_req);
             Interlocked.Add(ref porRetries, acc_retries);
             var size_check = sg.ValidationDataSize == total_size;
-            var tz_check = tzhash.SequenceEqual(sg.ValidationHash.ToByteArray());
+            var tz_check = tzhash.SequenceEqual(sg.ValidationHash.Sum.ToByteArray());
             if (size_check && tz_check)
                 report.PassedPoR(oid);
             else
