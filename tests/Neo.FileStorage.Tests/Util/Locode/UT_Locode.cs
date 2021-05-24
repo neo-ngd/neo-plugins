@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -38,8 +39,10 @@ namespace Neo.FileStorage.Tests.Util.Locode
             };
             string dbPath = "./Data_LOCODE";
             StorageDB targetDb = new(dbPath);
+            Console.WriteLine(Path.GetFullPath(dbPath));
             targetDb.FillDatabase(locodeDB, airportsDB, continentDB);
-            Directory.Delete(dbPath, true);
+            targetDb.Dispose();
+            //Directory.Delete(dbPath, true);
         }
 
         [TestMethod]

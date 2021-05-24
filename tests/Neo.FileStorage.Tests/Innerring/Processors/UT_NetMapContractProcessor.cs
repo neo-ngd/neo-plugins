@@ -1,16 +1,22 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.FileStorage.InnerRing;
 using Neo.FileStorage.InnerRing.Processors;
+using Neo.FileStorage.Morph.Event;
 using Neo.FileStorage.Morph.Invoker;
-using Neo.FileStorage.API.Netmap;
+using Neo.FileStorage.Services.Audit;
+using Neo.FileStorage.Utils;
+using Neo.FileStorage.Utils.Locode.Db;
 using Neo.IO;
 using Neo.Wallets;
-using static Neo.FileStorage.Morph.Event.MorphEvent;
+using static Neo.FileStorage.InnerRing.Processors.SettlementProcessor;
 using static Neo.FileStorage.InnerRing.Timer.TimerTickEvent;
-using System.Collections.Generic;
-using System.Linq;
+using static Neo.FileStorage.Morph.Event.MorphEvent;
 
 namespace Neo.FileStorage.Tests.InnerRing.Processors
 {
@@ -19,29 +25,87 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
     {
         private NeoSystem system;
         private NetMapContractProcessor processor;
-        private MorphClient morphclient;
+        private Client morphclient;
         private Wallet wallet;
+        private IActorRef actor;
+        private TestUtils.TestState state;
 
         [TestInitialize]
         public void TestSetup()
         {
             system = TestBlockchain.TheNeoSystem;
-            system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor()));
             wallet = TestBlockchain.wallet;
-            morphclient = new MorphClient()
+            actor = this.ActorOf(Props.Create(() => new ProcessorFakeActor()));
+            morphclient = new Client()
             {
-                wallet = wallet,
-                system = system
+                client = new MorphClient()
+                {
+                    wallet = wallet,
+                    system = system,
+                    actor = actor
+                }
+            };
+            state = new TestUtils.TestState() { alphabetIndex = 1, isAlphabet = true, isActive = true, epoch = 1, actor = this.TestActor };
+            var clientCache = new RpcClientCache() { wallet = wallet };
+            var auditTaskManager = system.ActorSystem.ActorOf(Manager.Props(Settings.Default.QueueCapacity,
+            system.ActorSystem.ActorOf(WorkerPool.Props("AuditManager", Settings.Default.AuditTaskPoolSize)), () =>
+            {
+                return system.ActorSystem.ActorOf(WorkerPool.Props("POR", Settings.Default.PorPoolSize));
+            }, () =>
+            {
+                return system.ActorSystem.ActorOf(WorkerPool.Props("PDP", Settings.Default.PdpPoolSize));
+            }, clientCache, Settings.Default.MaxPDPSleepInterval));
+            var auditContractProcessor = new AuditContractProcessor()
+            {
+                MorphCli = morphclient,
+                ClientCache = clientCache,
+                TaskManager = auditTaskManager,
+                State = state,
+                WorkPool = actor,
+            };
+            var governanceProcessor = new GovernanceProcessor()
+            {
+                MorphCli = morphclient,
+                MainCli = morphclient,
+                ProtocolSettings = system.Settings,
+                State = state,
+                WorkPool = actor
+            };
+            var auditCalcDeps = new AuditSettlementDeps()
+            {
+                client = morphclient,
+                clientCache = clientCache,
+            };
+            var basicSettlementDeps = new BasicIncomeSettlementDeps()
+            {
+                client = morphclient,
+            };
+            var auditSettlementCalc = new Calculator(auditCalcDeps);
+            var settlementProcessor = new SettlementProcessor()
+            {
+                basicIncome = basicSettlementDeps,
+                auditProc = auditSettlementCalc,
+                State = state,
+                WorkPool = actor
             };
             processor = new NetMapContractProcessor()
             {
-                MorphCli = new Client() { client = morphclient },
-                //ActiveState = new TestActiveState(),
-                //EpochState = new EpochState(),
-                //EpochTimerReseter = new EpochTimerReseter(),
-                WorkPool = system.ActorSystem.ActorOf(Props.Create(() => new ProcessorFakeActor())),
-                NetmapSnapshot = new CleanupTable(true, 1)
+                MorphCli = morphclient,
+                State = state,
+                NetmapSnapshot = new CleanupTable(Settings.Default.CleanupEnabled, Settings.Default.CleanupThreshold),
+                WorkPool = actor,
+                HandleNewAudit = OnlyActiveEventHandler(auditContractProcessor.HandleNewAuditRound),
+                HandleAuditSettlements = OnlyAlphabetEventHandler(settlementProcessor.HandleAuditEvent),
+                HandleAlphabetSync = governanceProcessor.HandleAlphabetSync,
             };
+        }
+        public Action<IContractEvent> OnlyActiveEventHandler(Action<IContractEvent> f)
+        {
+            return (IContractEvent morphEvent) => { if (state.IsActive()) f(morphEvent); };
+        }
+        public Action<IContractEvent> OnlyAlphabetEventHandler(Action<IContractEvent> f)
+        {
+            return (IContractEvent morphEvent) => { if (state.IsAlphabet()) f(morphEvent); };
         }
 
         [TestMethod]
@@ -55,6 +119,9 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
         [TestMethod]
         public void HandleNewEpochTest()
         {
+            StorageDB targetDb = new("./Config/Data_LOCODE");
+            var locodeValidator = new Validator(targetDb);
+            processor.NodeValidator = locodeValidator;
             processor.HandleNewEpoch(new NewEpochEvent());
             var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
@@ -105,21 +172,14 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
         }
 
         [TestMethod]
-        public void ListenerTimersHandlersTest()
-        {
-            var handlerInfos = processor.TimersHandlers();
-            Assert.AreEqual(handlerInfos.Length, 1);
-        }
-
-        [TestMethod]
         public void ProcessNewEpochTest()
         {
             processor.ProcessNewEpoch(new NewEpochEvent()
             {
-                EpochNumber = 1
+                EpochNumber = 2
             });
-            var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
-            Assert.IsNotNull(nt);
+            var resetEvent = ExpectMsg<FileStorage.InnerRing.Timer.BlockTimer.ResetEvent>();
+            Assert.IsNotNull(resetEvent);
         }
 
         [TestMethod]
@@ -135,7 +195,7 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
             KeyPair key = accounts.ToArray()[0].GetKey();
             var nodeInfo = new API.Netmap.NodeInfo()
             {
-                PublicKey = Google.Protobuf.ByteString.CopyFrom(key.PublicKey.ToArray()),
+                PublicKey = ByteString.CopyFrom(key.PublicKey.ToArray()),
                 Address = API.Cryptography.KeyExtension.PublicKeyToAddress(key.PublicKey.ToArray()),
                 State = API.Netmap.NodeInfo.Types.State.Online
             };
@@ -152,8 +212,8 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
             KeyPair key = accounts.ToArray()[0].GetKey();
             var nodeInfo = new API.Netmap.NodeInfo()
             {
-                PublicKey = Google.Protobuf.ByteString.CopyFrom(key.PublicKey.ToArray()),
-                Address = Neo.FileStorage.API.Cryptography.KeyExtension.PublicKeyToAddress(key.PublicKey.ToArray()),
+                PublicKey = ByteString.CopyFrom(key.PublicKey.ToArray()),
+                Address = API.Cryptography.KeyExtension.PublicKeyToAddress(key.PublicKey.ToArray()),
                 State = API.Netmap.NodeInfo.Types.State.Online
             };
             processor.ProcessUpdateState(new UpdatePeerEvent()
@@ -170,14 +230,6 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
             {
                 Epoch = 1
             });
-        }
-
-        public class EpochTimerReseter //: IEpochTimerReseter
-        {
-            public void ResetEpochTimer()
-            {
-                return;
-            }
         }
     }
 }

@@ -1,22 +1,23 @@
+using System.Linq;
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
+using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.FileStorage.Morph.Invoker;
+using Neo.FileStorage.API.Cryptography;
+using Neo.FileStorage.API.Reputation;
 using Neo.FileStorage.InnerRing.Processors;
+using Neo.FileStorage.Morph.Invoker;
 using Neo.IO;
-using Neo.Plugins.util;
 using Neo.Wallets;
-using System.Collections.Generic;
-using System.Linq;
 using static Neo.FileStorage.Morph.Event.MorphEvent;
 
 namespace Neo.FileStorage.Tests.InnerRing.Processors
 {
     [TestClass]
-    public class UT_BalanceContractProcessor : TestKit
+    public class UT_ReputationContractProcessor : TestKit
     {
         private NeoSystem system;
-        private BalanceContractProcessor processor;
+        private ReputationContractProcessor processor;
         private Client morphclient;
         private Wallet wallet;
         private TestUtils.TestState state;
@@ -38,49 +39,64 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
                 }
             };
             state = new TestUtils.TestState() { alphabetIndex = 1 };
-            processor = new BalanceContractProcessor()
+            processor = new ReputationContractProcessor()
             {
                 MorphCli = morphclient,
-                MainCli = morphclient,
                 State = state,
-                Convert = new Fixed8ConverterUtil(),
                 WorkPool = actor
             };
         }
 
         [TestMethod]
-        public void HandleLockTest()
+        public void HandlePutReputationTest()
         {
-            processor.HandleLock(new LockEvent()
+            byte[] publicKey = wallet.GetAccounts().Select(p => p.GetKey().PublicKey).ToArray()[0].ToArray();
+            processor.HandlePutReputation(new ReputationPutEvent()
             {
-                Id = new byte[] { 0x01 }
+                Epoch = 1,
+                PeerID = publicKey,
+                Trust = null
             });
             var nt = ExpectMsg<ProcessorFakeActor.OperationResult2>().nt;
             Assert.IsNotNull(nt);
         }
 
         [TestMethod]
-        public void ProcessLockTest()
+        public void ProcessPutTest()
         {
-            state.isAlphabet = true;
-            IEnumerable<WalletAccount> accounts = wallet.GetAccounts();
-            processor.ProcessLock(new LockEvent()
+            byte[] privateKey = wallet.GetAccounts().Select(p => p.GetKey().PrivateKey).ToArray()[0].ToArray();
+            byte[] publicKey = wallet.GetAccounts().Select(p => p.GetKey().PublicKey).ToArray()[0].ToArray();
+            GlobalTrust gt = new()
             {
-                Id = new byte[] { 0x01 },
-                Amount = 0,
-                LockAccount = accounts.ToArray()[0].ScriptHash,
-                UserAccount = accounts.ToArray()[0].ScriptHash
+                Body = new()
+                {
+                    Manager = new()
+                    {
+                        PublicKey = ByteString.CopyFrom(publicKey),
+                    },
+                    Trust = new()
+                    {
+                        Peer = new()
+                        {
+                            PublicKey = ByteString.CopyFrom(publicKey),
+                        },
+                        Value = 1.1,
+                    }
+                }
+            };
+            gt.Signature = KeyExtension.LoadPrivateKey(privateKey).SignMessagePart(gt.Body);
+            state.isAlphabet = true;
+            state.SetEpochCounter(2);
+            processor.ProcessPut(new ReputationPutEvent()
+            {
+                Epoch = 0,
+                PeerID = publicKey,
+                Trust = gt
             });
             var tx = ExpectMsg<ProcessorFakeActor.OperationResult1>().tx;
             Assert.IsNotNull(tx);
             state.isAlphabet = false;
-            processor.ProcessLock(new LockEvent()
-            {
-                Id = new byte[] { 0x01 },
-                Amount = 0,
-                LockAccount = accounts.ToArray()[0].ScriptHash,
-                UserAccount = accounts.ToArray()[0].ScriptHash
-            });
+            processor.ProcessPut(new ReputationPutEvent());
             ExpectNoMsg();
         }
 
@@ -88,14 +104,14 @@ namespace Neo.FileStorage.Tests.InnerRing.Processors
         public void ListenerHandlersTest()
         {
             var handlerInfos = processor.ListenerHandlers();
-            Assert.AreEqual(handlerInfos.Length, 1);
+            Assert.AreEqual(1, handlerInfos.Length);
         }
 
         [TestMethod]
         public void ListenerParsersTest()
         {
             var parserInfos = processor.ListenerParsers();
-            Assert.AreEqual(parserInfos.Length, 1);
+            Assert.AreEqual(1, parserInfos.Length);
         }
     }
 }

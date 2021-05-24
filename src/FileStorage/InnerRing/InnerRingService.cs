@@ -147,6 +147,7 @@ namespace Neo.FileStorage.InnerRing
             {
                 MainCli = mainNetClient,
                 MorphCli = morphClient,
+                ProtocolSettings = main.Settings,
                 State = this,
             };
             // create netmap processor
@@ -192,6 +193,7 @@ namespace Neo.FileStorage.InnerRing
             alphabetContractProcessor = new AlphabetContractProcessor()
             {
                 MorphCli = morphClient,
+                State = this,
                 WorkPool = side.ActorSystem.ActorOf(WorkerPool.Props("AlphabetContract Processor", Settings.Default.AlphabetContractWorkersSize))
             };
             // create reputation processor
