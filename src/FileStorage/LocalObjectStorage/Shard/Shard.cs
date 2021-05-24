@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -10,11 +11,12 @@ using Neo.FileStorage.LocalObjectStorage.Blob;
 using Neo.FileStorage.LocalObjectStorage.Blobstor;
 using Neo.FileStorage.LocalObjectStorage.MetaBase;
 using FSObject = Neo.FileStorage.API.Object.Object;
+using Range = Neo.FileStorage.API.Object.Range;
 
 
 namespace Neo.FileStorage.LocalObjectStorage.Shard
 {
-    public class Shard
+    public class Shard:IDisposable
     {
         private readonly Blobstorage writeCache;
         private readonly Blobstorage blobStor;
@@ -63,8 +65,14 @@ namespace Neo.FileStorage.LocalObjectStorage.Shard
             {
                 if (useWriteCache)
                 {
-                    writeCache.DeleteSmall(address);
-                    writeCache.DeleteBig(address);
+                    try
+                    {
+                        writeCache.DeleteSmall(address);
+                    }
+                    catch (Exception e)
+                    {
+                        writeCache.DeleteBig(address);
+                    }
                 }
                 var blobovniczaID = metaBase.IsSmall(address);
                 if (blobovniczaID.IsEmpty)
@@ -252,6 +260,13 @@ namespace Neo.FileStorage.LocalObjectStorage.Shard
         public ulong WeightValues()
         {
             return freeSpace;
+        }
+
+        public void Dispose()
+        {
+            writeCache?.Dispose();
+            blobStor?.Dispose();
+            metaBase?.Dispose();
         }
     }
 }

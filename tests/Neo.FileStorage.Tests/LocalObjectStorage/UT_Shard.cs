@@ -20,7 +20,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithCache();
+            using var shard = GetShardWithCache();
 
             shard.Put(obj);
 
@@ -35,7 +35,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithoutCache();
+            using var shard = GetShardWithoutCache();
 
             shard.Put(obj);
 
@@ -49,7 +49,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithCache();
+            using var shard = GetShardWithCache();
 
             shard.Put(obj);
 
@@ -64,7 +64,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithoutCache();
+            using var shard = GetShardWithoutCache();
 
             shard.Put(obj);
 
@@ -77,7 +77,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithCache();
+            using var shard = GetShardWithCache();
 
             shard.Put(obj);
 
@@ -95,7 +95,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithoutCache();
+            using var shard = GetShardWithoutCache();
 
             shard.Put(obj);
 
@@ -114,7 +114,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithCache();
+            using var shard = GetShardWithCache();
 
             shard.Put(obj);
 
@@ -132,7 +132,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
         {
             var cid = GenerateContainerID();
             var obj = GenerateRawObjectWithCID(cid);
-            var shard = GetShardWithoutCache();
+            using var shard = GetShardWithoutCache();
 
             shard.Put(obj);
 
@@ -152,7 +152,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
             const int C = 5;
             const int N = 10;
             var addresses = new HashSet<Address>();
-            var shard = GetShardWithCache();
+            using var shard = GetShardWithCache();
 
             for (int i = 0; i < C; i++)
             {
@@ -178,7 +178,7 @@ namespace Neo.FileStorage.Tests.LocalObjectStorage
             const int C = 5;
             const int N = 10;
             var addresses = new HashSet<Address>();
-            var shard = GetShardWithoutCache();
+            using var shard = GetShardWithoutCache();
 
             for (int i = 0; i < C; i++)
             {
